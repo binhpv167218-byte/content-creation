@@ -1,0 +1,20 @@
+# Secrets
+.env
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# Posts — nội dung và ảnh đã tạo (không push lên git)
+posts/
+
+# Context — ảnh cá nhân và dữ liệu scrape
+context/images/
+context/data/
+
+# Outputs — generated files
+outputs/
+
+# Plans — kế hoạch cụ thể (optional, bỏ comment nếu muốn track)
+# plans/

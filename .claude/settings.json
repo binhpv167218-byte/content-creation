@@ -1,0 +1,56 @@
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "permissions": {
+    "allow": ["Bash(gh auth status)", "Bash(git init)", "Bash(git add -A)"]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cp \"$CLAUDE_TOOL_INPUT_FILE\" \"$CLAUDE_TOOL_INPUT_FILE.bak\" 2>/dev/null || true"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx prettier --write \"$CLAUDE_TOOL_OUTPUT_FILE\" 2>/dev/null || true"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \"$(date): $CLAUDE_TOOL_NAME on $CLAUDE_TOOL_OUTPUT_FILE\" >> ~/.claude/activity.log"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell.exe -Command \"(New-Object Media.SoundPlayer 'C:\\Windows\\Media\\chimes.wav').PlaySync()\""
+          },
+          {
+            "type": "command",
+            "command": "powershell.exe -Command \"Add-Type -AssemblyName System.Windows.Forms; $n = New-Object System.Windows.Forms.NotifyIcon; $n.Icon = [System.Drawing.SystemIcons]::Information; $n.BalloonTipTitle = 'Claude Code'; $n.BalloonTipText = 'Claude Code cần bạn'; $n.Visible = $true; $n.ShowBalloonTip(5000)\""
+          }
+        ]
+      }
+    ]
+  }
+}

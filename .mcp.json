@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "gmail": {
+      "command": "node",
+      "args": [
+        "PATH_TO_GMAIL_MCP_SERVER/dist/index.js"
+      ],
+      "_setup": "Thay PATH_TO_GMAIL_MCP_SERVER bằng đường dẫn thực trên máy bạn. Ví dụ: C:/Users/YourName/AppData/Roaming/npm/node_modules/@gongrzhe/server-gmail-autoauth-mcp. Xem README để cài đặt Gmail MCP."
+    }
+  }
+}
