@@ -1,0 +1,34 @@
+name: Auto Publish — Scheduled Posts
+
+on:
+  schedule:
+    # Chạy mỗi 15 phút
+    - cron: "*/15 * * * *"
+  workflow_dispatch: # Cho phép chạy thủ công để test
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run scheduler
+        env:
+          AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+          FACEBOOK_TOKEN_BINH_PHAN_IQI: ${{ secrets.FACEBOOK_TOKEN_BINH_PHAN_IQI }}
+          FACEBOOK_TOKEN_BINH_ME_NHA: ${{ secrets.FACEBOOK_TOKEN_BINH_ME_NHA }}
+          BUFFER_ACCESS_TOKEN: ${{ secrets.BUFFER_ACCESS_TOKEN }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python scripts/schedule_publish.py
