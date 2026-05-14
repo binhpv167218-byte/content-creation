@@ -266,7 +266,7 @@ def buffer_create_post(channel_id: str, caption: str, slide_urls: list, metadata
     mutation CreatePost($input: CreatePostInput!) {
       createPost(input: $input) {
         ... on PostActionSuccess {
-          post { id url }
+          post { id }
         }
         ... on NotFoundError { message }
         ... on UnauthorizedError { message }
@@ -296,12 +296,10 @@ def buffer_create_post(channel_id: str, caption: str, slide_urls: list, metadata
     if "errors" in data:
         raise RuntimeError(f"Buffer error: {data['errors']}")
     result = data.get("data", {}).get("createPost", {})
-    post   = result.get("post", {})
-    post_id = post.get("id")
+    post_id = result.get("post", {}).get("id")
     if not post_id:
         raise RuntimeError(result.get("message", f"Unexpected response: {result}"))
-    # Trả về URL bài viết nếu Buffer cung cấp, fallback về ID
-    return post.get("url") or post_id
+    return post_id
 
 
 # ── Telegram notification ─────────────────────────────────────────────────────

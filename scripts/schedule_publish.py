@@ -9,11 +9,9 @@ Usage:
 """
 
 import json
-import re
 import time
 import argparse
 import os
-import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -234,7 +232,7 @@ def buffer_post(channel_id: str, caption: str, slide_urls: list, buffer_token: s
     mutation = """
     mutation CreatePost($input: CreatePostInput!) {
       createPost(input: $input) {
-        ... on PostActionSuccess { post { id url } }
+        ... on PostActionSuccess { post { id } }
         ... on NotFoundError { message }
         ... on UnauthorizedError { message }
         ... on LimitReachedError { message }
@@ -344,9 +342,7 @@ def notify_telegram(env: dict, slug: str, results: dict):
 
 def publish_post(env: dict, rec: dict, dry_run=False) -> dict:
     fields     = rec["fields"]
-    slug       = fields.get("Slug", "unknown")
     caption    = fields.get("Nội dung", "")
-    fmt        = fields.get("Format", "")
     platforms  = fields.get("Platform", [])
     slide_urls = json.loads(fields.get("Slide URLs", "[]"))
 
