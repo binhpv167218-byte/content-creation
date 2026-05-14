@@ -411,11 +411,19 @@ def main():
     args = parser.parse_args()
 
     env    = load_env()
+
+    # Random delay ±200s: trigger sớm 200s, ngủ thêm 0–400s ngẫu nhiên
+    if not args.dry_run:
+        import random
+        delay = random.randint(0, 400)
+        print(f"⏱  Jitter: {delay}s ({delay//60}m{delay%60:02d}s) — tránh pattern cố định")
+        time.sleep(delay)
+
     now_vn = datetime.utcnow() + timedelta(hours=7)
 
-    print(f"🕐 Kiểm tra lịch: {now_vn.strftime('%d/%m/%Y %H:%M')} (giờ VN)")
+    print(f"🕐 Kiểm tra lịch: {now_vn.strftime('%d/%m/%Y %H:%M:%S')} (giờ VN)")
 
-    due_posts = get_due_posts(env, now_vn, window_min=60, window_max=5)
+    due_posts = get_due_posts(env, now_vn, window_min=60, window_max=10)
 
     if not due_posts:
         print("✓ Không có bài nào cần đăng lúc này.")
