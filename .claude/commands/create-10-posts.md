@@ -4,6 +4,22 @@ Tạo 10 nội dung sẵn sàng xuất bản trong một lần chạy.
 
 Mỗi nội dung phải tự đứng được một mình, không phụ thuộc vào follow-up như "comment X để lấy tài liệu" hay "nhắn tin mình để nhận file".
 
+---
+
+## BƯỚC 0 — HỎI TRƯỚC KHI LÀM (BẮT BUỘC)
+
+**Trước khi bắt đầu bất kỳ bước nào, PHẢI hỏi user:**
+
+> "Batch này mình sẽ viết về dự án nào? (Sun Symphony Residence 5 / Vinhomes Hải Vân Bay / FourS Tower / hoặc kết hợp)"
+
+Chờ user trả lời rồi mới tiếp tục. Câu trả lời xác định:
+
+- Dự án nào xuất hiện trong 4 bài dự án (xem bên dưới)
+- File context dự án nào cần đọc: `context/projects/<tên-dự-án>.md`
+- Thư mục ảnh dự án nào được dùng: `context/images/projects/<tên-dự-án>/`
+
+---
+
 ## Cơ Cấu Nội Dung
 
 ### Theo Phương Pháp (ý tưởng đến từ đâu)
@@ -14,15 +30,26 @@ Mỗi nội dung phải tự đứng được một mình, không phụ thuộc 
 | Trend Surfing     | 3        | Bám các xu hướng đang nổi lên ngay bây giờ trong niche                         |
 | Pain Points       | 2        | Đào sâu nỗi đau thật của khán giả và đưa giải pháp hành động được              |
 
+### Theo Chủ Đề (nội dung nói về gì)
+
+| Chủ đề                  | Số lượng | Mô tả                                                                                   |
+| ----------------------- | -------- | --------------------------------------------------------------------------------------- |
+| Bài về dự án BĐS cụ thể | 4        | Nội dung trực tiếp về dự án user chọn ở Bước 0 — layout, giá, tỷ suất, tiến độ, so sánh |
+| Bài chủ đề khác         | 6        | Kinh nghiệm nghề, thị trường, storytelling cá nhân, phân tích Đà Nẵng — theo quy tắc cũ |
+
+- 4 bài dự án dùng ảnh từ `context/images/projects/<tên-dự-án>/` và thông tin từ file context dự án tương ứng
+- 4 bài dự án nên trải đều qua nhiều phương pháp (viral replication, trend surfing, pain point)
+- Không để 2 bài dự án liên tiếp nhau trong batch
+
 ### Theo Định Dạng (nội dung được đưa ra như thế nào)
 
 Mỗi nội dung **bắt buộc phải có visual**. Không có bài text-only.
 
 | Định dạng             | Số lượng | Mô tả                                                            |
 | --------------------- | -------- | ---------------------------------------------------------------- |
-| Text + Ảnh cá nhân    | 4        | Nội dung chữ + ảnh lấy từ `context/images/` phù hợp với vibe bài |
-| Text + AI Infographic | 4        | Nội dung chữ + infographic tạo bằng Kie.ai có `reference_image`  |
-| Carousel (PDF)        | 2        | Carousel 7-11 slide tạo bởi `scripts/generate-carousel.py`       |
+| Text + Ảnh cá nhân    | 5        | Nội dung chữ + ảnh lấy từ `context/images/` phù hợp với vibe bài |
+| Text + AI Infographic | 2        | Nội dung chữ + infographic tạo bằng Kie.ai có `reference_image`  |
+| Carousel (PDF)        | 3        | Carousel 7-11 slide tạo bởi `scripts/generate-carousel.py`       |
 
 ### Ma Trận Phân Bổ
 
@@ -31,13 +58,13 @@ Phân phối phương pháp qua các định dạng để đảm bảo đa dạn
 | #   | Phương pháp       | Định dạng             | Ghi chú            |
 | --- | ----------------- | --------------------- | ------------------ |
 | 1   | Viral Replication | Text + Ảnh cá nhân    |                    |
-| 2   | Viral Replication | Text + AI Infographic |                    |
-| 3   | Viral Replication | Carousel              |                    |
-| 4   | Viral Replication | Text + AI Infographic | Khác chủ đề bài #2 |
-| 5   | Viral Replication | Text + Ảnh cá nhân    | Khác chủ đề bài #1 |
-| 6   | Trend Surfing     | Text + AI Infographic |                    |
-| 7   | Trend Surfing     | Text + Ảnh cá nhân    |                    |
-| 8   | Trend Surfing     | Carousel              |                    |
+| 2   | Viral Replication | Carousel              |                    |
+| 3   | Viral Replication | Text + Ảnh cá nhân    | Khác chủ đề bài #1 |
+| 4   | Viral Replication | Text + AI Infographic |                    |
+| 5   | Viral Replication | Carousel              | Khác chủ đề bài #2 |
+| 6   | Trend Surfing     | Text + Ảnh cá nhân    |                    |
+| 7   | Trend Surfing     | Carousel              |                    |
+| 8   | Trend Surfing     | Text + Ảnh cá nhân    | Khác chủ đề bài #6 |
 | 9   | Pain Point        | Text + AI Infographic |                    |
 | 10  | Pain Point        | Text + Ảnh cá nhân    |                    |
 

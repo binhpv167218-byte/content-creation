@@ -1,5 +1,19 @@
 {
   "permissions": {
-    "allow": []
+    "allow": [
+      "Bash(cp /Users/macos/Downloads/z7774520964375_51b1a6487a36f4c8bd184d662f6a6122.jpg /Users/macos/Desktop/content-creation/reference/rental-yield-slides/slide-01-cover.jpg)",
+      "Bash(cp /Users/macos/Downloads/z7774520997457_cbdee843036fa5c969de944c3def5554.jpg /Users/macos/Desktop/content-creation/reference/rental-yield-slides/slide-02-title.jpg)",
+      "Bash(cp /Users/macos/Downloads/z7774520997463_8c7baf56a9ad46d0b5666a7057673ad3.jpg /Users/macos/Desktop/content-creation/reference/rental-yield-slides/slide-03-cong-thuc.jpg)",
+      "Bash(cp /Users/macos/Downloads/z7774521037677_ecbc21d1648c7b024a553170240ac772.jpg /Users/macos/Desktop/content-creation/reference/rental-yield-slides/slide-04-ha-noi.jpg)",
+      "Bash(cp /Users/macos/Downloads/z7774521037708_5dafb9015dc598133b07c8c4b9428892.jpg /Users/macos/Desktop/content-creation/reference/rental-yield-slides/slide-05-hcm.jpg)",
+      "Bash(sed -i '' '171s/## 5\\\\. Chuyên Gia/## 6. Chuyên Gia/' /Users/macos/Desktop/content-creation/context/danang-market.md)",
+      "Bash(sed -i '' '183s/## 6\\\\. Pháp Lý/## 7. Pháp Lý/' /Users/macos/Desktop/content-creation/context/danang-market.md)",
+      "Bash(sed -i '' '199s/## 7\\\\. Tổng Quan/## 8. Tổng Quan/' /Users/macos/Desktop/content-creation/context/danang-market.md)",
+      "Bash(python3 -c \"from PIL import Image; print\\('OK:', Image.__file__\\)\")",
+      "Bash(pip3 list *)",
+      "Bash(python3 -m pip install Pillow)",
+      "Bash(python3 scripts/generate-infographic.py --reference reference/infographic-ref-2.jpeg --output posts/004-full-fitout/image.png --prompt 'Light background real estate infographic comparing '\\\\''Bàn Giao Thô'\\\\'' vs '\\\\''Full Fit-Out'\\\\'' căn hộ đầu tư. Grid two-column layout. Left column header '\\\\''Bàn Giao Thô'\\\\'' with bullet costs: Sàn tường trần 80-120 triệu, Nội thất 150-250 triệu, Phòng ngủ 100-150 triệu, Điều hòa đèn 60-100 triệu. Total callout in red: '\\\\''390–620 TRIỆU'\\\\''. Right column header '\\\\''Full Fit-Out'\\\\'' with green checkmarks: 0 đồng hoàn thiện, Cho thuê ngay sau bàn giao, Nội thất đồng bộ cao cấp. Large bold comparison numbers as visual anchors. Footer: '\\\\''Bình Phan | IQI Đà Nẵng'\\\\''. CRITICAL: render Vietnamese diacritics exactly as provided.')",
+      "Bash(python3 scripts/generate-infographic.py --reference reference/infographic-ref-1.jpeg --output posts/006-ty-suat-cho-thue/image.png --prompt 'Light background real estate infographic showing rental yield comparison across 7 Vietnamese cities. Central donut chart with 7 colored segments. Large bold number '\\\\''8–12%'\\\\'' highlighted in center for Đà Nẵng. Right side ranking list: Đà Nẵng 8-12%, Hội An 7-10%, Đà Lạt 6-8%, Phú Quốc 5-8%, Nha Trang 5-7%, TP.HCM 4-6%, Hà Nội 3.5-5.5%. Bold callout box: '\\\\''Đà Nẵng #1 Tỷ Suất Cho Thuê'\\\\''. Flat design city building illustrations. Footer: '\\\\''Bình Phan | IQI Đà Nẵng'\\\\''. CRITICAL: render Vietnamese diacritics exactly as provided.')"
+    ]
   }
 }

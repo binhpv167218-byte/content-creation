@@ -408,3 +408,14 @@ def build_html():
 
 if __name__ == "__main__":
     build_html()
+
+    # Sync posts lên Airtable sau mỗi lần rebuild
+    try:
+        import importlib.util, pathlib
+        _path = pathlib.Path(__file__).parent / "airtable_sync.py"
+        _spec = importlib.util.spec_from_file_location("airtable_sync", _path)
+        _mod  = importlib.util.module_from_spec(_spec)
+        _spec.loader.exec_module(_mod)
+        _mod.sync()
+    except Exception as e:
+        print(f"  Airtable sync skipped: {e}")

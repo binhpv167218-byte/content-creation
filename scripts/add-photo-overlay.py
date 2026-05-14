@@ -1,52 +1,51 @@
 #!/usr/bin/env python3
 """
-Add scroll-stopping text overlay to personal photos.
-
-Adds a semi-transparent dark gradient + bold hook text to a photo,
-matching the style used by top Vietnamese AI/business content creators.
+Add luxury text overlay to personal photos for social media posts.
 
 Usage:
     python3 scripts/add-photo-overlay.py \
-        --photo context/images/photo.jpg \
-        --text "5 sai lầm AI mà 90% nhà kinh doanh đang bỏ lỡ" \
-        --output posts/017-example/image.png
+        --photo context/images/chan-dung-vest-navy-khoanh-tay.jpg \
+        --text "10 năm đất nền — tại sao mình chủ động rời đi" \
+        --highlight "CHỦ ĐỘNG" \
+        --eyebrow "Góc nhìn nghề" \
+        --output posts/010-roi-dat-nen/image.png
 
-    # With highlighted (lime green) words:
+    # Non-person photo (landscape / property):
     python3 scripts/add-photo-overlay.py \
-        --photo context/images/photo.jpg \
-        --text "4 năm làm nghề AI và đây là 3 CÔNG CỤ giúp mình X5 thu nhập" \
-        --highlight "3 CÔNG CỤ" "X5" \
-        --output posts/017-example/image.png
+        --photo context/images/bai-bien-hoang-hon-phan-chieu.jpg \
+        --text "Đà Nẵng Q1 2026 — thị trường đang nói gì" \
+        --no-person \
+        --output posts/NNN/image.png
 
-    # Position: bottom (default) | center | top
-    python3 scripts/add-photo-overlay.py \
-        --photo context/images/photo.jpg \
-        --text "AI trong năm 2026: cửa sổ cơ hội mà 10 năm nữa bạn sẽ tiếc nuối" \
-        --position center \
-        --output posts/017-example/image.png
+Rules:
+  - Main hook text: uppercased, BeVietnamPro-Bold (sans-serif), pastel orange
+  - --highlight words rendered WHITE with shadow
+  - --eyebrow (optional): serif eyebrow line above hook, Cormorant Garamond Light,
+    white, sentence case, small letter-spacing feel
+  - Gradient: linear 0%→75% from H/2 to bottom
+  - Brand mark: top-right, "BìnhPhan" white + "IQI" pastel orange
 """
 
 import argparse
 import os
 import sys
-import textwrap
 from PIL import Image, ImageDraw, ImageFont
 
 # ─────────────────────────────────────────────
-# BRAND CONFIG
+# CONFIG
 # ─────────────────────────────────────────────
-BRAND_NAME   = "AI 5 PHÚT"
-ACCENT_COLOR = (200, 230, 74)        # Lime #C8E64A
-WHITE        = (255, 255, 255)
-BLACK        = (0, 0, 0)
-DARK_OVERLAY = (0, 0, 0, 180)        # Semi-transparent black
+TEXT_COLOR      = (245, 160, 80)    # Pastel orange
+HIGHLIGHT_COLOR = (255, 255, 255)   # White for highlighted words
+BLACK           = (0, 0, 0)
+WHITE           = (255, 255, 255)
+EYEBROW_COLOR   = (255, 255, 255, 200)  # White, slight transparency
 
-# Output canvas
 W, H = 1080, 1350
 
-# Font paths
-FONT_BOLD   = "C:/Windows/Fonts/arialbd.ttf"
-FONT_NORMAL = "C:/Windows/Fonts/arial.ttf"
+FONT_DIR         = "/Users/macos/Library/Fonts"
+FONT_MEDIUM      = f"{FONT_DIR}/BeVietnamPro-Medium.ttf"
+FONT_BOLD        = f"{FONT_DIR}/BeVietnamPro-Bold.ttf"
+FONT_SERIF_LIGHT = f"{FONT_DIR}/CormorantGaramond-Light.ttf"
 
 
 def load_font(path, size):
@@ -57,14 +56,11 @@ def load_font(path, size):
 
 
 def wrap_text(text, font, max_width, draw):
-    """Wrap text to fit within max_width pixels."""
     words = text.split()
-    lines = []
-    current = []
+    lines, current = [], []
     for word in words:
         test = " ".join(current + [word])
-        bbox = draw.textbbox((0, 0), test, font=font)
-        if bbox[2] - bbox[0] <= max_width:
+        if draw.textbbox((0, 0), test, font=font)[2] <= max_width:
             current.append(word)
         else:
             if current:
@@ -75,153 +71,175 @@ def wrap_text(text, font, max_width, draw):
     return lines
 
 
-def draw_text_with_highlights(draw, lines, x_center, y_start, font, highlight_words,
-                               line_spacing=14):
-    """Draw text lines with optional lime-green highlighted words."""
-    font_size = font.size if hasattr(font, 'size') else 56
+def draw_lines(draw, lines, cx, y, font_med, font_semi, hi_set, lh):
+    """Draw hook lines centered at cx.
+    Highlight words: Bold white + multi-layer shadow.
+    Regular words: Medium pastel orange, no shadow."""
     for line in lines:
-        # Measure full line width for centering
-        bbox = draw.textbbox((0, 0), line, font=font)
-        line_w = bbox[2] - bbox[0]
-        line_h = bbox[3] - bbox[1]
+        lw = draw.textbbox((0, 0), line, font=font_med)[2]
+        words = line.split(" ")
+        x = cx - lw // 2
+        for i, word in enumerate(words):
+            is_hi  = word in hi_set
+            font   = font_semi if is_hi else font_med
+            color  = HIGHLIGHT_COLOR if is_hi else TEXT_COLOR
+            suffix = " " if i < len(words) - 1 else ""
+            if is_hi:
+                for sx, sy, sa in [(7, 7, 30), (5, 5, 55), (3, 3, 85), (1, 1, 110)]:
+                    draw.text((x + sx, y + sy), word, font=font, fill=(0, 0, 0, sa))
+            draw.text((x, y), word, font=font, fill=color)
+            x += draw.textbbox((0, 0), word + suffix, font=font)[2]
+        y += lh
+    return y
 
-        if not highlight_words:
-            # Drop shadow
-            draw.text((x_center - line_w // 2 + 3, y_start + 3), line,
-                      font=font, fill=(0, 0, 0, 160))
-            draw.text((x_center - line_w // 2, y_start), line,
-                      font=font, fill=WHITE)
-        else:
-            # Word-by-word coloring
-            words = line.split(" ")
-            x = x_center - line_w // 2
-            for i, word in enumerate(words):
-                color = ACCENT_COLOR if word in highlight_words else WHITE
-                # Shadow
-                draw.text((x + 3, y_start + 3), word, font=font, fill=(0, 0, 0, 160))
-                draw.text((x, y_start), word, font=font, fill=color)
-                word_bbox = draw.textbbox((0, 0), word + (" " if i < len(words)-1 else ""), font=font)
-                x += word_bbox[2] - word_bbox[0]
 
-        y_start += line_h + line_spacing
-    return y_start
+def draw_eyebrow(draw, text, cx, y, font):
+    """Draw serif eyebrow line — centered, white with soft shadow."""
+    tw = draw.textbbox((0, 0), text, font=font)[2]
+    x  = cx - tw // 2
+    draw.text((x + 1, y + 1), text, font=font, fill=(0, 0, 0, 80))
+    draw.text((x, y), text, font=font, fill=WHITE)
+    # thin decorative rule below eyebrow
+    rule_w = min(tw + 40, 320)
+    rule_x = cx - rule_w // 2
+    rule_y = y + draw.textbbox((0, 0), text, font=font)[3] + 8
+    draw.line([(rule_x, rule_y), (rule_x + rule_w, rule_y)],
+              fill=(255, 255, 255, 120), width=1)
 
 
 def add_overlay(photo_path, hook_text, output_path,
-                highlight_words=None, position="bottom"):
-    """Main function: add gradient + text overlay to photo."""
+                highlight_words=None, eyebrow=None,
+                position="bottom", no_person=False):
 
-    # ── Load & resize photo (cover crop — keep aspect ratio) ─
+    # Load & cover-crop to 1080×1350
     img = Image.open(photo_path).convert("RGBA")
-    orig_w, orig_h = img.size
-    scale = max(W / orig_w, H / orig_h)
-    new_w = int(orig_w * scale)
-    new_h = int(orig_h * scale)
-    img = img.resize((new_w, new_h), Image.LANCZOS)
-    left = (new_w - W) // 2
-    top  = (new_h - H) // 2
-    img  = img.crop((left, top, left + W, top + H))
+    ow, oh = img.size
+    scale  = max(W / ow, H / oh)
+    img    = img.resize((int(ow * scale), int(oh * scale)), Image.LANCZOS)
+    nw, nh = img.size
+    img    = img.crop(((nw - W) // 2, (nh - H) // 2,
+                       (nw - W) // 2 + W, (nh - H) // 2 + H))
 
-    # ── Dark gradient overlay ────────────────────────────────
-    overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    draw_ov = ImageDraw.Draw(overlay)
+    # ── Gradient overlay ────────────────────────────────
+    ov = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    dv = ImageDraw.Draw(ov)
 
-    if position == "bottom":
-        # Gradient from transparent at 40% to dark at bottom
-        gradient_start = int(H * 0.42)
-        for y in range(gradient_start, H):
-            t = (y - gradient_start) / (H - gradient_start)
-            alpha = int(200 * min(t * 1.4, 1.0))
-            draw_ov.line([(0, y), (W, y)], fill=(0, 0, 0, alpha))
-    elif position == "top":
-        gradient_end = int(H * 0.45)
-        for y in range(0, gradient_end):
-            t = 1 - (y / gradient_end)
-            alpha = int(190 * min(t * 1.4, 1.0))
-            draw_ov.line([(0, y), (W, y)], fill=(0, 0, 0, alpha))
-    else:  # center
-        # Dark band in the middle
-        band_y1 = int(H * 0.30)
-        band_y2 = int(H * 0.72)
-        for y in range(band_y1, band_y2):
-            dist_from_center = abs(y - (band_y1 + band_y2) // 2)
-            max_dist = (band_y2 - band_y1) // 2
-            t = 1 - (dist_from_center / max_dist)
-            alpha = int(180 * t)
-            draw_ov.line([(0, y), (W, y)], fill=(0, 0, 0, alpha))
+    if no_person:
+        # Smooth fade: 0% at H*0.45 → 70% at bottom
+        fade_s    = int(H * 0.45)
+        max_alpha = int(255 * 0.70)
+        for y in range(fade_s, H):
+            t = (y - fade_s) / (H - fade_s)
+            dv.line([(0, y), (W, y)], fill=(0, 0, 0, int(max_alpha * t)))
+    else:
+        flat_alpha = int(255 * 0.60)
+        if position == "bottom":
+            fade_s    = H // 2
+            max_alpha = int(255 * 0.75)
+            for y in range(fade_s, H):
+                t = (y - fade_s) / (H - fade_s)
+                dv.line([(0, y), (W, y)], fill=(0, 0, 0, int(max_alpha * t)))
+        elif position == "top":
+            fade_s, fade_e = int(H * 1 / 3), H // 2
+            for y in range(0, fade_s):
+                dv.line([(0, y), (W, y)], fill=(0, 0, 0, flat_alpha))
+            for y in range(fade_s, fade_e):
+                t = 1 - (y - fade_s) / (fade_e - fade_s)
+                dv.line([(0, y), (W, y)], fill=(0, 0, 0, int(flat_alpha * t)))
+        else:  # center
+            y1, y2 = int(H * 0.35), int(H * 0.70)
+            mid, half = (y1 + y2) / 2, (y2 - y1) / 2
+            for y in range(y1, y2):
+                t = 1 - abs(y - mid) / half
+                dv.line([(0, y), (W, y)], fill=(0, 0, 0, int(flat_alpha * t)))
 
-    img = Image.alpha_composite(img, overlay)
-
-    # ── Text ─────────────────────────────────────────────────
+    img  = Image.alpha_composite(img, ov)
     draw = ImageDraw.Draw(img)
 
-    # Try large font first, shrink if text too long
-    max_text_w = W - 80
-    for font_size in [50, 45, 39, 34, 29, 25]:
-        font = load_font(FONT_BOLD, font_size)
-        lines = wrap_text(hook_text, font, max_text_w, draw)
-        if len(lines) <= 4:
-            break
+    # ── Fonts ────────────────────────────────────────────
+    font_med    = load_font(FONT_MEDIUM, 38)
+    font_bold   = load_font(FONT_BOLD, 38)
+    font_serif  = load_font(FONT_SERIF_LIGHT, 26)
 
-    line_h = font_size + 14
-    total_text_h = len(lines) * line_h
+    max_w    = W - 160 * 2   # 760px
+    lh       = 38 + 16
+    hook_upper = hook_text.upper()
+    lines    = wrap_text(hook_upper, font_med, max_w, draw)
+    total_h  = len(lines) * lh
 
-    # Position text block
+    # eyebrow height (serif line + rule + gap below)
+    eyebrow_block_h = 0
+    if eyebrow:
+        eb_bbox = draw.textbbox((0, 0), eyebrow, font=font_serif)
+        eyebrow_block_h = eb_bbox[3] + 8 + 1 + 18  # text + rule + gap
+
+    # ── Text anchor ──────────────────────────────────────
     if position == "bottom":
-        text_y = H - total_text_h - 120
+        block_top = int(H * 2 / 3) + 120
     elif position == "top":
-        text_y = 80
+        block_top = 60
     else:
-        text_y = (H - total_text_h) // 2 - 20
+        block_top = (H - eyebrow_block_h - total_h) // 2 - 10
 
-    highlight_set = set(highlight_words) if highlight_words else set()
-    draw_text_with_highlights(draw, lines, W // 2, text_y, font,
-                               highlight_set, line_spacing=16)
+    # Draw eyebrow serif line first
+    if eyebrow:
+        draw_eyebrow(draw, eyebrow, W // 2, block_top, font_serif)
+        block_top += eyebrow_block_h
 
-    # ── Brand mark ───────────────────────────────────────────
-    brand_font = load_font(FONT_BOLD, 28)
-    brand_bbox = draw.textbbox((0, 0), BRAND_NAME, font=brand_font)
-    brand_w = brand_bbox[2] - brand_bbox[0]
-    # Lime pill background
-    pad = 14
-    pill_x1 = W - brand_w - pad * 2 - 30
-    pill_y1 = H - 60
-    pill_x2 = W - 30
-    pill_y2 = H - 28
-    draw.rounded_rectangle([pill_x1, pill_y1, pill_x2, pill_y2],
-                            radius=10, fill=ACCENT_COLOR)
-    draw.text((pill_x1 + pad, pill_y1 + 4), BRAND_NAME,
-              font=brand_font, fill=BLACK)
+    # Build hi_set
+    hi_set = set()
+    for phrase in (highlight_words or []):
+        for w in phrase.upper().split():
+            hi_set.add(w)
 
-    # ── Save ─────────────────────────────────────────────────
+    draw_lines(draw, lines, W // 2, block_top, font_med, font_bold, hi_set, lh)
+
+    # ── Brand mark: top-right ────────────────────────────
+    bf    = load_font(FONT_BOLD, 23)
+    part1 = "BìnhPhan "
+    part2 = "IQI"
+    w1    = draw.textbbox((0, 0), part1, font=bf)[2]
+    w2    = draw.textbbox((0, 0), part2, font=bf)[2]
+    bx    = W - w1 - w2 - 40
+    by    = 36
+    draw.text((bx + 1, by + 1), part1, font=bf, fill=(0, 0, 0, 100))
+    draw.text((bx + w1 + 1, by + 1), part2, font=bf, fill=(0, 0, 0, 100))
+    draw.text((bx, by), part1, font=bf, fill=WHITE)
+    draw.text((bx + w1, by), part2, font=bf, fill=TEXT_COLOR)
+
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
     img.convert("RGB").save(output_path, "PNG", quality=95)
     print(f"Saved: {output_path} ({os.path.getsize(output_path):,} bytes)")
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Add scroll-stopping text overlay to personal photos"
+    p = argparse.ArgumentParser(
+        description="Add luxury text overlay to personal photos"
     )
-    parser.add_argument("--photo",   required=True, help="Input photo path")
-    parser.add_argument("--text",    required=True, help="Hook text to overlay")
-    parser.add_argument("--output",  required=True, help="Output image path")
-    parser.add_argument("--highlight", nargs="*", default=[],
-                        help="Words to highlight in lime green")
-    parser.add_argument("--position", choices=["bottom", "top", "center"],
-                        default="bottom", help="Text position (default: bottom)")
-    args = parser.parse_args()
+    p.add_argument("--photo",     required=True)
+    p.add_argument("--text",      required=True)
+    p.add_argument("--output",    required=True)
+    p.add_argument("--highlight", nargs="*", default=[])
+    p.add_argument("--eyebrow",   default=None,
+                   help="Serif eyebrow line above main hook (Cormorant Garamond Light)")
+    p.add_argument("--position",  choices=["bottom", "top", "center"],
+                   default="bottom")
+    p.add_argument("--no-person", action="store_true",
+                   help="Non-person photo: flat 50%% at bottom 1/3")
+    args = p.parse_args()
 
     if not os.path.exists(args.photo):
         print(f"ERROR: photo not found: {args.photo}", file=sys.stderr)
         sys.exit(1)
 
     add_overlay(
-        photo_path=args.photo,
-        hook_text=args.text,
-        output_path=args.output,
-        highlight_words=args.highlight or [],
-        position=args.position,
+        photo_path      = args.photo,
+        hook_text       = args.text,
+        output_path     = args.output,
+        highlight_words = args.highlight,
+        eyebrow         = args.eyebrow,
+        position        = args.position,
+        no_person       = args.no_person,
     )
 
 

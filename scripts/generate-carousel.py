@@ -1,560 +1,659 @@
 #!/usr/bin/env python3
 """
-Generate a LinkedIn carousel PDF with a clean, professional style.
+Generate Instagram/TikTok carousel PDF — premium portrait photo style.
 
-Style: Cream background, serif typography, minimalist geometric illustrations,
-accent color highlights, brand banner.
+Style: Portrait photo of Bình (face visible upper half) + gradient overlay
+(transparent top → dark bottom). Large lime number + ALL CAPS label + white
+heading in the middle zone. Dense body text full-width below.
+Matches reference: reference/carousel-ref/q1.jpg – q6.jpg
 
 Usage:
-    python3 scripts/generate-carousel.py --json content.json --output posts/001-test/carousel.pdf
-    python3 scripts/generate-carousel.py  # uses built-in demo content
+    python3 scripts/generate-carousel.py \
+        --json posts/NNN-slug/content.json \
+        --output posts/NNN-slug/carousel.pdf \
+        --photo context/images/IMG_7928.jpg
 
-Dimensions: 1080x1350px (4:5 LinkedIn carousel standard)
+Highlight syntax: wrap with **word** for lime accent inline.
+Bullet syntax: lines starting with "• " get bullet indentation.
 
-Customize: Edit the BRAND section below to match your brand.
+Dimensions: 1080×1350 px (4:5 — Instagram/TikTok standard)
 """
 
-import json
-import math
-import os
-import sys
-import argparse
-import textwrap
+import json, os, re, argparse, glob
 from PIL import Image, ImageDraw, ImageFont
 
-# ============================================================
-# BRAND CUSTOMIZATION — Edit these values for YOUR brand
-# ============================================================
-BRAND_NAME = "YOUR BRAND"               # Appears on banner — CHANGE THIS
-AUTHOR_NAME = "Your Name"               # Appears on CTA slide — CHANGE THIS
-AUTHOR_ROLE = "Founder, Your Company"   # Appears on CTA slide — CHANGE THIS
+# ─────────────────────────────────────────────
+# BRAND
+# ─────────────────────────────────────────────
+BRAND_LOGO   = "BìnhPhan IQI"                # top-right logo mark
+BRAND_FULL   = "Bình Phan  |  IQI Đà Nẵng"
+AUTHOR_NAME  = "Bình Phan"
+AUTHOR_ROLE  = "IQI Đà Nẵng  ·  0905 436 789"
 
-# --- BRAND COLORS (RGB) ---
-BG = (245, 243, 238)       # #F5F3EE cream background
-TEXT = (26, 26, 26)         # #1A1A1A black text
-ACCENT = (200, 230, 74)    # #C8E64A lime green — CHANGE THIS to your accent color
-SUBTLE_GREEN = (232, 240, 216)  # Light accent for decorative circles
-BANNER = (26, 26, 26)      # #1A1A1A dark banner
-WHITE = (255, 255, 255)
-GRAY = (120, 120, 120)     # #787878
-LIGHT_CIRCLE = (225, 222, 215)  # Decorative circles
-# ============================================================
+# ─────────────────────────────────────────────
+# COLORS
+# ─────────────────────────────────────────────
+LIME          = (200, 230, 74)    # #C8E64A — number accent, dots
+WHITE         = (255, 255, 255)
+OFF_WHITE     = (240, 240, 240)   # body text
+DIM_WHITE     = (210, 210, 210)   # secondary body
+GRAY          = (160, 160, 160)   # brand full tag
+HEADING_COLOR = (245, 160, 80)    # pastel orange — headings, highlights, takeaway
 
-# --- DIMENSIONS ---
-W = 1080
-H = 1350
+W, H = 1080, 1620   # 2:3 ratio — matches q1-q6 reference proportions
 
-# --- FONTS ---
-FONT_DIR = os.path.expanduser("~/Library/Fonts")
-SYSTEM_FONTS = "/System/Library/Fonts/Supplemental"
-WIN_FONTS = os.path.join(os.environ.get("WINDIR", "C:\\Windows"), "Fonts")
+# Text zone: 5/7 of canvas width, centered horizontally
+TEXT_W = W * 5 // 7        # 771 px
+TEXT_X = (W - TEXT_W) // 2  # 154 px — left edge
 
+# ─────────────────────────────────────────────
+# FONTS — Be Vietnam Pro
+# ─────────────────────────────────────────────
+_FD  = os.path.expanduser("~/Library/Fonts")
+_SS  = "/System/Library/Fonts/Supplemental"
+_SF  = "/System/Library/Fonts"
 
-def _find_font(names):
-    """Return the first available font path from the candidate list."""
-    search_dirs = [FONT_DIR, SYSTEM_FONTS, "/System/Library/Fonts", WIN_FONTS]
-    for name in names:
-        for d in search_dirs:
-            path = os.path.join(d, name)
-            if os.path.exists(path):
-                return path
+def _fp(*names):
+    for n in names:
+        for d in [_FD, _SS, _SF]:
+            p = os.path.join(d, n)
+            if os.path.exists(p):
+                return p
     return None
 
+_BOLD     = _fp("BeVietnamPro-Bold.ttf")
+_SEMIBOLD = _fp("BeVietnamPro-SemiBold.ttf")
+_MEDIUM   = _fp("BeVietnamPro-Medium.ttf")
+_REGULAR  = _fp("BeVietnamPro-Regular.ttf")
+_ITALIC   = _fp("BeVietnamPro-Italic.ttf")
+_LIGHT    = _fp("BeVietnamPro-Light.ttf")
 
-def _load_font(size, *candidates):
-    """Prefer Unicode-capable fonts so Vietnamese text keeps its diacritics."""
-    for path in candidates:
-        if not path:
-            continue
-        try:
-            return ImageFont.truetype(path, size)
-        except OSError:
-            continue
-    raise RuntimeError("No usable Unicode font found for carousel rendering.")
-
-SERIF_BOLD_PATH = _find_font([
-    "Times New Roman Bold.ttf",
-    "timesbd.ttf",
-    "georgiab.ttf",
-    "Georgia Bold.ttf",
-    "GeorgiaBold.ttf",
-    "Georgia-Bold.ttf",
-    "Times.ttc",
-])
-SERIF_ITALIC_PATH = _find_font([
-    "Times New Roman Italic.ttf",
-    "timesi.ttf",
-    "georgiai.ttf",
-    "Georgia Italic.ttf",
-    "GeorgiaItalic.ttf",
-    "Georgia Bold Italic.ttf",
-    "Times.ttc",
-])
-SERIF_PATH = _find_font([
-    "Times New Roman.ttf",
-    "times.ttf",
-    "georgia.ttf",
-    "Georgia.ttf",
-    "Times.ttc",
-    "Arial Unicode.ttf",
-])
-SANS_BOLD_PATH = _find_font([
-    "Arial Bold.ttf",
-    "arialbd.ttf",
-    "tahomabd.ttf",
-    "Tahoma Bold.ttf",
-    "Arial Unicode.ttf",
-    "HelveticaNeue.ttc",
-    "Helvetica.ttc",
-    "arial.ttf",
-])
-SANS_PATH = _find_font([
-    "Arial Unicode.ttf",
-    "arial.ttf",
-    "Arial.ttf",
-    "tahoma.ttf",
-    "Tahoma.ttf",
-    "HelveticaNeue.ttc",
-    "Helvetica.ttc",
-    "SFNS.ttf",
-])
-
-def font_serif_bold(size):
-    return _load_font(size, SERIF_BOLD_PATH, SERIF_PATH, SANS_BOLD_PATH, SANS_PATH)
-
-def font_serif_italic(size):
-    return _load_font(size, SERIF_ITALIC_PATH, SERIF_PATH, SANS_PATH)
-
-def font_serif(size):
-    return _load_font(size, SERIF_PATH, SANS_PATH)
-
-def font_sans_bold(size):
-    return _load_font(size, SANS_BOLD_PATH, SANS_PATH, SERIF_BOLD_PATH)
-
-def font_sans(size):
-    return _load_font(size, SANS_PATH, SANS_BOLD_PATH, SERIF_PATH)
+_FB_BOLD = _fp("Arial Bold.ttf","arialbd.ttf")
+_FB_REG  = _fp("Arial Unicode.ttf","arial.ttf","Arial.ttf")
+_FB_ITAL = _fp("Arial Italic.ttf","ariali.ttf")
 
 
-# --- DRAWING HELPERS ---
+def _load(sz, *paths):
+    for p in paths:
+        if p and os.path.exists(p):
+            try: return ImageFont.truetype(p, sz)
+            except OSError: pass
+    return ImageFont.load_default()
 
-def new_slide():
-    img = Image.new("RGB", (W, H), BG)
-    draw = ImageDraw.Draw(img)
-    return img, draw
+def font_bold(sz):      return _load(sz, _BOLD,     _FB_BOLD, _FB_REG)
+def font_semibold(sz):  return _load(sz, _SEMIBOLD,  _BOLD,    _FB_BOLD)
+def font_medium(sz):    return _load(sz, _MEDIUM,    _REGULAR, _FB_REG)
+def font_regular(sz):   return _load(sz, _REGULAR,   _FB_REG)
+def font_italic(sz):    return _load(sz, _ITALIC,    _FB_ITAL, _FB_REG)
+def font_light(sz):     return _load(sz, _LIGHT,     _REGULAR, _FB_REG)
+def font_bolditalic(sz): return _load(sz, _ITALIC,   _FB_ITAL, _FB_REG)  # italic fallback
 
-def wrap_text(text, font, max_width):
-    """Word wrap text to fit within max_width pixels."""
+
+# ─────────────────────────────────────────────
+# HELPERS
+# ─────────────────────────────────────────────
+
+def _tw(t, f):
+    b = f.getbbox(t); return b[2]-b[0]
+
+def _th(t, f):
+    b = f.getbbox(t); return b[3]-b[1]
+
+def _lh(f, mul=1.22):
+    return int(_th("Agj", f) * mul)
+
+
+_NUM_RE = re.compile(r'(\d[\d.,/%+]*)')   # standalone numeric token
+
+# Cover title: "số + keyword" compounds rendered WHITE (base = HEADING_COLOR)
+_COVER_COMPOUND_RE = re.compile(
+    r'\d[\d.,]*\s+(?:điều|lý do|bí mật|nguyên tắc|con số|năm|ví dụ|bước|lần|cách|quyết định|câu hỏi|nguyên lý)',
+    re.IGNORECASE | re.UNICODE
+)
+
+# Compound number+unit expressions to highlight as a whole phrase
+_COMPOUND_RE = re.compile(
+    r'tầng\s+\d[\d\-]*'                                          # tầng 5, tầng 7-10
+    r'|\d[\d.,]*(?:[-–]\d[\d.,]*)?(?:m²|m2|km²|km|%|ha)'        # 20m2, 2km, 59% (no space)
+    r'|\d[\d.,]*(?:[-–]\d[\d.,]*)?\s+'
+      r'(?:triệu|tỷ|năm|tháng|ngày|tuần|điều|ví dụ|lần|căn|tòa|tháp|phòng|block)',
+    re.IGNORECASE | re.UNICODE
+)
+
+
+def wrap_text(text, font, max_w):
+    """Plain word-wrap. Returns list of line strings."""
     words = text.split()
-    lines = []
-    current = ""
-    for word in words:
-        test = f"{current} {word}".strip()
-        bbox = font.getbbox(test)
-        if bbox[2] - bbox[0] <= max_width:
-            current = test
+    lines, cur, cw = [], "", 0
+    sp = _tw(" ", font)
+    for w in words:
+        ww = _tw(w, font)
+        gap = sp if cur else 0
+        if cw + gap + ww <= max_w or not cur:
+            cur = f"{cur} {w}".strip(); cw += gap + ww
         else:
-            if current:
-                lines.append(current)
-            current = word
-    if current:
-        lines.append(current)
+            lines.append(cur); cur, cw = w, ww
+    if cur: lines.append(cur)
     return lines
 
-def text_width(text, font):
-    bbox = font.getbbox(text)
-    return bbox[2] - bbox[0]
 
-def text_height(text, font):
-    bbox = font.getbbox(text)
-    return bbox[3] - bbox[1]
-
-def draw_banner(draw, text=None):
-    """Dark bottom banner with branding."""
-    if text is None:
-        text = BRAND_NAME
-    banner_h = 80
-    draw.rectangle([(0, H - banner_h), (W, H)], fill=BANNER)
-    f = font_sans_bold(26)
-    tw = text_width(text, f)
-    draw.text(((W - tw) // 2, H - banner_h + (banner_h - 26) // 2), text, font=f, fill=WHITE)
-
-def draw_decorative_circles(draw, cx, cy, radius=220, color=None):
-    """Overlapping translucent circles (flower-of-life motif)."""
-    if color is None:
-        color = SUBTLE_GREEN
-    overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    odraw = ImageDraw.Draw(overlay)
-    fill = (*color, 60)
-    offsets = [
-        (0, 0),
-        (0, radius * 0.6),
-        (0, -radius * 0.6),
-        (radius * 0.52, radius * 0.3),
-        (-radius * 0.52, radius * 0.3),
-        (radius * 0.52, -radius * 0.3),
-        (-radius * 0.52, -radius * 0.3),
-    ]
-    for dx, dy in offsets:
-        x, y = int(cx + dx), int(cy + dy)
-        odraw.ellipse([(x - radius, y - radius), (x + radius, y + radius)], fill=fill)
-    return overlay
-
-def draw_accent_dot(draw, x, y, r=12):
-    draw.ellipse([(x - r, y - r), (x + r, y + r)], fill=ACCENT)
-
-def draw_black_dot(draw, x, y, r=10):
-    draw.ellipse([(x - r, y - r), (x + r, y + r)], fill=TEXT)
-
-def draw_circle_outline(draw, x, y, r=10, width=2):
-    draw.ellipse([(x - r, y - r), (x + r, y + r)], outline=TEXT, width=width)
+def _word_width(word, f_base, f_hi):
+    """Measure a word accounting for mixed fonts in highlighted tokens."""
+    if f_hi is f_base:
+        return _tw(word, f_base)
+    total = 0
+    for tok in _NUM_RE.split(word):
+        if not tok: continue
+        total += _tw(tok, f_hi if _NUM_RE.fullmatch(tok) else f_base)
+    return total
 
 
-# --- ILLUSTRATION GENERATORS ---
+def draw_rich(draw, text, font, x, y, max_w,
+              color=OFF_WHITE, hi=LIME, bullet_indent=28, mul=1.22,
+              font_hi=None, auto_hi_nums=False):
+    """
+    Render text with:
+      **word**  → hi color + font_hi
+      • lines   → bullet with indent
+      auto_hi_nums=True → numeric tokens auto-highlighted
+    Returns y after last line.
+    """
+    if font_hi is None:
+        font_hi = font
+    lh = _lh(font, mul)
+    sp = _tw(" ", font)
+    raw_lines = text.split("\n")
 
-def illust_radial_dots(draw, cx, cy):
-    r = 80
-    for i in range(5):
-        angle = math.radians(90 + i * 72)
-        x = int(cx + r * math.cos(angle))
-        y = int(cy + r * math.sin(angle))
-        draw_black_dot(draw, x, y, 14)
-    draw_accent_dot(draw, cx, cy, 16)
+    for raw in raw_lines:
+        raw = raw.strip()
+        if not raw:
+            y += lh // 2
+            continue
 
-def illust_stacked_bars(draw, cx, cy):
-    bar_h = 20
-    widths = [200, 300, 250, 350, 180]
-    start_y = cy - len(widths) * (bar_h + 14) // 2
-    for i, w in enumerate(widths):
-        y = start_y + i * (bar_h + 14)
-        x = cx - w // 2
-        color = ACCENT if i == 1 else LIGHT_CIRCLE
-        draw.rounded_rectangle([(x, y), (x + w, y + bar_h)], radius=10, fill=color)
+        is_bullet = raw.startswith("• ") or raw.startswith("•")
+        if is_bullet:
+            raw = raw.lstrip("•").strip()
+            dot_r = 4
+            dot_y = y + lh // 2 - dot_r
+            draw.ellipse([(x, dot_y), (x + dot_r*2, dot_y + dot_r*2)], fill=color)
+            line_x, line_max = x + bullet_indent, max_w - bullet_indent
+        else:
+            line_x, line_max = x, max_w
 
-def illust_concentric_circles(draw, cx, cy):
-    for r in [100, 75, 50]:
-        draw.ellipse([(cx - r, cy - r), (cx + r, cy + r)], outline=LIGHT_CIRCLE, width=3)
-    draw_accent_dot(draw, cx, cy, 20)
-
-def illust_grid_dots(draw, cx, cy):
-    spacing = 55
-    for row in range(3):
-        for col in range(3):
-            x = cx + (col - 1) * spacing
-            y = cy + (row - 1) * spacing
-            if row == 1 and col == 1:
-                draw_accent_dot(draw, x, y, 14)
+        # Parse **highlight** + compound/standalone number detection
+        parts = []
+        for seg in re.split(r'(\*\*[^*]+\*\*)', raw):
+            if seg.startswith('**') and seg.endswith('**'):
+                for w in seg[2:-2].split(): parts.append((w, True))
             else:
-                draw_black_dot(draw, x, y, 10)
+                # Wrap compound expressions first, then re-split
+                if auto_hi_nums:
+                    seg = _COMPOUND_RE.sub(r'**\g<0>**', seg)
+                for subseg in re.split(r'(\*\*[^*]+\*\*)', seg):
+                    if subseg.startswith('**') and subseg.endswith('**'):
+                        for w in subseg[2:-2].split(): parts.append((w, True))
+                    else:
+                        for w in subseg.split():
+                            is_num = auto_hi_nums and bool(_NUM_RE.fullmatch(w))
+                            parts.append((w, is_num))
 
-def illust_ascending_steps(draw, cx, cy):
-    step_w = 60
-    step_h = 30
-    steps = 5
-    start_x = cx - (steps * step_w) // 2
-    base_y = cy + 80
-    for i in range(steps):
-        x = start_x + i * step_w
-        h = step_h * (i + 1)
-        color = ACCENT if i == steps - 1 else LIGHT_CIRCLE
-        draw.rectangle([(x, base_y - h), (x + step_w - 8, base_y)], fill=color)
+        # Word-wrap using per-token font width
+        lines_out, cur_line, cw = [], [], 0
+        for word, is_hi in parts:
+            ww = _tw(word, font_hi if is_hi else font)
+            gap = sp if cur_line else 0
+            if cw + gap + ww <= line_max or not cur_line:
+                cur_line.append((word, is_hi)); cw += gap + ww
+            else:
+                lines_out.append(cur_line)
+                cur_line, cw = [(word, is_hi)], ww
+        if cur_line: lines_out.append(cur_line)
 
-def illust_triangle_dots(draw, cx, cy):
-    positions = [
-        (0, -70), (-50, 20), (50, 20),
-        (-100, 70), (0, 70), (100, 70),
-    ]
-    for i, (dx, dy) in enumerate(positions):
-        if i == 0:
-            draw_accent_dot(draw, cx + dx, cy + dy, 16)
+        for line_parts in lines_out:
+            cx = line_x
+            for i, (word, is_hi) in enumerate(line_parts):
+                if i > 0:
+                    draw.text((cx, y), " ", font=font, fill=color)
+                    cx += sp
+                f = font_hi if is_hi else font
+                draw.text((cx, y), word, font=f, fill=(hi if is_hi else color))
+                cx += _tw(word, f)
+            y += lh
+
+    return y
+
+
+# ── Heading with inline numbers at 60pt white ─────────────────────────────
+
+def wrap_heading_mixed(text, f_base, max_w, num_pt=70):
+    """Word-wrap heading, measuring numeric tokens at num_pt bold."""
+    f_num = font_bold(num_pt)
+    sp = _tw(" ", f_base)
+    words, lines, cur, cw = text.split(), [], "", 0
+    for word in words:
+        ww = sum(
+            _tw(t, f_num if _NUM_RE.fullmatch(t) else f_base)
+            for t in _NUM_RE.split(word) if t
+        )
+        gap = sp if cur else 0
+        if cw + gap + ww <= max_w or not cur:
+            cur = (cur + " " + word).strip(); cw += gap + ww
         else:
-            draw_black_dot(draw, cx + dx, cy + dy, 12)
-
-def illust_wave_dots(draw, cx, cy):
-    points = []
-    for i in range(7):
-        x = cx - 180 + i * 60
-        y = int(cy + math.sin(i * 1.2) * 50)
-        points.append((x, y))
-    for i in range(len(points) - 1):
-        draw.line([points[i], points[i + 1]], fill=LIGHT_CIRCLE, width=3)
-    for i, (x, y) in enumerate(points):
-        if i == 3:
-            draw_accent_dot(draw, x, y, 14)
-        else:
-            draw_black_dot(draw, x, y, 8)
-
-def illust_diamond(draw, cx, cy):
-    size = 80
-    points = [(cx, cy - size), (cx + size, cy), (cx, cy + size), (cx - size, cy)]
-    draw.polygon(points, outline=TEXT, width=3)
-    draw_accent_dot(draw, cx, cy, 16)
-    for px, py in points:
-        draw_black_dot(draw, px, py, 8)
-
-def illust_circles_row(draw, cx, cy):
-    spacing = 65
-    count = 5
-    start_x = cx - (count - 1) * spacing // 2
-    for i in range(count):
-        x = start_x + i * spacing
-        if i == 2:
-            draw_accent_dot(draw, x, cy, 25)
-        else:
-            draw_circle_outline(draw, x, cy, 25, 3)
-
-ILLUSTRATIONS = [
-    illust_radial_dots,
-    illust_stacked_bars,
-    illust_concentric_circles,
-    illust_grid_dots,
-    illust_ascending_steps,
-    illust_triangle_dots,
-    illust_wave_dots,
-    illust_diamond,
-    illust_circles_row,
-]
+            lines.append(cur); cur, cw = word, ww
+    if cur: lines.append(cur)
+    return lines
 
 
-# --- SLIDE GENERATORS ---
+def draw_heading_line_mixed(draw, line, f_base, x, y, num_pt=70):
+    """Render one heading line: text in HEADING_COLOR, numeric tokens WHITE at num_pt."""
+    f_num = font_bold(num_pt)
+    sp    = _tw(" ", f_base)
+    bh    = _th("H", f_base)
+    cx    = x
+    for i, word in enumerate(line.split()):
+        if i > 0:
+            draw.text((cx, y), " ", font=f_base, fill=HEADING_COLOR)
+            cx += sp
+        for tok in _NUM_RE.split(word):
+            if not tok: continue
+            if _NUM_RE.fullmatch(tok):
+                th = _th(tok, f_num)
+                dy = max(0, (th - bh) // 2)
+                draw.text((cx + 1, y - dy + 1), tok, font=f_num, fill=(0,0,0,80))
+                draw.text((cx, y - dy), tok, font=f_num, fill=WHITE)
+                cx += _tw(tok, f_num)
+            else:
+                draw.text((cx, y), tok, font=f_base, fill=HEADING_COLOR)
+                cx += _tw(tok, f_base)
 
-def make_cover_slide(title, emphasis=None):
-    """Cover/title slide."""
-    img, draw = new_slide()
 
-    overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    odraw = ImageDraw.Draw(overlay)
+# ─────────────────────────────────────────────
+# BACKGROUND + OVERLAY
+# ─────────────────────────────────────────────
 
-    fill_green = (*SUBTLE_GREEN, 45)
-    fill_cream = (*LIGHT_CIRCLE, 35)
-    for dx, dy in [(0, 0), (0, 130), (0, -130), (113, 65), (-113, 65), (113, -65), (-113, -65)]:
-        cx, cy = W // 2 + dx, H // 2 + 50 + dy
-        odraw.ellipse([(cx - 200, cy - 200), (cx + 200, cy + 200)], fill=fill_green)
+def load_and_crop(photo_path):
+    """Fill-crop to W×H, top-biased to keep face in upper portion."""
+    img = Image.open(photo_path).convert("RGB")
+    iw, ih = img.size
+    ratio = max(W / iw, H / ih)
+    nw, nh = int(iw * ratio), int(ih * ratio)
+    img = img.resize((nw, nh), Image.LANCZOS)
+    ox = (nw - W) // 2
+    # Top-biased: use 15% from top (not 50%) so face stays visible
+    oy = max(0, int((nh - H) * 0.15))
+    return img.crop((ox, oy, ox + W, oy + H))
 
-    for dx, dy in [(80, 0), (0, 80), (-80, 0), (0, -80)]:
-        cx, cy = W - 180 + dx, 220 + dy
-        odraw.ellipse([(cx - 60, cy - 60), (cx + 60, cy + 60)], fill=fill_cream)
-    for dx, dy in [(60, 0), (0, 60), (-60, 0), (0, -60)]:
-        cx, cy = 160 + dx, H - 280 + dy
-        odraw.ellipse([(cx - 50, cy - 50), (cx + 50, cy + 50)], fill=fill_cream)
 
-    img_rgba = img.convert("RGBA")
-    img_rgba = Image.alpha_composite(img_rgba, overlay)
-    img = img_rgba.convert("RGB")
+OVERLAY_ALPHA = 140  # 55% uniform black overlay across full photo
+
+
+def make_bg(photo_path=None):
+    """Photo + uniform 55% black overlay, or solid dark fallback."""
+    if photo_path and os.path.exists(photo_path):
+        base = load_and_crop(photo_path).convert("RGBA")
+        overlay = Image.new("RGBA", (W, H), (0, 0, 0, OVERLAY_ALPHA))
+        return Image.alpha_composite(base, overlay).convert("RGB")
+    return Image.new("RGB", (W, H), (15, 15, 15))
+
+
+# ─────────────────────────────────────────────
+# BRAND ELEMENTS
+# ─────────────────────────────────────────────
+
+def draw_brand_logo(draw):
+    """'BìnhPhan ' in WHITE, 'IQI' in HEADING_COLOR."""
+    f       = font_semibold(26)
+    prefix  = "BìnhPhan "
+    suffix  = "IQI"
+    total_w = _tw(BRAND_LOGO, f)
+    x = W - total_w - 48
+    y = 36
+    draw.text((x + 1, y + 1), BRAND_LOGO, font=f, fill=(0, 0, 0, 100))
+    draw.text((x, y), prefix, font=f, fill=WHITE)
+    draw.text((x + _tw(prefix, f), y), suffix, font=f, fill=HEADING_COLOR)
+
+
+def draw_num_dot(draw, cx, y, r=7):
+    """Decorative lime dot — below number."""
+    draw.ellipse([(cx - r, y), (cx + r, y + r*2)], fill=LIME)
+
+
+def draw_separator_dot(draw, x, y, r=5):
+    """White separator dot between heading and body."""
+    draw.ellipse([(x, y), (x + r*2, y + r*2)], fill=WHITE)
+
+
+# ─────────────────────────────────────────────
+# NUMBER DISPLAY — strip leading zero
+# ─────────────────────────────────────────────
+
+def display_num(raw):
+    """'01' → '1', '10' → '10', 'A' → 'A'."""
+    s = str(raw).strip()
+    if s.isdigit():
+        return str(int(s))   # removes leading zero
+    return s
+
+
+# ─────────────────────────────────────────────
+# SLIDE GENERATORS
+# ─────────────────────────────────────────────
+
+NUM_Y    = 740      # y where text zone starts — below face zone
+BODY_GAP = 24
+
+
+def make_cover_slide(title, subtitle="", photo_path=None):
+    img = make_bg(photo_path)
     draw = ImageDraw.Draw(img)
+    draw_brand_logo(draw)
 
-    dot_positions = [(120, 160), (200, 120), (160, 200), (W - 140, 180), (W - 200, 130), (W - 170, 220)]
-    for x, y in dot_positions:
-        draw.ellipse([(x - 4, y - 4), (x + 4, y + 4)], fill=LIGHT_CIRCLE)
+    # Accent bar — HEADING_COLOR
+    draw.rectangle([(TEXT_X, NUM_Y - 36), (TEXT_X + 80, NUM_Y - 31)], fill=HEADING_COLOR)
 
-    line_y = H // 2 - 180
-    draw.line([(W // 2 - 60, line_y), (W // 2 + 60, line_y)], fill=ACCENT, width=4)
+    # Title — ALL CAPS, 68pt, HEADING_COLOR; "số + keyword" compounds → WHITE
+    f_title = font_bold(68)
+    y = NUM_Y
+    title_marked = _COVER_COMPOUND_RE.sub(r'**\g<0>**', title)
+    title_final  = title_marked.upper()
+    y = draw_rich(draw, title_final, f_title, TEXT_X, y, TEXT_W,
+                  color=HEADING_COLOR, hi=WHITE, font_hi=f_title,
+                  mul=1.35)
 
-    margin = 100
-    max_w = W - margin * 2
-    f_title = font_serif_bold(72)
-    f_italic = font_serif_italic(72)
+    # Rule — HEADING_COLOR
+    y += 18
+    draw.rectangle([(TEXT_X, y), (TEXT_X + 96, y + 4)], fill=HEADING_COLOR)
+    y += 26
 
-    lines = wrap_text(title, f_title, max_w)
-    line_h = 95
-    total_h = len(lines) * line_h
-    start_y = (H // 2) - total_h // 2 + 30
+    if subtitle:
+        f_sub    = font_regular(33)     # 26pt × 1.25 = 32.5 → 33pt
+        f_sub_hi = font_bolditalic(33)
+        y = draw_rich(draw, subtitle, f_sub, TEXT_X, y, TEXT_W,
+                      color=OFF_WHITE, hi=HEADING_COLOR,
+                      font_hi=f_sub_hi, auto_hi_nums=True,
+                      mul=1.90)
 
-    for i, line in enumerate(lines):
-        y = start_y + i * line_h
-        if emphasis and emphasis.lower() in line.lower():
-            f = f_italic
-        else:
-            f = f_title
-        tw = text_width(line, f)
-        draw.text(((W - tw) // 2, y), line, font=f, fill=TEXT)
-
-    dot_y = start_y + len(lines) * line_h + 40
-    draw_accent_dot(draw, W // 2, dot_y, 10)
-
-    f_hint = font_sans(20)
-    hint = "swipe to read"
-    tw = text_width(hint, f_hint)
-    draw.text(((W - tw) // 2, H - 140), hint, font=f_hint, fill=GRAY)
-    arrow_y = H - 118
-    arrow_x = W // 2
-    draw.polygon([(arrow_x - 8, arrow_y), (arrow_x + 8, arrow_y), (arrow_x, arrow_y + 10)], fill=GRAY)
-
-    draw_banner(draw)
-
+    f_hint = font_light(22)
+    draw.text((TEXT_X, H - 90), "vuốt để xem  →", font=f_hint, fill=GRAY)
     return img
 
 
-def make_content_slide(number, heading, subtitle, takeaway, illust_fn):
-    """Numbered content slide."""
-    img, draw = new_slide()
-
-    margin = 80
-    max_w = W - margin * 2
-
-    f_heading = font_serif_bold(60)
-    heading_text = f"{number}. {heading}"
-    lines = wrap_text(heading_text, f_heading, max_w)
-    y = 130
-    for line in lines:
-        draw.text((margin, y), line, font=f_heading, fill=TEXT)
-        y += 75
-
-    y += 10
-    f_sub = font_serif(34)
-    sub_lines = wrap_text(subtitle, f_sub, max_w)
-    for line in sub_lines:
-        draw.text((margin, y), line, font=f_sub, fill=GRAY)
-        y += 45
-
-    illust_fn(draw, W // 2, H // 2 - 20)
-
-    f_take = font_serif_italic(30)
-    take_lines = wrap_text(takeaway, f_take, max_w)
-    y = H - 200
-    for line in take_lines:
-        draw.text((margin, y), line, font=f_take, fill=TEXT)
-        y += 40
-
-    return img
-
-
-def make_cta_slide(cta_text, cta_subtitle=""):
-    """Final CTA slide."""
-    img, draw = new_slide()
-
-    overlay = draw_decorative_circles(draw, W // 2, H // 2 + 80, 200, SUBTLE_GREEN)
-    img_rgba = img.convert("RGBA")
-    img_rgba = Image.alpha_composite(img_rgba, overlay)
-    img = img_rgba.convert("RGB")
+def make_content_slide(number, heading, subtitle, takeaway,
+                       label="", photo_path=None):
+    img = make_bg(photo_path)
     draw = ImageDraw.Draw(img)
+    draw_brand_logo(draw)
 
-    f_cta = font_serif_bold(54)
-    margin = 100
-    max_w = W - margin * 2
-    lines = wrap_text(cta_text, f_cta, max_w)
-    total_h = len(lines) * 70
-    start_y = H // 2 - total_h // 2 - 40
+    num_str       = display_num(number)           # e.g. "1", "2"
+    HEAD_PT       = 58
+    f_head        = font_bold(HEAD_PT)
+    lh_head       = _lh(f_head, 1.35)
+    heading_upper = heading.upper()
 
-    for i, line in enumerate(lines):
-        y = start_y + i * 70
-        tw = text_width(line, f_cta)
-        draw.text(((W - tw) // 2, y), line, font=f_cta, fill=TEXT)
+    # ── PASS 1: estimate heading lines (use 90% width) ──────────────────────
+    est_text_maxw = int(TEXT_W * 0.90)
+    h_lines_est   = wrap_text(heading_upper, f_head, est_text_maxw)
+    n_head_lines  = len(h_lines_est)
 
-    if cta_subtitle:
-        f_sub = font_serif_italic(34)
-        tw = text_width(cta_subtitle, f_sub)
-        draw.text(((W - tw) // 2, start_y + len(lines) * 70 + 20), cta_subtitle, font=f_sub, fill=GRAY)
+    # Number size: 265pt for 3+ lines, 165pt for 1-2 lines
+    num_pt = 265 if n_head_lines >= 3 else 165
+    f_num  = font_bold(num_pt)
+    nw     = _tw(num_str, f_num)
+    nh     = _th(num_str, f_num)
 
-    f_author = font_sans_bold(30)
-    tw = text_width(AUTHOR_NAME, f_author)
-    draw.text(((W - tw) // 2, H - 240), AUTHOR_NAME, font=f_author, fill=TEXT)
+    # ── PASS 2: real column widths ───────────────────────────
+    nx        = TEXT_X
+    text_x    = nx + nw + 20
+    text_maxw = (TEXT_X + TEXT_W) - text_x
+    h_lines   = wrap_text(heading_upper, f_head, text_maxw)
+    while len(h_lines) > 4 and HEAD_PT > 38:
+        HEAD_PT -= 2
+        f_head  = font_bold(HEAD_PT)
+        lh_head = _lh(f_head, 1.35)
+        h_lines = wrap_text(heading_upper, f_head, text_maxw)
 
-    f_role = font_sans(22)
-    tw = text_width(AUTHOR_ROLE, f_role)
-    draw.text(((W - tw) // 2, H - 200), AUTHOR_ROLE, font=f_role, fill=GRAY)
+    # ── HEADING BLOCK HEIGHT → used for bottom-alignment ────
+    f_label    = font_semibold(22)
+    lh_label   = _lh(f_label, 1.2)
+    label_text = (label or "").upper().strip()
+    label_h    = (lh_label + 6) if label_text else 0
+    head_block_h = label_h + len(h_lines) * lh_head
 
-    draw_banner(draw)
+    # Shift text zone down 13px when heading spans 3 lines
+    zone_y = NUM_Y + (30 if len(h_lines) >= 3 else 0)
+
+    # Bottom of number == bottom of (last-1) heading line, shifted down 13px
+    lines_before_last = max(1, len(h_lines) - 1)
+    num_bottom_y = zone_y + label_h + lines_before_last * lh_head + 13
+    num_draw_y   = num_bottom_y - nh
+    ty_end       = zone_y + head_block_h   # full heading block bottom (for body start)
+
+    # ── LARGE NUMBER — WHITE, multi-layer shadow ─────────────
+    for sx, sy, sa in [(10, 10, 30), (6, 6, 55), (3, 3, 85), (1, 1, 110)]:
+        draw.text((nx + sx, num_draw_y + sy), num_str, font=f_num, fill=(0,0,0,sa))
+    draw.text((nx, num_draw_y), num_str, font=f_num, fill=WHITE)
+
+    # ── LABEL + HEADING (start from zone_y top) ─────────────
+    ty = zone_y
+    if label_text:
+        draw.text((text_x, ty), label_text, font=f_label, fill=HEADING_COLOR)
+        ty += lh_label + 6
+
+    for line in h_lines:
+        draw.text((text_x + 1, ty + 1), line, font=f_head, fill=(0, 0, 0, 80))
+        draw.text((text_x, ty), line, font=f_head, fill=HEADING_COLOR)
+        ty += lh_head
+
+    # ── BODY TEXT ────────────────────────────────────────────
+    BODY_SPACING = 45
+    body_y = ty_end + BODY_SPACING
+
+    f_body    = font_regular(30)
+    f_body_hi = font_bolditalic(30)
+
+    full_body = subtitle or ""
+    if takeaway:
+        full_body = (full_body + "\n\n" + takeaway).strip() if full_body else takeaway
+
+    if full_body:
+        draw_rich(draw, full_body, f_body,
+                  TEXT_X, body_y, TEXT_W,
+                  color=WHITE, hi=HEADING_COLOR,
+                  font_hi=f_body_hi, auto_hi_nums=True,
+                  mul=1.90)
+    return img
+
+
+def make_cta_slide(heading, subtitle="", photo_path=None):
+    img = make_bg(photo_path)
+    draw = ImageDraw.Draw(img)
+    draw_brand_logo(draw)
+
+    mid_x = TEXT_X + TEXT_W // 2
+
+    # Heading — ALL CAPS, HEADING_COLOR, centered in text zone
+    f_head  = font_bold(62)
+    lh_head = _lh(f_head, 1.35)
+    h_lines = wrap_text(heading.upper(), f_head, TEXT_W)
+    y = NUM_Y
+    for line in h_lines:
+        cx = TEXT_X + (TEXT_W - _tw(line, f_head)) // 2
+        draw.text((cx + 2, y + 2), line, font=f_head, fill=(0,0,0,100))
+        draw.text((cx, y), line, font=f_head, fill=HEADING_COLOR)
+        y += lh_head
+
+    # Rule — HEADING_COLOR
+    y += 14
+    draw.rectangle([(mid_x - 44, y), (mid_x + 44, y + 3)], fill=HEADING_COLOR)
+    y += 22
+
+    if subtitle:
+        f_sub = font_regular(25)
+        sub_lines = wrap_text(subtitle, f_sub, TEXT_W)
+        for line in sub_lines:
+            cx = TEXT_X + (TEXT_W - _tw(line, f_sub)) // 2
+            draw.text((cx, y), line, font=f_sub, fill=OFF_WHITE)
+            y += _lh(f_sub, 1.38)
+
+    # Author block
+    y = max(y + 40, H - 320)
+    draw.line([(mid_x - 90, y), (mid_x + 90, y)], fill=(100,100,100), width=1)
+    y += 28
+
+    f_name = font_semibold(32)
+    cx = TEXT_X + (TEXT_W - _tw(AUTHOR_NAME, f_name)) // 2
+    draw.text((cx, y), AUTHOR_NAME, font=f_name, fill=WHITE)
+    y += _lh(f_name, 1.3)
+
+    f_role = font_light(22)
+    cx = TEXT_X + (TEXT_W - _tw(AUTHOR_ROLE, f_role)) // 2
+    draw.text((cx, y), AUTHOR_ROLE, font=f_role, fill=GRAY)
+    y += _lh(f_role, 1.3)
+
+    # 3 dots — HEADING_COLOR
+    y += 14
+    for i in range(3):
+        cdx = mid_x + (i - 1) * 26
+        draw.ellipse([(cdx-5, y-5), (cdx+5, y+5)], fill=HEADING_COLOR)
 
     return img
 
 
-def generate_carousel(content, output_path):
-    """Generate full carousel PDF."""
-    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
+# ─────────────────────────────────────────────
+# PHOTO COLLECTION
+# ─────────────────────────────────────────────
+
+def collect_photos(photo_arg, photos_dir_arg):
+    if photo_arg and os.path.exists(photo_arg):
+        return [photo_arg]
+    if photos_dir_arg and os.path.isdir(photos_dir_arg):
+        files = []
+        for ext in ("*.jpg","*.JPG","*.jpeg","*.JPEG","*.png","*.PNG",
+                    "*.webp","*.WEBP"):
+            files.extend(glob.glob(os.path.join(photos_dir_arg, ext)))
+        files = sorted(set(files))
+        if files:
+            return files
+    return [None]
+
+
+# ─────────────────────────────────────────────
+# MAIN GENERATOR
+# ─────────────────────────────────────────────
+
+def generate_carousel(content, output_path, photos):
+    os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
+
+    all_slides = content.get("slides", [])
+
+    # Separate by role
+    content_slides = [s for s in all_slides
+                      if str(s.get("number","")).strip() not in ("", "00")]
+    cta_data = next(
+        (s for s in reversed(all_slides)
+         if str(s.get("number","")).strip() == ""),
+        None
+    )
+    cover_00 = next(
+        (s for s in all_slides if str(s.get("number","")).strip() == "00"),
+        None
+    )
+
+    n_total = len(content_slides) + 2
+
+    def photo_for(i):
+        if not photos or photos[0] is None: return None
+        return photos[i % len(photos)]
 
     slides = []
 
-    # Cover
-    slides.append(make_cover_slide(content["title"], content.get("title_emphasis")))
+    # ── COVER ────────────────────────────────────────────
+    cover_sub = content.get("subtitle", "")
+    if not cover_sub and cover_00:
+        cover_sub = cover_00.get("subtitle", "")
+    slides.append(make_cover_slide(content["title"], cover_sub, photo_for(0)))
 
-    # Content slides
-    for i, slide_data in enumerate(content["slides"]):
-        illust = ILLUSTRATIONS[i % len(ILLUSTRATIONS)]
+    # ── CONTENT SLIDES ───────────────────────────────────
+    for i, sd in enumerate(content_slides):
         slides.append(make_content_slide(
-            slide_data["number"],
-            slide_data["heading"],
-            slide_data["subtitle"],
-            slide_data["takeaway"],
-            illust,
+            number   = sd.get("number", i + 1),
+            heading  = sd.get("heading", ""),
+            subtitle = sd.get("subtitle", ""),
+            takeaway = sd.get("takeaway", ""),
+            label    = sd.get("label", ""),
+            photo_path = photo_for(i + 1),
         ))
 
-    # CTA
-    slides.append(make_cta_slide(
-        content.get("cta_text", "Follow for more."),
-        content.get("cta_subtitle", ""),
-    ))
+    # ── CTA ──────────────────────────────────────────────
+    if cta_data:
+        cta_heading = cta_data.get("heading", "Lưu bài này lại.")
+        cta_sub     = cta_data.get("subtitle", "") or cta_data.get("takeaway", "")
+    else:
+        cta_heading = content.get("cta_text", "Lưu bài này lại.")
+        cta_sub     = content.get("cta_subtitle", "")
+    slides.append(make_cta_slide(cta_heading, cta_sub, photo_for(n_total - 1)))
 
-    # Save as PDF
+    # ── SAVE PDF ─────────────────────────────────────────
     slides[0].save(
-        output_path,
-        "PDF",
+        output_path, "PDF",
         resolution=100.0,
         save_all=True,
         append_images=slides[1:],
     )
-    print(f"Carousel saved: {output_path} ({len(slides)} slides)")
+    print(f"✓  Carousel → {output_path}  ({len(slides)} slides)")
 
-    # Also save individual PNGs for preview
+    # ── SAVE SLIDE PNGs ──────────────────────────────────
     png_dir = os.path.splitext(output_path)[0] + "-slides"
     os.makedirs(png_dir, exist_ok=True)
     for i, slide in enumerate(slides):
         slide.save(os.path.join(png_dir, f"slide-{i:02d}.png"))
-    print(f"Slide PNGs saved: {png_dir}/")
+    print(f"✓  PNGs    → {png_dir}/")
 
     return output_path
 
 
-# --- DEMO CONTENT ---
-DEMO_CONTENT = {
-    "title": "7 AI Tools That 10x'd My Productivity",
-    "title_emphasis": "AI Tools",
+# ─────────────────────────────────────────────
+# DEMO
+# ─────────────────────────────────────────────
+DEMO = {
+    "title":    "10 Năm — 4 Quyết Định Thay Đổi Hành Trình",
+    "subtitle": "Không phải lúc nào cũng đúng. Nhưng mỗi lần đều học được thứ gì đó thật.",
     "slides": [
-        {
-            "number": 1,
-            "heading": "Claude for Writing",
-            "subtitle": "AI that actually understands nuance and context.",
-            "takeaway": "I went from 4 hours drafting to 30 minutes editing. The quality got better, not worse.",
-        },
-        {
-            "number": 2,
-            "heading": "Notion AI for Knowledge",
-            "subtitle": "Your second brain that never forgets anything.",
-            "takeaway": "Every meeting, every idea, every decision -- instantly searchable and connected.",
-        },
-        {
-            "number": 3,
-            "heading": "Midjourney for Visuals",
-            "subtitle": "Professional-grade images in seconds, not days.",
-            "takeaway": "Cancelled my design subscription. AI does 80% of the work.",
-        },
-        {
-            "number": 4,
-            "heading": "n8n for Automation",
-            "subtitle": "Connect every tool. Automate every workflow.",
-            "takeaway": "100+ hours saved per month. The robots do the boring stuff.",
-        },
-        {
-            "number": 5,
-            "heading": "ElevenLabs for Voice",
-            "subtitle": "Clone your voice. Scale your presence.",
-            "takeaway": "One recording session. Unlimited content. My voice is everywhere I'm not.",
-        },
+        { "number": "00",
+          "heading": "10 Năm — 4 Quyết Định",
+          "subtitle": "Không phải lúc nào cũng đúng.",
+          "takeaway": "Bình Phan — 10 năm BĐS" },
+        { "number": "01",
+          "label": "Bài học đầu tiên",
+          "heading": "3 ngày đầu — 4 lô đất",
+          "subtitle": "Ngày đầu vào nghề. Mình không biết mình đang làm gì.\n\n• Bán được **4 lô** trong **3 ngày**. Lúc đó tưởng mình có năng khiếu.\n• Mãi sau mới hiểu: đó là **thị trường tốt**, không phải mình giỏi.",
+          "takeaway": "Phân biệt được 2 điều này mất khá nhiều năm." },
+        { "number": "02",
+          "label": "Thoát đỉnh 2019",
+          "heading": "Chốt hết, ra ngoài",
+          "subtitle": "Thị trường quá dễ — ai cũng đang vui. **Mình sợ.**\n\n• Bán hết danh mục **tháng 3/2019**.\n• 6 tháng sau thị trường đảo chiều.",
+          "takeaway": "Không phải mình nhìn ra gì đặc biệt — chỉ để ý thấy người mua thật đang ít dần." },
+        { "number": "",
+          "heading": "Mình vẫn đang học",
+          "subtitle": "10 năm không làm mình biết tất cả.",
+          "takeaway": "" },
     ],
-    "cta_text": f"Follow {AUTHOR_NAME} for more insights.",
-    "cta_subtitle": "Repost this to help your network level up.",
 }
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Generate LinkedIn carousel PDF")
-    parser.add_argument("--json", help="Path to JSON content file")
-    parser.add_argument("--output", default="outputs/carousel-test.pdf", help="Output PDF path")
-    args = parser.parse_args()
+    p = argparse.ArgumentParser(
+        description="Premium portrait carousel generator (q1-q6 style)")
+    p.add_argument("--json",   help="JSON content file")
+    p.add_argument("--output", default="outputs/carousel-test.pdf")
+    p.add_argument("--photo",  help="Single portrait photo for all slides")
+    p.add_argument("--photos", help="Directory of photos to cycle")
+    args = p.parse_args()
 
+    content = DEMO
     if args.json:
         with open(args.json, encoding="utf-8") as f:
             content = json.load(f)
-    else:
-        content = DEMO_CONTENT
 
-    generate_carousel(content, args.output)
+    photos = collect_photos(args.photo, args.photos)
+    generate_carousel(content, args.output, photos)
