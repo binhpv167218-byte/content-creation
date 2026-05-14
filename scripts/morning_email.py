@@ -47,10 +47,7 @@ def load_env():
             if line and not line.startswith("#") and "=" in line:
                 k, v = line.split("=", 1)
                 env[k.strip()] = v.strip()
-    for key in ["AIRTABLE_API_KEY", "AIRTABLE_BASE_ID",
-                "GMAIL_SENDER", "GMAIL_APP_PASSWORD", "GMAIL_RECIPIENT"]:
-        if os.environ.get(key):
-            env[key] = os.environ[key]
+    env.update({k: v for k, v in os.environ.items() if v and k.isupper()})
     return env
 
 

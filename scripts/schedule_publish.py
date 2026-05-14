@@ -135,13 +135,8 @@ def load_env():
             if line and not line.startswith("#") and "=" in line:
                 k, v = line.split("=", 1)
                 env[k.strip()] = v.strip()
-    for key in [
-        "AIRTABLE_API_KEY", "AIRTABLE_BASE_ID",
-        "FACEBOOK_TOKEN_BINH_PHAN_IQI", "FACEBOOK_TOKEN_BINH_ME_NHA",
-        "BUFFER_ACCESS_TOKEN", "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID",
-    ]:
-        if os.environ.get(key):
-            env[key] = os.environ[key]
+    # Đọc tất cả env vars từ os.environ (GitHub Actions secrets)
+    env.update({k: v for k, v in os.environ.items() if v and k.isupper()})
     return env
 
 
