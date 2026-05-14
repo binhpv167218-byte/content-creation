@@ -1,4 +1,4 @@
-name: CRM Daily Report — Telegram
+name: CRM Daily Report — Gmail
 
 on:
   schedule:
@@ -26,6 +26,7 @@ jobs:
         env:
           AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
-          TELEGRAM_CRM_BOT_TOKEN: ${{ secrets.TELEGRAM_CRM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GMAIL_SENDER: ${{ secrets.GMAIL_SENDER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          GMAIL_RECIPIENT: ${{ secrets.GMAIL_RECIPIENT }}
         run: python scripts/crm_daily_report.py
