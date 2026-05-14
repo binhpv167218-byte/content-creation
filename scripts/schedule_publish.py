@@ -390,7 +390,8 @@ def publish_post(env: dict, rec: dict, dry_run=False) -> dict:
     # Instagram (không đăng dự án)
     if "Instagram" in platforms and buf:
         try:
-            pid = buffer_post(BUFFER_INSTAGRAM, caption, slide_urls, buf, dry_run)
+            pid = buffer_post(BUFFER_INSTAGRAM, caption, slide_urls, buf,
+                              metadata={"instagram": {"type": "post"}}, dry_run=dry_run)
             results["Instagram"] = pid
         except Exception as e:
             results["Instagram"] = f"LỖI: {e}"
@@ -419,7 +420,7 @@ def main():
 
     print(f"🕐 Kiểm tra lịch: {now_vn.strftime('%d/%m/%Y %H:%M')} (giờ VN)")
 
-    due_posts = get_due_posts(env, now_vn)
+    due_posts = get_due_posts(env, now_vn, window_min=60, window_max=5)
 
     if not due_posts:
         print("✓ Không có bài nào cần đăng lúc này.")
