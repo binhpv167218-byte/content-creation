@@ -2,8 +2,8 @@ name: CRM Sync — Bitrix24 → Airtable
 
 on:
   schedule:
-    # Chạy mỗi 15 phút
-    - cron: "*/15 * * * *"
+    # Chạy mỗi 5 phút
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 jobs:

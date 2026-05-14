@@ -222,8 +222,8 @@ def main():
     now = datetime.now(timezone(timedelta(hours=7))).strftime("%Y-%m-%d %H:%M:%S")
     print(f"🔄 CRM Sync — {now} (ICT)")
 
-    # 1. Lấy leads từ Bitrix24 (25 phút vừa qua)
-    leads = get_bitrix_leads(since_minutes=25)
+    # 1. Lấy leads từ Bitrix24 (8 phút vừa qua — buffer an toàn cho cronjob 5 phút)
+    leads = get_bitrix_leads(since_minutes=8)
     print(f"  Bitrix24: {len(leads)} lead(s) trong 25 phút qua")
 
     if not leads:
