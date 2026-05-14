@@ -1,13 +1,13 @@
-name: Morning Briefing — Gmail
+name: Evening Summary — Gmail
 
 on:
   schedule:
-    # 23:00 UTC = 06:00 sáng giờ Việt Nam (UTC+7)
-    - cron: "0 23 * * *"
+    # 14:30 UTC = 21:30 giờ Việt Nam (UTC+7)
+    - cron: "30 14 * * *"
   workflow_dispatch:
 
 jobs:
-  send-briefing:
+  send-summary:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,11 +22,11 @@ jobs:
       - name: Install dependencies
         run: pip install requests
 
-      - name: Send morning email
+      - name: Send evening summary
         env:
           AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
           GMAIL_SENDER: ${{ secrets.GMAIL_SENDER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           GMAIL_RECIPIENT: ${{ secrets.GMAIL_RECIPIENT }}
-        run: python scripts/morning_email.py
+        run: python scripts/evening_summary.py

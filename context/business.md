@@ -1,79 +1,59 @@
 # Kinh Doanh
 
-_Cập nhật lần cuối: [DATE] — Điền ngày bạn setup_
-
-> **Hướng dẫn:** Điền thông tin kinh doanh của bạn. File này giúp Claude hiểu bạn đang bán gì, cho ai, và content phục vụ mục tiêu kinh doanh nào.
+_Cập nhật lần cuối: 2026-05-07 — Auto-generated từ TikTok scrape_
 
 ---
 
-## Cấu Trúc Thương Hiệu
+## Tổng Quan
 
-### Lớp 1: [BRAND_NAME] (Thương hiệu nội dung công khai)
-
-**Website:** [WEBSITE_URL]
-**Mục đích:** [Mô tả vai trò của brand này — xây audience, tạo trust, inbound, v.v.]
-**Quy mô hiện tại:** [Tổng followers/subscribers các kênh]
-
-**Sản phẩm & Dịch Vụ:**
-
-| Sản phẩm      | Mô tả                | Đối tượng            |
-| ------------- | -------------------- | -------------------- |
-| [Sản phẩm 1]  | [Mô tả ngắn]         | [Đối tượng mục tiêu] |
-| [Sản phẩm 2]  | [Mô tả ngắn]         | [Đối tượng mục tiêu] |
-| [Sản phẩm 3]  | [Mô tả ngắn]         | [Đối tượng mục tiêu] |
-
-### Lớp 2: [COMPANY_NAME] (Thương hiệu công ty B2B — nếu có)
-
-**Website:** [COMPANY_URL]
-**Email:** [EMAIL]
-**Điện thoại:** [PHONE]
-**Địa chỉ:** [ADDRESS]
-**Tầm nhìn:** "[Tầm nhìn dài hạn của công ty]"
-**Tập trung:** [Công ty giải quyết bài toán gì cho khách hàng B2B]
-
-**Sản phẩm & Dịch Vụ:**
-
-| Sản phẩm/Dịch vụ | Mô tả        | Đối tượng            |
-| ---------------- | ------------ | -------------------- |
-| [Tên]            | [Mô tả ngắn] | [Đối tượng mục tiêu] |
-| [Tên]            | [Mô tả ngắn] | [Đối tượng mục tiêu] |
+**Vai trò:** Chuyên viên môi giới / Sales BĐS tại IQI Đà Nẵng
+**Ngành:** Bất động sản — phân khúc cao cấp/nghỉ dưỡng tại Đà Nẵng
+**Mô hình:** Môi giới hưởng hoa hồng từ giao dịch mua bán BĐS
 
 ---
 
-## Khách Hàng Mục Tiêu
+## Công Ty
 
-**[BRAND_NAME] (B2C/prosumer):**
-- [Nhóm đối tượng 1 — ví dụ: Người đi làm muốn tăng năng suất bằng AI]
-- [Nhóm đối tượng 2 — ví dụ: Freelancer muốn tự động hóa workflow]
-- [Nhóm đối tượng 3 — ví dụ: Founder SME muốn ứng dụng AI vào vận hành]
-
-**[COMPANY_NAME] (B2B — nếu có):**
-- [Nhóm doanh nghiệp 1]
-- [Nhóm doanh nghiệp 2]
+**IQI** là tập đoàn môi giới bất động sản quốc tế, có mặt tại Đông Nam Á. Văn phòng Đà Nẵng chuyên phân phối các dự án lớn tại khu vực miền Trung Việt Nam.
 
 ---
 
-## Nỗi Đau Chính Cần Giải Quyết
+## Dự Án Đang Tập Trung
 
-- [Pain point 1 của audience mục tiêu]
-- [Pain point 2 của audience mục tiêu]
-- [Pain point 3 của audience mục tiêu]
+| Dự án                   | Vị trí  | Ghi chú                                                                       |
+| ----------------------- | ------- | ----------------------------------------------------------------------------- |
+| Vinhomes Hải Vân Bay    | Đà Nẵng | Bàn giao Q4/2026 (345 căn Bạch Vân), cuối 2027                                |
+| Fours Tower             | Đà Nẵng | Căn hộ sở hữu lâu dài tại trung tâm Hoà Quý                                   |
+| Sun Symphony Residences | Đà Nẵng | Căn hộ thương mại dịch vụ 50 năm ven sông Hàn trung tâm thành phố             |
+| M Landmark              | Đà Nẵng | Căn hộ sở hữu lâu dài phong cách quiet luxury tại trung tâm thành phố Đà Nẵng |
+| Nobu Residences         | Đà Nẵng | Căn hộ thương mại dịch vụ 50 năm hình thức Condotel                           |
 
----
-
-## Mô Hình Doanh Thu
-
-- [Nguồn thu 1 — ví dụ: Khóa học online]
-- [Nguồn thu 2 — ví dụ: Cộng đồng trả phí]
-- [Nguồn thu 3 — ví dụ: Tư vấn / dịch vụ triển khai]
-- [Nguồn thu 4 — ví dụ: SaaS / phần mềm]
+Video về Vinhomes Hải Vân Bay đạt 4,746 views — video hiệu quả nhất trên kênh TikTok.
 
 ---
 
-## Logic Hệ Sinh Thái
+## Sản Phẩm / Dịch Vụ
 
-```
-[BRAND_NAME] (Content) → Xây audience & trust → Chuyển đổi sang [COMPANY_NAME] (Services/Products)
-```
+- Tư vấn mua/đầu tư BĐS tại Đà Nẵng
+- Phân phối các dự án Vinhomes, Sun Property, Masterise Homes, Nobu Residences, M Landmark (căn hộ, biệt thự, shophouse)
+- Kết nối nhà đầu tư với dự án phù hợp
 
-[Mô tả ngắn cách content phục vụ mục tiêu kinh doanh của bạn — 1-2 câu]
+---
+
+## Lý Do Chuyển Từ Tự Do Sang IQI
+
+Không phải chạy trốn — là chủ động đọc thị trường và chuyển sân chơi trước khi quá muộn.
+
+- **Đất nền đang mất thanh khoản:** chính sách siết, thuế BĐS thứ 2 + thuế thu nhập BĐS nếu áp đồng loạt sẽ triệt tiêu đối tượng mua bán lướt — phân khúc chính của đất nền tự do
+- **Căn hộ Đà Nẵng đang có tiềm năng lớn:** phân khúc này cần công ty chuyên nghiệp để tiếp cận dự án tốt — không thể làm tự do
+- **Muốn hệ thống hóa:** quy trình bán hàng bài bản, hỗ trợ marketing, branding dự án — khác hoàn toàn với cách làm cá nhân
+
+---
+
+## Điểm Mạnh Cạnh Tranh
+
+- **10 năm thực chiến:** đã trải qua ít nhất 2 chu kỳ thị trường — biết đỉnh, biết đáy, biết chờ
+- **Từng tự đầu tư:** không chỉ bán — đã bỏ tiền thật vào thị trường, thoát đúng đỉnh 2019, học được bài lãi vay năm 2020
+- **Góc nhìn vĩ mô:** đọc được chu kỳ sớm, chuyển hướng trước khi thị trường đất nền suy giảm rõ ràng
+- **Chuyển đổi có chủ đích:** không bị đẩy ra khỏi đất nền — chủ động bước sang căn hộ vì nhìn thấy cơ hội
+- **Gắn với IQI:** uy tín thương hiệu quốc tế, portfolio dự án mạnh tại Đà Nẵng

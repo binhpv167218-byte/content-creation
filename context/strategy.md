@@ -1,82 +1,57 @@
 # Chiến Lược
 
-_Cập nhật lần cuối: [DATE] — Điền ngày bạn setup_
+_Cập nhật lần cuối: 2026-05-07 — Cập nhật từ chia sẻ trực tiếp của Bình_
 
-> **Hướng dẫn:** Điền chiến lược nội dung của bạn. File này giúp Claude tạo content đúng định hướng, đúng nền tảng, đúng mục tiêu kinh doanh.
+---
+
+## Bối Cảnh Chiến Lược
+
+Bình vừa chuyển từ **môi giới đất nền tự do (10 năm)** sang **chuyên viên căn hộ tại IQI Đà Nẵng**. Đây không phải là sự chuyển dịch bị động — là quyết định chủ động sau khi đọc được tín hiệu thị trường sớm và chọn đúng thời điểm.
+
+Thách thức hiện tại: **Chưa có audience trong phân khúc mới.** Phải xây từ đầu, nhưng có lợi thế là 10 năm trải nghiệm thật và câu chuyện thật để kể.
+
+---
+
+## Triết Lý Tăng Trưởng Cốt Lõi
+
+**Không chạy ads truyền thống. Xây thương hiệu cá nhân.**
+
+Lý do Bình chọn hướng này:
+
+- Ads truyền thống = chi phí liên tục, dừng ads là dừng khách
+- Personal brand = tài sản tích lũy, người theo dõi ngày càng nhiều hơn
+- Khách hàng tự tìm đến sau khi tin tưởng — tỷ lệ chuyển đổi cao hơn hẳn
+- Bền vững hơn về dài hạn
+
+Cách thực hiện: Tạo nội dung có giá trị thật (góc nhìn nghề, phân tích thị trường, câu chuyện thực chiến) → lồng ghép dự án tự nhiên vào → người xem tin → tự liên hệ.
 
 ---
 
 ## Trọng Tâm Hiện Tại
 
-**Giai đoạn:** [Năm / Quý hiện tại]
-**Sứ mệnh [BRAND_NAME]:** [Mục tiêu content brand — 1 câu rõ ràng]
-**Sứ mệnh [COMPANY_NAME]:** [Mục tiêu kinh doanh — 1 câu rõ ràng]
+Đang trong giai đoạn **xây nền tảng audience** từ đầu trên TikTok và Facebook. Nội dung BĐS chuyên nghiệp bắt đầu xuất hiện từ đầu 2026.
+
+**4 trụ cột nội dung theo thứ tự ưu tiên:**
+
+1. **Storytelling nghề** — 10 năm đất nền → câu chuyện chuyển sang căn hộ → lý do, bài học, quan sát. Đây là nội dung xây authority và trust
+2. **Góc nhìn thị trường** — đất nền đang đi về đâu, căn hộ Đà Nẵng đang ở đâu trong chu kỳ, vì sao giờ là thời điểm. Nói như người đã sống qua 2 chu kỳ
+3. **Dự án cụ thể** — Vinhomes Hải Vân Bay, Fours Tower, Sun Symphony, M Landmark, Nobu Residences. Thông tin thực tế, tiến độ, con số — không hype
+4. **Personal content** — du lịch, cuộc sống, gia đình. Giữ "người thật" trong brand, không để kênh trở thành bảng quảng cáo
 
 ---
 
-## Nền Tảng Ưu Tiên
+## Mục Tiêu Content
 
-1. **[Kênh 1]** — [Lý do ưu tiên và mục tiêu cụ thể trên kênh này]
-2. **[Kênh 2]** — [Lý do ưu tiên và mục tiêu cụ thể]
-3. **[Kênh 3]** — [Lý do ưu tiên và mục tiêu cụ thể]
-4. **[Kênh 4]** — Kênh phụ, repurpose sau
-5. **[Kênh 5]** — Kênh phụ, mở rộng sau
-
----
-
-## Trụ Cột Nội Dung
-
-1. **[Trụ cột 1]** — [Mô tả loại nội dung, chủ đề cốt lõi]
-2. **[Trụ cột 2]** — [Mô tả loại nội dung, chủ đề cốt lõi]
-3. **[Trụ cột 3]** — [Mô tả loại nội dung, chủ đề cốt lõi]
-4. **[Trụ cột 4]** — [Mô tả loại nội dung, chủ đề cốt lõi]
-5. **[Trụ cột 5]** — [Mô tả loại nội dung, chủ đề cốt lõi]
+- Tăng TikTok từ 137 → 1,000+ followers trong 3–6 tháng
+- Facebook (4,843 followers) — khai thác tệp có sẵn hiệu quả hơn
+- Tạo lead đều đặn từ cả hai kênh, không phụ thuộc ads
+- Được nhận diện là người đáng tin trong phân khúc căn hộ Đà Nẵng
 
 ---
 
-## Chiến Lược Theo Kênh
+## Tension Chiến Lược Cần Giải Quyết
 
-### [Kênh 1]
-
-- [Loại nội dung ưu tiên]
-- [Tone, format, tần suất]
-- [Mục tiêu cụ thể — reach, trust, conversion]
-
-### [Kênh 2]
-
-- [Loại nội dung ưu tiên]
-- [Tone, format, tần suất]
-- [Mục tiêu cụ thể]
-
-### [Kênh 3]
-
-- [Loại nội dung ưu tiên]
-- [Tone, format, tần suất]
-- [Mục tiêu cụ thể]
-
----
-
-## Mục Tiêu Nội Dung
-
-- [Mục tiêu 1 — ví dụ: Tăng reach trên các kênh chính]
-- [Mục tiêu 2 — ví dụ: Tăng độ mạnh personal brand]
-- [Mục tiêu 3 — ví dụ: Tạo inbound interest cho sản phẩm/dịch vụ]
-- [Mục tiêu 4 — ví dụ: Xây content engine lặp lại được]
-
----
-
-## Chỉ Số Thành Công
-
-- [KPI 1 — ví dụ: Duy trì nhịp X bài/tuần]
-- [KPI 2 — ví dụ: Tăng follower X%/tháng]
-- [KPI 3 — ví dụ: Tăng engagement rate lên X%]
-- [KPI 4 — ví dụ: X inbound inquiries/tháng từ content]
-
----
-
-## Nguyên Tắc Vận Hành
-
-- [Nguyên tắc 1 — ví dụ: Thực dụng hơn lý thuyết]
-- [Nguyên tắc 2 — ví dụ: Ví dụ thật hơn truyền cảm hứng mơ hồ]
-- [Nguyên tắc 3 — ví dụ: Dạy trước, bán sau]
-- [Nguyên tắc 4 — ví dụ: Đơn giản hơn phô diễn]
+- **Personal vs. professional:** Video đời thường có engagement cao hơn video BĐS thuần — cần công thức kết hợp "người thật + chuyên môn"
+- **Tần suất:** 18 videos trong 2 năm là quá thưa — cần tăng lên ít nhất 3–4 video/tuần
+- **Facebook chưa được khai thác:** 4,843 followers nhưng chưa có dữ liệu posts — đây là tài sản chưa được dùng
+- **Bio TikTok trống:** Cần điền CTA và mô tả ngay

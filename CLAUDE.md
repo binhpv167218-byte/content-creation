@@ -4,6 +4,7 @@
 
 - **Content Dashboard:** `open outputs/dashboard.html`
 - **Generate infographic:** `python3 scripts/generate-infographic.py --reference <ref> --output <path> --prompt "<prompt>"`
+- **Research dự án:** `python3 scripts/research_bot.py "<query>" --output context/projects/<slug>.md`
 
 File này cung cấp hướng dẫn cho Claude Code khi làm việc trong repository này.
 
@@ -19,24 +20,24 @@ File này cung cấp hướng dẫn cho Claude Code khi làm việc trong reposi
 
 ## Bạn Là Ai
 
-> **Điền thông tin của bạn vào đây.** Sau khi chạy `/init-context`, section này sẽ được tự động điền từ dữ liệu scrape. Hoặc tự điền thủ công và xem `context/profile.md` để có đầy đủ hơn.
+> _Auto-generated từ TikTok scrape — 2026-05-07. Xem `context/profile.md` để đầy đủ hơn._
 
-- **Tên:** [TÊN ĐẦY ĐỦ]
-- **Tên công khai:** [TÊN THƯƠNG HIỆU CÔNG KHAI — ví dụ: "Nguyễn Nam - AI Expert"]
-- **Khu vực:** [THÀNH PHỐ, QUỐC GIA]
-- **Vai trò:** [VAI TRÒ — ví dụ: Founder, Creator, Educator, Consultant]
-- **Thương hiệu hướng ra công chúng:** [BRAND_NAME]
-- **Thương hiệu công ty:** [COMPANY_NAME]
-- **Bối cảnh:** [MÔ TẢ NGẮN — bạn làm gì, cho ai, tại sao — 2-3 câu]
-- **Sứ mệnh:** [SỨ MỆNH của bạn — 1 câu rõ ràng]
+- **Tên:** Bình Phan
+- **Tên công khai:** Bình Phan – BĐS Đà Nẵng
+- **Khu vực:** Đà Nẵng, Việt Nam
+- **Vai trò:** Chuyên viên môi giới BĐS / Sales IQI Đà Nẵng
+- **Thương hiệu hướng ra công chúng:** Bình Phan BĐS
+- **Thương hiệu công ty:** IQI Đà Nẵng
+- **Bối cảnh:** 10 năm kinh nghiệm trong ngành bất động sản. Hiện chuyên phân phối các dự án Vinhomes tại Đà Nẵng (Vinhomes Hải Vân Bay, Vinhomes Lang Van). Đang xây dựng personal brand trên TikTok và Facebook để tiếp cận nhà đầu tư và người mua nhà.
+- **Sứ mệnh:** Giúp khách hàng đưa ra quyết định đầu tư BĐS đúng đắn bằng thông tin minh bạch và góc nhìn 10 năm thực chiến.
 
 ### Kênh Chính Thức
 
-- Website: [WEBSITE_URL]
-- Website công ty: [COMPANY_URL]
-- TikTok: [TIKTOK_URL]
-- Facebook: [FACEBOOK_URL]
-- YouTube: [YOUTUBE_URL]
+- Website: TBD
+- Website công ty: TBD (IQI)
+- TikTok: https://www.tiktok.com/@binh_phan_bds
+- Facebook: https://www.facebook.com/binhvp
+- YouTube: TBD
 
 ---
 
@@ -51,12 +52,24 @@ Claude nên luôn tự định hướng bằng `/prime` ở đầu session, sau 
 
 ### Hướng Dẫn Về Giọng Điệu
 
-- **Gần gũi và trực diện** — viết như đang nói chuyện với một người thông minh, không viết như đang phát biểu cho đám đông
-- **Thật và thực chiến** — chia sẻ con số thật, khó khăn thật, bài học thật
-- **Thực dụng hơn lý thuyết** — ưu tiên nội dung hành động được
-- **Tự tin nhưng không giáo điều** — nói rõ điều gì đang hiệu quả và điều gì chưa
-- **Không văn phong doanh nghiệp sáo rỗng** — tránh buzzword, jargon và filler
-- **Cách xưng hô mặc định:** "mình", "bạn", "các bạn", "bên mình", "công ty mình"
+Giọng của người đã đi qua đủ va chạm trong nghề — nói bằng trải nghiệm, không nói kiểu quảng cáo. Ưu tiên "người thật việc thật" hơn "người viết hay".
+
+**Tông:** Trực diện, storytelling, cảm xúc đến từ trải nghiệm thật, có chiều sâu nhưng không triết lý nặng tay.
+
+**Cách xưng hô:** "mình" (kể chuyện cá nhân) — "bạn" (kéo người đọc vào) — "anh em" (gần gũi, đồng hành) — "Bình" (nhấn mạnh cá nhân). Không xưng "tôi".
+
+**Cấu trúc ưu tiên:**
+
+- Quan sát → Vấn đề → Hiểu ra → Bài học
+- Chuyện cũ → Va chạm → Thay đổi → Kết luận
+- Điều tưởng đúng → Điều thật sự đúng → Vì sao
+
+**Mở bài:** Lát cắt thật — tình huống, va chạm, quan sát cụ thể. Không mở bằng lý thuyết.
+**Kết bài:** Nhận định cụ thể và gọn — không kết bằng câu tổng quát chung chung.
+
+**Tuyệt đối tránh:** Sales áp lực — giật tít quá đà — hứa lợi nhuận quá lố — giọng corporate — slogan rỗng — lập luận nghe đúng nhưng không có đời sống — viết như PR doanh nghiệp.
+
+Xem chi tiết đầy đủ tại `context/voice-analysis.md`.
 
 ---
 
@@ -74,7 +87,15 @@ Claude nên luôn tự định hướng bằng `/prime` ở đầu session, sau 
 │   ├── business.md        #   Bạn đang làm gì (công ty, sản phẩm, audience)
 │   ├── strategy.md        #   Bạn đang đi đâu (mục tiêu, ưu tiên)
 │   ├── metrics.md         #   Các con số hiện tại
+│   ├── career-history.md  #   10 năm sự nghiệp + kho chuyện thật cho content
+│   ├── voice-analysis.md  #   Bộ quy tắc giọng viết đầy đủ
+│   ├── icp.md             #   Chân dung khách hàng mục tiêu
+│   ├── danang-market.md   #   Thị trường Đà Nẵng: hạ tầng, du lịch, tỷ suất cho thuê, lãi suất — cập nhật liên tục
 │   ├── images/            #   Ảnh cá nhân cho post
+│   ├── projects/          #   Tài liệu từng dự án BĐS:
+│   │   ├── sun-symphony-residence5.md
+│   │   ├── vinhomes-hai-van-bay.md
+│   │   └── fours-tower.md
 │   └── data/              #   Dữ liệu scrape từ social
 ├── posts/                 # Nội dung cuối cùng — mỗi post một thư mục
 ├── outputs/               # File làm việc, dashboard, bản nháp
@@ -119,7 +140,7 @@ Hãy chạy command này ở đầu mỗi session. Claude sẽ đọc toàn bộ
 Batch này tạo ra:
 
 - **Theo phương pháp:** 5 viral replication + 3 trend surfing + 2 pain points
-- **Theo định dạng:** 4 ảnh cá nhân + 4 AI infographic + 2 carousel
+- **Theo định dạng:** 5 ảnh cá nhân + 2 AI infographic + 3 carousel
 - **Mọi nội dung đều có visual** — không có bài chỉ có text
 - Tất cả nội dung đều phải tự đứng được một mình
 - Có kiểm soát độ đa dạng về chủ đề, hook, visual và tông giọng
@@ -140,13 +161,37 @@ Ví dụ: `/implement plans/2026-03-05-linkedin-series.md`
 
 ## Nền Tảng Và Cách Tiếp Cận
 
-| Nền tảng  | Mức ưu tiên | Tệp khán giả                                           | Trọng tâm nội dung                                                                     |
-| --------- | ----------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------- |
-| Facebook  | Cao         | Người đi làm, founder, operator, marketer tại Việt Nam | Chia sẻ thực chiến, quan điểm, góc nhìn founder, nội dung viết có khả năng chuyển đổi  |
-| TikTok    | Cao         | Tệp rộng quan tâm tới AI, năng suất, công cụ           | Demo nhanh, hook mạnh, use case thật, agentic workflow ngắn gọn                        |
-| YouTube   | Cao         | Người muốn hiểu sâu và ứng dụng bài bản                | Tutorial agentic workflow, breakdown multi-agent system, case study, authority content |
-| Instagram | Thấp        | Tệp phụ                                                | Repurpose visual, reels, carousel ngắn                                                 |
-| LinkedIn  | Thấp        | Tệp chuyên môn phụ                                     | Authority B2B và narrative chuyên môn nếu cần sau này                                  |
+| Nền tảng     | Mức ưu tiên | Tệp khán giả                                     | Trọng tâm nội dung                                                                       |
+| ------------ | ----------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| Facebook BMN | Cao         | Khách hàng Đà Nẵng, nhà đầu tư, người quen biết  | Tất cả loại nội dung — cá nhân, dự án, thị trường                                        |
+| Facebook IQI | Cao         | Nhà đầu tư, người mua BĐS cao cấp                | **Chỉ Dự án + Phân Tích Thị Trường** — không đăng bài cá nhân                            |
+| TikTok       | Cao         | Nhà đầu tư, người mua nhà, tệp rộng quan tâm BĐS | **Chỉ đăng Carousel** — hook mạnh, storytelling ngắn gọn                                 |
+| Instagram    | Trung bình  | Tệp phụ, lifestyle                               | **Không đăng nội dung về dự án cụ thể** — chỉ storytelling, kinh nghiệm nghề, thị trường |
+| Threads      | Trung bình  | Tệp phụ                                          | **Không đăng nội dung về dự án cụ thể** — chỉ storytelling, kinh nghiệm nghề, thị trường |
+| YouTube      | Thấp        | TBD — chưa có kênh                               | Tutorial/case study BĐS nếu mở rộng sau này                                              |
+
+### Quy Tắc Nền Tảng (BẮT BUỘC)
+
+- **TikTok:** Chỉ đăng bài định dạng **Carousel**. Không đăng ảnh đơn hoặc infographic.
+- **Instagram & Threads:** Không đăng bài về dự án BĐS cụ thể (Symphony, Vinhomes HVB, FourS...). Chỉ đăng nội dung chung: storytelling cá nhân, kinh nghiệm nghề, góc nhìn thị trường, pain points.
+- **Facebook BMN (Bình Mê Nhà):** Đăng tất cả loại nội dung — cá nhân, dự án, thị trường.
+- **Facebook IQI (Bình Phan IQI):** Chỉ đăng **Dự án** và **Phân Tích Thị Trường**. Không đăng bài cá nhân/storytelling.
+
+### Lịch Đăng Chuẩn — BMN 7 Bài / IQI 4 Bài / Ngày
+
+| Giờ cơ sở | #   | Định dạng   | Chủ đề     | BMN | IQI | TikTok | IG  | Threads |
+| --------- | --- | ----------- | ---------- | :-: | :-: | :----: | :-: | :-----: |
+| 6:30      | 1   | Ảnh cá nhân | Cá nhân    | ✅  | ❌  |   —    | ✅  |   ✅    |
+| 8:30      | 2   | Carousel    | Dự án      | ✅  | ✅  |   ✅   |  —  |    —    |
+| 11:00     | 3   | Infographic | Thị Trường | ✅  | ✅  |   —    | ✅  |   ✅    |
+| 13:00     | 4   | Ảnh cá nhân | Dự án      | ✅  | ✅  |   —    |  —  |    —    |
+| 16:00     | 5   | Carousel    | Cá nhân    | ✅  | ❌  |   ✅   |  —  |    —    |
+| 19:00     | 6   | Ảnh cá nhân | Cá nhân    | ✅  | ❌  |   —    | ✅  |   ✅    |
+| 21:00     | 7   | Infographic | Dự án      | ✅  | ✅  |   —    |  —  |    —    |
+
+**Tổng mỗi ngày:** BMN 7 · IQI 4 · TikTok 2 · Instagram 3 · Threads 3
+
+**Randomization ±180 giây:** Mỗi lần đăng, lệch ngẫu nhiên −180 đến +180 giây so với giờ cơ sở. Mỗi ngày lệch khác nhau để tránh thuật toán nhận ra pattern tự động.
 
 ---
 
@@ -179,18 +224,41 @@ Quy trình đầy đủ nằm trong `.claude/skills/viral-replication/SKILL.md`.
 6. **Lưu** vào `posts/NNN-slug/` cùng toàn bộ asset
 7. **Dựng lại dashboard** bằng `python3 scripts/build-dashboard.py`
 
-### Visual Style
+### Visual Style — Infographic
 
-> **Hãy chỉnh màu sắc và style để khớp với thương hiệu của bạn. Thêm ảnh tham chiếu vào `reference/`.**
+Mọi infographic **bắt buộc** dùng tiếng Việt đầy đủ dấu. Chọn 1 trong 3 layout mẫu bên dưới tùy nội dung:
 
-Mọi infographic **bắt buộc** phải dùng một hệ style nhất quán. Mặc định template đang dùng:
+| Mẫu       | File                          | Layout                                                                                                       | Khi nào dùng                                                                     |
+| --------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| **Ref 1** | `reference/inforgraphic1.jpg` | Numbered facts, nền xanh nhạt, illustration trung tâm, các khối thông tin tản xung quanh có badge số (#1–#N) | Danh sách "X điều/thông tin cần biết", educational facts, nhiều data points rời  |
+| **Ref 2** | `reference/inforgraphic2.jpg` | Ranking bar chart, header tím/navy, thanh ngang màu cam, flat character illustration góc phải                | So sánh, ranking, thị trường nhiều đối tượng, "X so với Y", tỷ suất theo khu vực |
+| **Ref 3** | `reference/inforgraphic3.jpg` | Process flow 2 cột, nền xanh periwinkle, cột trái (biểu đồ/số liệu) + cột phải (flow mũi tên step-by-step)   | Quy trình, "cách hoạt động", timeline, hành trình mua BĐS, các bước đầu tư       |
 
-- Nền cream sáng `#F5F3EE` với dot grid nhẹ
-- Accent xanh lime `#C8E64A`
-- Heading sans-serif đậm màu đen, body text xám
-- Icon line-art đơn giản, badge số theo màu accent
-- Banner dưới màu tối `#1A1A1A`
-- Cần thêm 3 ảnh tham chiếu `reference/infographic-ref-*.jpeg`
+**Elements bắt buộc trong mọi infographic:**
+
+- **Toàn bộ text phải là tiếng Việt có dấu** — tiêu đề, label, số liệu, chú thích
+- **Số liệu lớn** làm neo thị giác — %, tỷ đồng, km, m², năm
+- **Flat design illustrations** phù hợp chủ đề BĐS Đà Nẵng: buildings, căn hộ, bản đồ, cảnh quan
+- **Typography hierarchy rõ ràng:** Tiêu đề lớn → số liệu nổi → body text nhỏ
+- Không để 2 infographic liền nhau cùng layout mẫu trong một batch
+
+### Chọn Ảnh Theo Chủ Đề Bài
+
+**Quy tắc ưu tiên ảnh:**
+
+| Loại nội dung                                          | Ảnh dùng           | Nguồn                                  |
+| ------------------------------------------------------ | ------------------ | -------------------------------------- |
+| Bài về dự án cụ thể (Symphony, Vinhomes HVB, FourS...) | Ảnh của dự án đó   | `context/images/projects/<tên-dự-án>/` |
+| Bài storytelling / kinh nghiệm cá nhân                 | Ảnh chân dung Bình | `context/images/`                      |
+| Bài phân tích thị trường / số liệu                     | AI Infographic     | Kie.ai                                 |
+| Carousel                                               | Ảnh chân dung Bình | `context/images/`                      |
+
+- **Bài về Sun Symphony** → dùng ảnh từ `context/images/projects/sun-symphony/`
+- **Bài về Vinhomes Hải Vân Bay** → dùng ảnh từ `context/images/projects/vinhomes-hai-van-bay/`
+- **Bài về FourS Tower** → dùng ảnh từ `context/images/projects/fours-tower/`
+- Nếu thư mục dự án chưa có ảnh → dùng ảnh cá nhân Bình làm fallback, ghi chú trong `post.md`
+
+---
 
 ### Tạo Ảnh — Cách Làm Bắt Buộc
 
@@ -204,15 +272,15 @@ Mọi infographic **bắt buộc** phải dùng một hệ style nhất quán. M
 
 - Resize ảnh tham chiếu về 512px, encode base64 rồi truyền vào `reference_image`
 - Cách này giúp giữ brand consistency tự động
-- Luân phiên ảnh tham chiếu để đa dạng bố cục:
-  - `infographic-ref-1.jpeg` — bố cục tròn/radial
-  - `infographic-ref-2.jpeg` — các thành phần xoay quanh headline
-  - `infographic-ref-3.jpeg` — flow dọc
-- **Prompt PHẢI chứa tiếng Việt đầy đủ dấu** — KHÔNG gửi prompt không dấu rồi để AI tự đoán. Thêm "CRITICAL: render Vietnamese diacritics exactly as provided" vào cuối prompt.
-- Sau khi generate, KIỂM TRA text trên ảnh. Nếu sai dấu tiếng Việt → regenerate hoặc dùng Pillow để sửa text overlay.
+- Luân phiên ảnh tham chiếu theo loại nội dung:
+  - `reference/inforgraphic1.jpg` — **Numbered facts, nền xanh nhạt** — danh sách "X điều cần biết", nhiều data points rời, educational
+  - `reference/inforgraphic2.jpg` — **Ranking bar chart, header tím** — so sánh, ranking thị trường, tỷ suất theo khu vực
+  - `reference/inforgraphic3.jpg` — **Process flow 2 cột, nền periwinkle** — quy trình, timeline, các bước đầu tư, hành trình mua BĐS
+- **Output PHẢI là tiếng Việt có dấu đầy đủ** — tiêu đề, label, số liệu, chú thích đều phải tiếng Việt
+- **Prompt PHẢI chứa tiếng Việt đầy đủ dấu** — KHÔNG gửi prompt không dấu. Thêm "CRITICAL: render Vietnamese diacritics exactly as provided, all text must be in Vietnamese" vào cuối prompt
+- Sau khi generate, KIỂM TRA text trên ảnh. Nếu sai dấu tiếng Việt hoặc có chữ tiếng Anh không mong muốn → regenerate hoặc dùng Pillow để sửa text overlay
 - Không dùng Pillow đơn lẻ để tạo infographic (Kie.ai + Pillow hybrid OK)
-- Không dùng nền tối, màu neon hoặc palette lệch brand
-- Kiểm tra các post đã có trước khi tạo để tránh 2 infographic liền nhau cùng layout
+- Kiểm tra các post đã có trước khi tạo để tránh 2 infographic liền nhau cùng layout mẫu
 - Với post dùng ảnh cá nhân: chọn từ `context/images/` sao cho hợp vibe bài, sau đó **BẮT BUỘC** chạy `add-photo-overlay.py` để thêm text hook lên ảnh (xem hướng dẫn bên dưới)
 
 **Ảnh cá nhân — quy trình bắt buộc:**
@@ -245,16 +313,48 @@ Quy trình đầy đủ nằm trong `.claude/skills/content-ideation/SKILL.md`. 
 
 ### Tạo Carousel
 
-Carousel hiện được tạo dưới dạng PDF. Quy trình đầy đủ nằm trong `.claude/skills/carousel-creation/SKILL.md`.
+Carousel dưới dạng PDF — **portrait photo + gradient overlay style** theo mẫu q1-q6: ảnh chân dung Bình (mặt hiện rõ ở trên) + gradient tối dần xuống + số lime to + heading trắng + body text đầy đủ. Canvas **1080×1620px** (2:3). Chi tiết style trong `reference/carousel-ref/carousel-style-analysis.md`.
 
-1. **Viết nội dung** — tiêu đề + 5-9 ý chính được đánh số, mỗi ý có heading, subtitle, takeaway
-2. **Tạo JSON** — dùng key `slides` với các object chứa `number`, `heading`, `subtitle`, `takeaway`
-3. **Tạo PDF** — `python3 scripts/generate-carousel.py --json content.json --output posts/NNN-slug/carousel.pdf`
-4. **Style** — chỉnh màu sắc và branding trong `scripts/generate-carousel.py`
-5. **Mỗi slide nên có minh họa khác nhau**
-6. **Tham chiếu carousel** — thêm slide ví dụ vào `reference/carousel-ref/`
-7. **Lưu** vào `posts/NNN-slug/` với `carousel.pdf` + `post.md`
-8. **Slide PNGs** sẽ được lưu tự động vào `carousel-slides/` để preview trên dashboard
+**Quy trình:**
+
+1. **Viết nội dung** — tiêu đề + 4-6 ý chính, mỗi ý có heading, subtitle (hỗ trợ `• ` bullet), takeaway
+2. **Tạo JSON** — format chuẩn bên dưới
+3. **Ảnh nền** — dùng ảnh chân dung đứng của Bình, khuyến nghị `IMG_7928.jpg`
+4. **Tạo PDF:**
+
+```bash
+python3 scripts/generate-carousel.py \
+  --json posts/NNN-slug/content.json \
+  --output posts/NNN-slug/carousel.pdf \
+  --photo context/images/IMG_7928.jpg
+```
+
+5. **Lưu** — `carousel.pdf` + `carousel-slides/` tự động tạo + `post.md`
+
+**JSON format chuẩn:**
+
+```json
+{
+  "title": "Tiêu đề cover",
+  "slides": [
+    { "number": "00", "subtitle": "Cover subtitle" },
+    {
+      "number": "01",
+      "label": "CATEGORY (tùy chọn)",
+      "heading": "Heading ngắn",
+      "subtitle": "Body text. **Highlight lime** với dấu sao.\n\n• Bullet point\n• Bullet point",
+      "takeaway": "Câu kết in lime."
+    },
+    { "number": "", "heading": "CTA text", "subtitle": "CTA sub" }
+  ]
+}
+```
+
+- `"00"` → cover subtitle (không tạo content slide)
+- `""` → CTA slide cuối
+- `label` → category label ALL CAPS lime, optional
+- `**word**` → inline lime highlight trong subtitle/takeaway
+- `• ` đầu dòng → bullet với indent tự động
 
 ### Phong Cách Copywriting (Adam Robinson)
 
@@ -335,11 +435,41 @@ Sau khi thêm hoặc cập nhật post, chạy `python3 scripts/build-dashboard.
 
 ## Tools & APIs
 
-| Công cụ       | Mục đích                                                              | Cấu hình                      |
-| ------------- | --------------------------------------------------------------------- | ----------------------------- |
-| **Apify**     | Scrape dữ liệu social media                                           | `APIFY_API_KEY` trong `.env`  |
-| **Kie.ai**    | Tạo ảnh bằng model `nano-banana-pro`, bắt buộc dùng `reference_image` | `KIE_AI_API_KEY` trong `.env` |
-| **Gmail MCP** | Đọc, phân loại, gán nhãn email tự động. Xem skill `gmail-label`       | Gmail OAuth qua MCP server    |
+| Công cụ        | Mục đích                                                              | Cấu hình                          |
+| -------------- | --------------------------------------------------------------------- | --------------------------------- |
+| **Apify**      | Scrape dữ liệu social media                                           | `APIFY_API_KEY` trong `.env`      |
+| **Kie.ai**     | Tạo ảnh bằng model `nano-banana-pro`, bắt buộc dùng `reference_image` | `KIE_AI_API_KEY` trong `.env`     |
+| **Perplexity** | Research thời gian thực qua `research_bot.py`, model `sonar-pro`      | `PERPLEXITY_API_KEY` trong `.env` |
+| **Gmail MCP**  | Đọc, phân loại, gán nhãn email tự động. Xem skill `gmail-label`       | Gmail OAuth qua MCP server        |
+
+### Cập Nhật Dự Án (Perplexity)
+
+Khi user nói **"Cập nhật dự án [Tên]"** hoặc **"Cập nhật thông tin [Tên dự án]"**, Claude phải:
+
+1. Map tên sang slug: Sun Symphony R5 → `sun-symphony-residence5`, Vinhomes Hải Vân Bay → `vinhomes-hai-van-bay`, FourS Tower → `fours-tower`
+2. Chạy research với query toàn diện:
+
+```bash
+python3 scripts/research_bot.py \
+  "[Tên dự án] Đà Nẵng tổng quan vị trí pháp lý tiến độ giai đoạn mở bán booking giá chính thức giá hiện tại giá thứ cấp sang nhượng giá rumor chính sách bán hàng thanh toán 2026" \
+  --output context/projects/<slug>.md \
+  --recency month
+```
+
+3. Đọc kết quả, so sánh với file cũ, tóm tắt cho user những điểm **thay đổi hoặc mới** so với lần cập nhật trước.
+
+**Thông tin bắt buộc phải có khi cập nhật dự án:**
+
+- Tổng quan & vị trí dự án
+- Giai đoạn hiện tại (phân khu nào đang mở / sắp mở)
+- Tình trạng pháp lý (loại sổ, giấy phép)
+- Tiến độ xây dựng & ngày bàn giao
+- Ngày mở bán / nhận booking
+- Giá chính thức hiện tại (có bảng nếu có)
+- Giá thứ cấp / sang nhượng nếu dự án đã mở bán (tìm trên các sàn batdongsan, homedy, nha.vn)
+- Giá rumor đang lan truyền trong cộng đồng môi giới (ghi rõ nguồn)
+- Xu hướng giá so với đợt mở bán trước
+- Chính sách bán hàng (thanh toán, lãi suất, chiết khấu)
 
 ---
 

@@ -29,6 +29,105 @@ BUFFER_INSTAGRAM = "6a033e20090476fb99104f87"
 BUFFER_THREADS   = "6a030a61090476fb990f47b7"
 
 
+def summarize_for_threads(caption: str, perplexity_key: str, limit: int = 490) -> str:
+    """Dùng Perplexity sonar-pro tóm tắt caption xuống dưới `limit` ký tự."""
+    if len(caption) <= limit:
+        return caption
+
+    if not perplexity_key:
+        cut = caption[:limit - 10].rfind("\n\n")
+        return caption[:cut] if cut > 200 else caption[:limit - 3] + "..."
+
+    prompt = (
+        f"Tóm tắt đoạn text sau thành phiên bản ngắn hơn, giữ nguyên giọng văn gốc "
+        f"(xưng 'mình', tông trực tiếp, không corporate). "
+        f"Kết quả PHẢI dưới {limit} ký tự. Chỉ trả về text tóm tắt, không giải thích.\n\n"
+        f"{caption}"
+    )
+    try:
+        r = requests.post(
+            "https://api.perplexity.ai/chat/completions",
+            headers={"Authorization": f"Bearer {perplexity_key}", "Content-Type": "application/json"},
+            json={"model": "sonar-pro", "messages": [{"role": "user", "content": prompt}]},
+            timeout=20,
+        )
+        result = r.json().get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+        if result and len(result) <= limit:
+            return result
+        cut = result[:limit - 10].rfind("\n\n") if result else -1
+        return result[:cut] if cut > 200 else (result or caption)[:limit - 3] + "..."
+    except Exception:
+        cut = caption[:limit - 10].rfind("\n\n")
+        return caption[:cut] if cut > 200 else caption[:limit - 3] + "..."
+
+
+# ── Verification helpers ───────────────────────────────────────────────────────
+
+def verify_facebook(token: str, post_url: str) -> bool:
+    try:
+        pid = post_url.split("facebook.com/")[-1].strip("/")
+        r = requests.get(
+            f"https://graph.facebook.com/v19.0/{pid}",
+            params={"fields": "id", "access_token": token},
+            timeout=10,
+        )
+        return "id" in r.json()
+    except Exception:
+        return False
+
+
+def verify_buffer(buffer_token: str, post_value: str) -> tuple:
+    """Returns (verified: bool, url: str)."""
+    if not post_value or "LỖI" in post_value:
+        return False, post_value
+    try:
+        time.sleep(3)
+        query = """
+        query GetPost($id: String!) {
+          post(id: $id) { id status url }
+        }
+        """
+        r = requests.post(
+            BUFFER_GQL,
+            headers={"Authorization": f"Bearer {buffer_token}", "Content-Type": "application/json"},
+            json={"query": query, "variables": {"id": post_value}},
+            timeout=10,
+        )
+        post = (r.json().get("data") or {}).get("post") or {}
+        status = post.get("status", "")
+        url = post.get("url") or post_value
+        if status in ("sent", "service_update_sent"):
+            return True, url
+        if status:
+            return False, url
+        return True, post_value  # Buffer không hỗ trợ query → trust
+    except Exception:
+        return True, post_value
+
+
+def verify_results(env: dict, results: dict) -> dict:
+    fb_iqi = env.get("FACEBOOK_TOKEN_BINH_PHAN_IQI", "")
+    fb_bmn = env.get("FACEBOOK_TOKEN_BINH_ME_NHA", "")
+    buf    = env.get("BUFFER_ACCESS_TOKEN", "")
+    verified = {}
+    for platform, value in results.items():
+        if "LỖI" in value:
+            verified[platform] = value
+            continue
+        if platform == "Facebook IQI":
+            ok = verify_facebook(fb_iqi, value)
+            verified[platform] = value if ok else f"⚠️ CHƯA XÁC MINH: {value}"
+        elif platform in ("Facebook BMN", "Facebook"):
+            ok = verify_facebook(fb_bmn, value)
+            verified[platform] = value if ok else f"⚠️ CHƯA XÁC MINH: {value}"
+        elif platform in ("Instagram", "TikTok", "Threads"):
+            ok, url = verify_buffer(buf, value)
+            verified[platform] = url if ok else f"⚠️ CHƯA XÁC MINH: {url}"
+        else:
+            verified[platform] = value
+    return verified
+
+
 def load_env():
     env = {}
     env_file = WORKSPACE / ".env"
@@ -129,13 +228,13 @@ def fb_post_carousel(token: str, caption: str, slide_urls: list, dry_run=False) 
 
 # ── Buffer helper ─────────────────────────────────────────────────────────────
 
-def buffer_post(channel_id: str, caption: str, slide_urls: list, buffer_token: str, dry_run=False) -> str:
+def buffer_post(channel_id: str, caption: str, slide_urls: list, buffer_token: str, metadata: dict = None, dry_run=False) -> str:
     if dry_run:
         return "dry-run-buffer"
     mutation = """
     mutation CreatePost($input: CreatePostInput!) {
       createPost(input: $input) {
-        ... on PostActionSuccess { post { id } }
+        ... on PostActionSuccess { post { id url } }
         ... on NotFoundError { message }
         ... on UnauthorizedError { message }
         ... on LimitReachedError { message }
@@ -146,18 +245,27 @@ def buffer_post(channel_id: str, caption: str, slide_urls: list, buffer_token: s
     }
     """
     assets = [{"image": {"url": url}} for url in slide_urls]
+    post_input = {
+        "channelId": channel_id, "text": caption,
+        "schedulingType": "automatic", "mode": "shareNow", "assets": assets,
+    }
+    if metadata:
+        post_input["metadata"] = metadata
+
     r = requests.post(
         BUFFER_GQL,
         headers={"Authorization": f"Bearer {buffer_token}", "Content-Type": "application/json"},
-        json={"query": mutation, "variables": {"input": {
-            "channelId": channel_id, "text": caption,
-            "schedulingType": "automatic", "mode": "shareNow", "assets": assets,
-        }}},
+        json={"query": mutation, "variables": {"input": post_input}},
     )
     data = r.json()
     if "errors" in data:
         raise RuntimeError(f"Buffer error: {data['errors']}")
-    return data.get("data", {}).get("createPost", {}).get("post", {}).get("id", "?")
+    result = data.get("data", {}).get("createPost", {})
+    post   = result.get("post", {})
+    post_id = post.get("id")
+    if not post_id:
+        raise RuntimeError(result.get("message", f"Unexpected response: {result}"))
+    return post.get("url") or post_id
 
 
 # ── Airtable update ───────────────────────────────────────────────────────────
@@ -174,6 +282,16 @@ def update_airtable(env: dict, rec_id: str, results: dict):
         "Đăng lúc": now.strftime("%d/%m/%Y %H:%M"),
         "Ghi chú":  f"Tự đăng lúc {now.strftime('%d/%m/%Y %H:%M')}\n{notes}",
     }
+    # Lưu platform IDs để evening summary có thể lấy link
+    fb_iqi = results.get("Facebook IQI", "")
+    if fb_iqi and "LỖI" not in fb_iqi:
+        fields["Facebook ID"] = fb_iqi.replace("https://facebook.com/", "")
+    if "Instagram" in results and "LỖI" not in results["Instagram"]:
+        fields["Instagram ID"] = results["Instagram"]
+    if "TikTok" in results and "LỖI" not in results["TikTok"]:
+        fields["TikTok ID"] = results["TikTok"]
+    if "Threads" in results and "LỖI" not in results["Threads"]:
+        fields["Threads ID"] = results["Threads"]
     requests.patch(
         f"https://api.airtable.com/v0/{at_base}/tbll5ikhBQPeak8xR/{rec_id}",
         headers=headers, json={"fields": fields},
@@ -188,14 +306,33 @@ def notify_telegram(env: dict, slug: str, results: dict):
     if not token or not chat_id:
         return
 
-    success = sum(1 for v in results.values() if "LỖI" not in v)
-    failed  = sum(1 for v in results.values() if "LỖI" in v)
+    print(f"  🔍 Xác minh bài đăng...", flush=True)
+    verified = verify_results(env, results)
+
+    success    = sum(1 for v in verified.values() if "LỖI" not in v and "CHƯA XÁC MINH" not in v)
+    unverified = sum(1 for v in verified.values() if "CHƯA XÁC MINH" in v)
+    failed     = sum(1 for v in verified.values() if "LỖI" in v)
 
     lines = [f"📢 *Đã đăng tự động:* `{slug}`", ""]
-    for k, v in results.items():
-        icon = "✅" if "LỖI" not in v else "❌"
-        lines.append(f"{icon} {k}: {v}")
-    lines += ["", f"✅ {success} thành công | ❌ {failed} lỗi"]
+    for k, v in verified.items():
+        if "LỖI" in v:
+            lines.append(f"❌ *{k}:* {v.replace('LỖI: ', '')}")
+        elif "CHƯA XÁC MINH" in v:
+            url = v.replace("⚠️ CHƯA XÁC MINH: ", "")
+            if url.startswith("http"):
+                lines.append(f"⚠️ [{k} — chưa xác minh]({url})")
+            else:
+                lines.append(f"⚠️ *{k}:* chưa xác minh được")
+        elif v.startswith("http"):
+            lines.append(f"✅ [{k}]({v})")
+        else:
+            lines.append(f"✅ *{k}:* đã đăng")
+
+    summary = []
+    if success:    summary.append(f"✅ {success} xác minh OK")
+    if unverified: summary.append(f"⚠️ {unverified} chưa xác minh")
+    if failed:     summary.append(f"❌ {failed} lỗi")
+    lines += ["", " | ".join(summary)]
 
     requests.post(
         f"https://api.telegram.org/bot{token}/sendMessage",
@@ -220,8 +357,10 @@ def publish_post(env: dict, rec: dict, dry_run=False) -> dict:
     fb_bmn = env.get("FACEBOOK_TOKEN_BINH_ME_NHA", "")
     buf    = env.get("BUFFER_ACCESS_TOKEN", "")
 
-    # Facebook Bình Phan IQI
-    if "Facebook" in platforms and fb_iqi:
+    # Facebook Bình Phan IQI — chỉ đăng Dự án + Thị Trường
+    # Nhận "Facebook IQI" (mới) hoặc "Facebook" (backward compat)
+    post_iqi = fb_iqi and any(p in platforms for p in ["Facebook IQI", "Facebook"])
+    if post_iqi:
         try:
             if is_carousel:
                 pid = fb_post_carousel(fb_iqi, caption, slide_urls, dry_run)
@@ -231,8 +370,10 @@ def publish_post(env: dict, rec: dict, dry_run=False) -> dict:
         except Exception as e:
             results["Facebook IQI"] = f"LỖI: {e}"
 
-    # Facebook Bình Mê Nhà
-    if "Facebook" in platforms and fb_bmn:
+    # Facebook Bình Mê Nhà — đăng tất cả loại nội dung
+    # Nhận "Facebook BMN" (mới) hoặc "Facebook" (backward compat)
+    post_bmn = fb_bmn and any(p in platforms for p in ["Facebook BMN", "Facebook"])
+    if post_bmn:
         try:
             if is_carousel:
                 pid = fb_post_carousel(fb_bmn, caption, slide_urls, dry_run)
@@ -258,10 +399,11 @@ def publish_post(env: dict, rec: dict, dry_run=False) -> dict:
         except Exception as e:
             results["Instagram"] = f"LỖI: {e}"
 
-    # Threads (không đăng dự án)
+    # Threads (không đăng dự án) — max 500 chars, tóm tắt nếu cần
     if "Threads" in platforms and buf:
+        threads_caption = summarize_for_threads(caption, env.get("PERPLEXITY_API_KEY", ""))
         try:
-            pid = buffer_post(BUFFER_THREADS, caption, slide_urls, buf, dry_run)
+            pid = buffer_post(BUFFER_THREADS, threads_caption, slide_urls, buf, metadata={"threads": {"type": "post"}}, dry_run=dry_run)
             results["Threads"] = pid
         except Exception as e:
             results["Threads"] = f"LỖI: {e}"
