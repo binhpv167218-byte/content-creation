@@ -38,7 +38,7 @@ ENV = load_env()
 BITRIX_URL    = ENV.get("BITRIX24_WEBHOOK_URL", "").rstrip("/")
 AIRTABLE_KEY  = ENV.get("AIRTABLE_API_KEY", "")
 AIRTABLE_BASE = ENV.get("AIRTABLE_BASE_ID", "")
-TG_TOKEN      = ENV.get("TELEGRAM_BOT_TOKEN", "")
+TG_TOKEN      = ENV.get("TELEGRAM_CRM_BOT_TOKEN", "")
 TG_CHAT       = ENV.get("TELEGRAM_CHAT_ID", "")
 
 LEADS_TABLE = "tblJxEmk2yy6FwfJQ"
