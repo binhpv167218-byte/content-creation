@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """
 CRM Sync — Bitrix24 → Airtable
-Polls Bitrix24 for new leads (last 25 min), creates Airtable records, notifies Telegram.
-Chạy bởi GitHub Actions mỗi 15 phút.
+Polls Bitrix24 mỗi 5 phút. Khi phát hiện lead mới:
+  1. Ngay lập tức update Bitrix24 STATUS_ID → IN_PROCESS (Tiếp nhận & Phân phối)
+  2. Tạo record Airtable với giai đoạn "Đã tiếp nhận thông tin"
+  3. Telegram thông báo kèm xác nhận đã chuyển trạng thái
 """
 
 import sys
@@ -27,11 +29,11 @@ def load_env():
 
 ENV = load_env()
 
-BITRIX_URL     = ENV.get("BITRIX24_WEBHOOK_URL", "").rstrip("/")
-AIRTABLE_KEY   = ENV.get("AIRTABLE_API_KEY", "")
-AIRTABLE_BASE  = ENV.get("AIRTABLE_BASE_ID", "")
-TG_TOKEN       = ENV.get("TELEGRAM_BOT_TOKEN", "")
-TG_CHAT        = ENV.get("TELEGRAM_CHAT_ID", "")
+BITRIX_URL    = ENV.get("BITRIX24_WEBHOOK_URL", "").rstrip("/")
+AIRTABLE_KEY  = ENV.get("AIRTABLE_API_KEY", "")
+AIRTABLE_BASE = ENV.get("AIRTABLE_BASE_ID", "")
+TG_TOKEN      = ENV.get("TELEGRAM_BOT_TOKEN", "")
+TG_CHAT       = ENV.get("TELEGRAM_CHAT_ID", "")
 
 LEADS_TABLE = "tblJxEmk2yy6FwfJQ"
 AT_HEADERS  = {"Authorization": f"Bearer {AIRTABLE_KEY}", "Content-Type": "application/json"}
@@ -39,22 +41,24 @@ AT_URL      = f"https://api.airtable.com/v0/{AIRTABLE_BASE}/{LEADS_TABLE}"
 
 # Bitrix24 SOURCE_ID → Nguồn lead (Airtable single-select)
 SOURCE_MAP = {
-    "ADVERTISING": "Google Ads",
-    "WEB":         "Website",
-    "PARTNER":     "Giới thiệu",
+    "ADVERTISING":    "Google Ads",
+    "WEB":            "Website",
+    "PARTNER":        "Giới thiệu",
     "RECOMMENDATION": "Giới thiệu",
-    "1":           "Facebook Ads",
-    "2":           "Zalo OA",
-    "3":           "Google Ads",
-    "4":           "TikTok Ads",
-    "5":           "Website",
-    "6":           "Giới thiệu",
+    "UC_0CW3PH":      "TikTok Ads",
+    "UC_3DH873":      "Zalo OA",
+    "1":              "Facebook Ads",
+    "2":              "Zalo OA",
+    "3":              "Google Ads",
+    "4":              "TikTok Ads",
+    "5":              "Website",
+    "6":              "Giới thiệu",
 }
 
 
 # ─── Bitrix24 ─────────────────────────────────────────────────────────────────
 
-def get_bitrix_leads(since_minutes=25):
+def get_bitrix_leads(since_minutes=8):
     tz_vn = timezone(timedelta(hours=7))
     since = datetime.now(tz_vn) - timedelta(minutes=since_minutes)
     since_str = since.strftime("%Y-%m-%dT%H:%M:%S")
@@ -87,6 +91,22 @@ def get_bitrix_leads(since_minutes=25):
     return all_leads
 
 
+def accept_lead_in_bitrix(lead_id):
+    """
+    Chuyển STATUS_ID → IN_PROCESS (Tiếp nhận & Phân phối).
+    Trả về True nếu thành công.
+    """
+    r = requests.post(
+        f"{BITRIX_URL}/crm.lead.update.json",
+        json={"id": lead_id, "FIELDS": {"STATUS_ID": "IN_PROCESS"}},
+        timeout=15,
+    )
+    if r.status_code == 200 and r.json().get("result") is True:
+        return True
+    print(f"  ⚠️  Bitrix24 update lead #{lead_id}: {r.text[:200]}")
+    return False
+
+
 # ─── Airtable ─────────────────────────────────────────────────────────────────
 
 def get_synced_ids():
@@ -112,7 +132,7 @@ def get_synced_ids():
     return ids
 
 
-def lead_to_fields(lead):
+def lead_to_fields(lead, accepted=False):
     """Convert Bitrix24 lead → Airtable fields dict."""
     name_parts = [lead.get("NAME", ""), lead.get("LAST_NAME", "")]
     name = " ".join(p for p in name_parts if p).strip() or lead.get("TITLE", "Lead")
@@ -124,14 +144,21 @@ def lead_to_fields(lead):
     email = email_raw[0]["VALUE"] if email_raw else ""
 
     source_id = str(lead.get("SOURCE_ID", ""))
-    nguon = SOURCE_MAP.get(source_id, "Khác")
+    # Thử match trực tiếp, nếu không → thử tìm prefix số
+    nguon = SOURCE_MAP.get(source_id)
+    if not nguon:
+        prefix = source_id.split("|")[0] if "|" in source_id else source_id
+        nguon = SOURCE_MAP.get(prefix, "Khác")
+
+    # Nếu đã update Bitrix24 thành công → ghi nhận đã tiếp nhận
+    giai_doan = "Đã tiếp nhận thông tin" if accepted else "Mới Nhận"
 
     fields = {
-        "Tên / Nick name":       name,
-        "ID Bitrix24":           str(lead["ID"]),
-        "Giai đoạn":             "Mới Nhận",
-        "Nguồn lead":            nguon,
-        "Yêu cầu khách hàng":   lead.get("COMMENTS", "") or "",
+        "Tên / Nick name":     name,
+        "ID Bitrix24":         str(lead["ID"]),
+        "Giai đoạn":           giai_doan,
+        "Nguồn lead":          nguon,
+        "Yêu cầu khách hàng": lead.get("COMMENTS", "") or "",
     }
 
     if phone:
@@ -141,7 +168,6 @@ def lead_to_fields(lead):
 
     date_create = lead.get("DATE_CREATE", "")
     if date_create:
-        # Bitrix24 trả về "2024-05-14T15:30:00+07:00" — Airtable hiểu ISO 8601
         fields["Thời gian lead đổ về"] = date_create
 
     return fields
@@ -172,7 +198,7 @@ def telegram(text):
     )
 
 
-def notify_new_lead(lead, at_record_id):
+def notify_new_lead(lead, at_record_id, accepted):
     name_parts = [lead.get("NAME", ""), lead.get("LAST_NAME", "")]
     name = " ".join(p for p in name_parts if p).strip() or lead.get("TITLE", "Lead")
 
@@ -186,24 +212,33 @@ def notify_new_lead(lead, at_record_id):
     if len(comments) > 250:
         comments = comments[:250] + "…"
 
+    source_id = str(lead.get("SOURCE_ID", ""))
+    nguon = SOURCE_MAP.get(source_id)
+    if not nguon:
+        prefix = source_id.split("|")[0] if "|" in source_id else source_id
+        nguon = SOURCE_MAP.get(prefix, "Khác")
+
     at_link = f"https://airtable.com/{AIRTABLE_BASE}/{LEADS_TABLE}/{at_record_id}"
+    bitrix_link = f"https://iqi.bitrix24.vn/crm/lead/details/{lead['ID']}/"
+
+    status_line = "✅ Đã chuyển sang <b>Tiếp nhận &amp; Phân phối</b> trên Bitrix24" if accepted \
+                  else "⚠️ Cần chuyển trạng thái thủ công trên Bitrix24"
 
     msg = (
-        f"🔔 <b>Lead mới từ Bitrix24!</b>\n\n"
+        f"🔔 <b>Lead mới!</b>\n\n"
         f"👤 <b>{name}</b>\n"
         f"📞 {phone}\n"
         f"📧 {email}\n"
+        f"📣 Nguồn: {nguon}\n"
     )
     if comments:
         msg += f"💬 {comments}\n"
 
-    source_id = str(lead.get("SOURCE_ID", ""))
-    nguon = SOURCE_MAP.get(source_id, "Khác")
     msg += (
         f"\n"
-        f"📣 Nguồn: {nguon}\n"
-        f"🗂 <a href='{at_link}'>Mở trong Airtable</a>\n"
-        f"🔢 Bitrix24 ID: #{lead['ID']}"
+        f"{status_line}\n\n"
+        f"🗂 <a href='{at_link}'>Airtable CRM</a>  |  "
+        f"🔗 <a href='{bitrix_link}'>Bitrix24 #{lead['ID']}</a>"
     )
 
     telegram(msg)
@@ -224,7 +259,7 @@ def main():
 
     # 1. Lấy leads từ Bitrix24 (8 phút vừa qua — buffer an toàn cho cronjob 5 phút)
     leads = get_bitrix_leads(since_minutes=8)
-    print(f"  Bitrix24: {len(leads)} lead(s) trong 25 phút qua")
+    print(f"  Bitrix24: {len(leads)} lead(s) trong 8 phút qua")
 
     if not leads:
         print("  Không có lead mới.")
@@ -234,7 +269,7 @@ def main():
     synced = get_synced_ids()
     print(f"  Airtable: {len(synced)} Bitrix24 ID đã có")
 
-    # 3. Sync từng lead mới
+    # 3. Xử lý từng lead mới
     new_count = 0
     for lead in leads:
         lead_id = str(lead["ID"])
@@ -242,15 +277,25 @@ def main():
             print(f"  ↩  Lead #{lead_id} đã có — bỏ qua")
             continue
 
-        fields = lead_to_fields(lead)
+        name_parts = [lead.get("NAME", ""), lead.get("LAST_NAME", "")]
+        name = " ".join(p for p in name_parts if p).strip() or lead.get("TITLE", "Lead")
+
+        # 3a. Update Bitrix24 → IN_PROCESS (Tiếp nhận & Phân phối)
+        accepted = accept_lead_in_bitrix(int(lead["ID"]))
+        status = "✅ Bitrix24 IN_PROCESS" if accepted else "⚠️  Bitrix24 update failed"
+        print(f"  {status} — Lead #{lead_id} {name}")
+
+        # 3b. Tạo Airtable record
+        fields = lead_to_fields(lead, accepted=accepted)
         at_id = create_record(fields)
 
         if at_id:
             new_count += 1
-            notify_new_lead(lead, at_id)
-            print(f"  ✅ Lead #{lead_id} — {fields['Tên / Nick name']} → {at_id}")
+            # 3c. Telegram thông báo
+            notify_new_lead(lead, at_id, accepted)
+            print(f"  ✅ Airtable record tạo — {at_id}")
 
-    print(f"\n✅ Xong: {new_count} lead mới được sync")
+    print(f"\n✅ Xong: {new_count} lead mới được xử lý")
 
 
 if __name__ == "__main__":
