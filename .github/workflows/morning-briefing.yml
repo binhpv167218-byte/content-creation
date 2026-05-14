@@ -1,10 +1,7 @@
 name: Morning Briefing — Gmail
 
 on:
-  schedule:
-    # 23:00 UTC = 06:00 sáng giờ Việt Nam (UTC+7)
-    - cron: "0 23 * * *"
-  workflow_dispatch:
+  workflow_dispatch: # Trigger từ cron-job.org lúc 23:00 UTC (06:00 sáng giờ VN)
 
 jobs:
   send-briefing:

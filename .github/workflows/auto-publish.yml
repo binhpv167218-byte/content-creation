@@ -1,10 +1,7 @@
 name: Auto Publish — Scheduled Posts
 
 on:
-  schedule:
-    # Chạy mỗi 15 phút
-    - cron: "*/15 * * * *"
-  workflow_dispatch: # Cho phép chạy thủ công để test
+  workflow_dispatch: # Trigger từ cron-job.org tại 08:00 / 12:00 / 18:00 / 21:00 giờ VN
 
 jobs:
   publish:
