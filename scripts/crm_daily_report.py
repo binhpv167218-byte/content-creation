@@ -17,6 +17,7 @@ WORKSPACE = Path(__file__).parent.parent
 
 
 def load_env():
+    import os
     env = {}
     env_file = WORKSPACE / ".env"
     if env_file.exists():
@@ -25,6 +26,7 @@ def load_env():
             if line and not line.startswith("#") and "=" in line:
                 k, v = line.split("=", 1)
                 env[k.strip()] = v.strip()
+    env.update({k: v for k, v in os.environ.items() if v})
     return env
 
 
