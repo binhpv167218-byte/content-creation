@@ -22,21 +22,34 @@ WORKSPACE = Path(__file__).parent.parent
 
 # Hashtag TikTok BĐS Việt Nam
 TIKTOK_HASHTAGS = [
-    "bdsdanang",
+    # BĐS chung
     "batdongsan",
     "nhadautu",
     "bdsvietnam",
-    "canhodanang",
     "dautubatnongsan",
-    "bdsdalat",
     "nhabds",
+    # Đặc thù Đà Nẵng — comment thật, nhiều người đang cân nhắc mua/chuyển đến
+    "bdsdanang",
+    "batdongsandanang",
+    "canhodanang",
+    "bophovebien",
+    "chuyendensongdanang",
+    "thanhphodangsong",
 ]
 
 # Giới hạn ngân sách
-TIKTOK_MAX_RESULTS    = 300  # 300 × $0.005 = $1.50
-TOP_POSTS_FOR_COMMENTS = 5   # top 5 bài views cao nhất
-COMMENTS_PER_POST     = 20   # 5 × 20 × $0.005 = $0.50
+TIKTOK_MAX_RESULTS     = 300  # 300 × $0.005 = $1.50
+TOP_POSTS_FOR_COMMENTS = 5    # top 5 bài nhiều comment nhất
+COMMENTS_PER_POST      = 20   # 5 × 20 × $0.005 = $0.50
 # Tổng ước tính: ~$2.00/lần
+
+# Keyword lọc caption — giữ bài liên quan BĐS, loại bài lifestyle thuần túy
+BDS_KEYWORDS = [
+    "căn hộ", "dự án", "mua nhà", "đầu tư", "giá", "tỷ", "m²", "m2",
+    "pháp lý", "sổ đỏ", "sổ hồng", "bàn giao", "chủ đầu tư", "môi giới",
+    "thuê", "cho thuê", "sang nhượng", "booking", "mở bán",
+    "chuyển đến", "định cư", "mua", "sống tại", "sinh sống",
+]
 
 
 def load_env():
@@ -84,9 +97,18 @@ def scrape_tiktok_posts(api_key: str, dry_run: bool) -> list:
     return items
 
 
+def is_bds_post(post: dict) -> bool:
+    """Kiểm tra caption có chứa keyword BĐS không."""
+    caption = (post.get("text") or post.get("desc") or "").lower()
+    return any(kw in caption for kw in BDS_KEYWORDS)
+
+
 def pick_top_posts(posts: list, n: int) -> list:
-    """Chọn top N bài theo comment count, chỉ xét bài views ≥ 10,000."""
-    qualified = [p for p in posts if p.get("playCount", 0) >= 10_000]
+    """Chọn top N bài theo comment count, chỉ xét bài views ≥ 10,000 và có keyword BĐS."""
+    qualified = [
+        p for p in posts
+        if p.get("playCount", 0) >= 10_000 and is_bds_post(p)
+    ]
     ranked = sorted(qualified, key=lambda x: x.get("commentCount", 0), reverse=True)
 
     top = []
@@ -107,7 +129,7 @@ def pick_top_posts(posts: list, n: int) -> list:
                 "desc":     (p.get("text") or p.get("desc") or "")[:80],
             })
 
-    print(f"\n   🔍 {len(qualified)}/{len(posts)} bài đạt ngưỡng ≥ 10K views")
+    print(f"\n   🔍 {len(qualified)}/{len(posts)} bài đạt ngưỡng ≥ 10K views + có keyword BĐS")
     print(f"   🏆 Top {len(top)} bài nhiều comment nhất → scrape comments:")
     for i, p in enumerate(top, 1):
         print(f"      {i}. @{p['author']} | {p['views']:,} views | {p['comments']:,} comments | {p['desc']}")
