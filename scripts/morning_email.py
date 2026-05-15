@@ -11,7 +11,7 @@ Usage:
 import argparse
 import os
 import smtplib
-from datetime import date, datetime
+from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
@@ -200,7 +200,7 @@ def send_email(env: dict, subject: str, html: str):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--date", default=date.today().isoformat())
+    parser.add_argument("--date", default=(datetime.utcnow() + timedelta(hours=7)).strftime("%Y-%m-%d"))
     args = parser.parse_args()
 
     env = load_env()
