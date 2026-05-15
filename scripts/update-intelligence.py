@@ -85,8 +85,10 @@ def scrape_tiktok_posts(api_key: str, dry_run: bool) -> list:
 
 
 def pick_top_posts(posts: list, n: int) -> list:
-    """Chọn top N bài views cao nhất, trả về list dict có url + metadata."""
-    ranked = sorted(posts, key=lambda x: x.get("playCount", 0), reverse=True)
+    """Chọn top N bài theo comment count, chỉ xét bài views ≥ 10,000."""
+    qualified = [p for p in posts if p.get("playCount", 0) >= 10_000]
+    ranked = sorted(qualified, key=lambda x: x.get("commentCount", 0), reverse=True)
+
     top = []
     for p in ranked[:n]:
         url = (
@@ -98,16 +100,29 @@ def pick_top_posts(posts: list, n: int) -> list:
                  (p.get("author") or {}).get("uniqueId", "?")
         if url:
             top.append({
-                "url":    url,
-                "views":  p.get("playCount", 0),
-                "author": author,
-                "desc":   (p.get("text") or p.get("desc") or "")[:80],
+                "url":      url,
+                "views":    p.get("playCount", 0),
+                "comments": p.get("commentCount", 0),
+                "author":   author,
+                "desc":     (p.get("text") or p.get("desc") or "")[:80],
             })
 
-    print(f"\n   🏆 Top {len(top)} bài scrape comments:")
+    print(f"\n   🔍 {len(qualified)}/{len(posts)} bài đạt ngưỡng ≥ 10K views")
+    print(f"   🏆 Top {len(top)} bài nhiều comment nhất → scrape comments:")
     for i, p in enumerate(top, 1):
-        print(f"      {i}. @{p['author']} | {p['views']:,} views | {p['desc']}")
+        print(f"      {i}. @{p['author']} | {p['views']:,} views | {p['comments']:,} comments | {p['desc']}")
     return top
+
+
+def is_useful_comment(text: str) -> bool:
+    """Lọc comment không có giá trị: emoji-only, quá ngắn, @mention."""
+    if not text or len(text.strip()) < 10:
+        return False
+    if text.strip().startswith("@"):
+        return False
+    # Bỏ comment toàn emoji / ký tự đặc biệt không có chữ cái
+    has_letter = any(c.isalpha() for c in text)
+    return has_letter
 
 
 def scrape_tiktok_comments(api_key: str, top_posts: list, dry_run: bool) -> list:
@@ -115,7 +130,7 @@ def scrape_tiktok_comments(api_key: str, top_posts: list, dry_run: bool) -> list
         print("💬 TikTok Comments — bỏ qua (không có post URL)")
         return []
 
-    print(f"\n💬 TikTok Comments — {len(top_posts)} posts × {COMMENTS_PER_POST} comments")
+    print(f"\n💬 TikTok Comments — {len(top_posts)} posts × top {COMMENTS_PER_POST} (sort by likes)")
     if dry_run:
         print("   [DRY RUN] bỏ qua")
         return []
@@ -124,16 +139,25 @@ def scrape_tiktok_comments(api_key: str, top_posts: list, dry_run: bool) -> list
     for p in top_posts:
         try:
             items = run_actor(api_key, "clockworks~tiktok-scraper", {
-                "postURLs":      [p["url"]],
-                "maxComments":   COMMENTS_PER_POST,
-                "scrapeType":    "comments",
+                "postURLs":        [p["url"]],
+                "maxComments":     COMMENTS_PER_POST * 3,  # lấy nhiều hơn để có dư sau lọc
+                "scrapeType":      "comments",
+                "commentSortType": "top",                  # sort by likes
             }, timeout=120)
-            all_comments.extend(items)
-            print(f"   ✅ @{p['author']}: {len(items)} comments")
+
+            # Sort by likes, lọc comment vô nghĩa, giữ top N
+            useful = [c for c in items if is_useful_comment(
+                c.get("text") or c.get("comment") or ""
+            )]
+            useful.sort(key=lambda c: c.get("likeCount", 0), reverse=True)
+            top_comments = useful[:COMMENTS_PER_POST]
+
+            all_comments.extend(top_comments)
+            print(f"   ✅ @{p['author']}: {len(top_comments)}/{len(items)} comments hữu ích")
         except Exception as e:
             print(f"   ⚠️  @{p['author']}: lỗi — {e}")
 
-    print(f"   📦 Tổng: {len(all_comments)} comments")
+    print(f"   📦 Tổng: {len(all_comments)} comments sạch")
     return all_comments
 
 
@@ -166,12 +190,13 @@ def print_comments_summary(comments: list):
     if not comments:
         return
     print(f"\n{'='*65}")
-    print(f"💬 TIKTOK COMMENTS — {len(comments)} comments (Claude phân tích pain points)")
+    print(f"💬 TIKTOK COMMENTS — {len(comments)} comments sạch (Claude phân tích pain points)")
     print(f"{'='*65}")
-    for c in comments[:80]:
-        text = (c.get("text") or c.get("comment") or "")[:120].strip()
+    for c in comments:
+        text  = (c.get("text") or c.get("comment") or "")[:120].strip()
+        likes = c.get("likeCount", 0)
         if text:
-            print(f"- {text}")
+            print(f"[{likes:>4} likes] {text}")
 
 
 def main():
