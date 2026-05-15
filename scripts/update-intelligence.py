@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Cập nhật intelligence files từ Apify TikTok scraper.
-Ngân sách: ~$1.65/lần — 2 lần/tháng trong $5 free tier Apify.
+Cập nhật intelligence files từ Apify.
+Tự động tìm bài BĐS viral nhất → scrape comments — không cần điền URL tay.
+Ngân sách: ~$1.80/lần — 2 lần/tháng trong $5 free tier Apify.
 
 Usage:
     python3 scripts/update-intelligence.py
@@ -18,7 +19,7 @@ import requests
 
 WORKSPACE = Path(__file__).parent.parent
 
-# Hashtag TikTok BĐS Việt Nam — chỉnh sửa tại đây nếu muốn
+# Hashtag TikTok BĐS Việt Nam
 TIKTOK_HASHTAGS = [
     "bdsdanang",
     "batdongsan",
@@ -30,12 +31,20 @@ TIKTOK_HASHTAGS = [
     "nhabds",
 ]
 
-# Facebook post URLs để scrape comments (thêm thủ công, 1 URL mỗi dòng)
-FB_URLS_FILE = WORKSPACE / "context" / "intelligence" / "fb-post-urls.txt"
+# Trang Facebook BĐS lớn để tìm bài viral
+FACEBOOK_BDS_PAGES = [
+    "https://www.facebook.com/batdongsan.com.vn",
+    "https://www.facebook.com/homedy.com.vn",
+    "https://www.facebook.com/cafeland.vn",
+    "https://www.facebook.com/nhadautu.vn",
+    "https://www.facebook.com/muabannhadat.vn",
+]
 
 # Giới hạn ngân sách
-TIKTOK_MAX_RESULTS   = 300   # 300 × $0.005 = $1.50
-FACEBOOK_MAX_COMMENTS = 100  # per post, tổng ~$0.15
+TIKTOK_MAX_RESULTS      = 300   # 300 × $0.005 = $1.50
+FB_POSTS_PER_PAGE       = 20    # lấy 20 bài/page để tìm viral
+FB_TOP_POSTS_FOR_COMMENTS = 8   # scrape comments từ top 8 bài nhiều tương tác nhất
+FACEBOOK_MAX_COMMENTS   = 80    # per post → ~640 comments tổng, ~$0.12
 
 
 def load_env():
@@ -66,43 +75,73 @@ def run_actor(api_key: str, actor_id: str, input_data: dict, timeout: int = 300)
 
 
 def scrape_tiktok(api_key: str, dry_run: bool) -> list:
-    print(f"🎵 TikTok scraper — {TIKTOK_MAX_RESULTS} posts từ #{', #'.join(TIKTOK_HASHTAGS)}")
+    print(f"🎵 TikTok — {TIKTOK_MAX_RESULTS} posts từ #{', #'.join(TIKTOK_HASHTAGS)}")
     if dry_run:
-        print("   [DRY RUN] bỏ qua API call")
+        print("   [DRY RUN] bỏ qua")
         return []
 
     items = run_actor(api_key, "clockworks~tiktok-scraper", {
-        "hashtags":              TIKTOK_HASHTAGS,
-        "resultsPerPage":        30,
-        "maxResults":            TIKTOK_MAX_RESULTS,
-        "shouldDownloadVideos":  False,
-        "shouldDownloadCovers":  False,
+        "hashtags":                TIKTOK_HASHTAGS,
+        "resultsPerPage":          30,
+        "maxResults":              TIKTOK_MAX_RESULTS,
+        "shouldDownloadVideos":    False,
+        "shouldDownloadCovers":    False,
         "shouldDownloadSubtitles": False,
     })
     print(f"   ✅ {len(items)} posts")
     return items
 
 
-def scrape_facebook_comments(api_key: str, dry_run: bool) -> list:
-    if not FB_URLS_FILE.exists():
-        print("💬 Facebook Comments — bỏ qua (fb-post-urls.txt chưa có)")
-        print(f"   Thêm URL vào: {FB_URLS_FILE.relative_to(WORKSPACE)}")
-        return []
-
-    urls = [u.strip() for u in FB_URLS_FILE.read_text().splitlines()
-            if u.strip() and not u.startswith("#")]
-    if not urls:
-        print("💬 Facebook Comments — bỏ qua (fb-post-urls.txt trống)")
-        return []
-
-    print(f"💬 Facebook Comments — {len(urls)} posts × {FACEBOOK_MAX_COMMENTS} comments")
+def scrape_facebook_posts(api_key: str, dry_run: bool) -> list:
+    """Bước 1: Lấy danh sách bài từ các trang BĐS lớn."""
+    print(f"📄 Facebook Posts — {FB_POSTS_PER_PAGE} bài/page × {len(FACEBOOK_BDS_PAGES)} pages")
     if dry_run:
-        print("   [DRY RUN] bỏ qua API call")
+        print("   [DRY RUN] bỏ qua")
+        return []
+
+    items = run_actor(api_key, "apify~facebook-posts-scraper", {
+        "startUrls":    [{"url": p} for p in FACEBOOK_BDS_PAGES],
+        "resultsLimit": FB_POSTS_PER_PAGE,
+    }, timeout=180)
+    print(f"   ✅ {len(items)} bài tìm được")
+    return items
+
+
+def pick_top_post_urls(posts: list) -> list:
+    """Chọn top N bài có tương tác cao nhất (reactions + comments)."""
+    def engagement(p):
+        r = p.get("reactions", {})
+        total_reactions = sum(r.values()) if isinstance(r, dict) else (r or 0)
+        comments = p.get("comments", 0) or 0
+        return total_reactions + comments * 2  # weight comments cao hơn
+
+    ranked = sorted(posts, key=engagement, reverse=True)
+    urls = []
+    for p in ranked[:FB_TOP_POSTS_FOR_COMMENTS]:
+        url = p.get("url") or p.get("postUrl") or p.get("link")
+        if url:
+            urls.append(url)
+
+    print(f"   🏆 Top {len(urls)} bài viral (theo reactions + comments)")
+    for i, u in enumerate(urls, 1):
+        print(f"      {i}. {u[:80]}")
+    return urls
+
+
+def scrape_facebook_comments(api_key: str, post_urls: list, dry_run: bool) -> list:
+    """Bước 2: Scrape comments từ top bài viral."""
+    if not post_urls:
+        print("💬 Facebook Comments — bỏ qua (không có URL)")
+        return []
+
+    print(f"💬 Facebook Comments — {len(post_urls)} bài × {FACEBOOK_MAX_COMMENTS} comments")
+    if dry_run:
+        print("   [DRY RUN] bỏ qua")
         return []
 
     items = run_actor(api_key, "apify~facebook-comments-scraper", {
-        "startUrls":           [{"url": u} for u in urls],
-        "maxComments":         FACEBOOK_MAX_COMMENTS,
+        "startUrls":             [{"url": u} for u in post_urls],
+        "maxComments":           FACEBOOK_MAX_COMMENTS,
         "includeNestedComments": False,
     })
     print(f"   ✅ {len(items)} comments")
@@ -120,9 +159,7 @@ def save_raw(data: dict, label: str):
 
 def print_tiktok_summary(items: list):
     if not items:
-        print("   (không có dữ liệu)")
         return
-
     sorted_items = sorted(items, key=lambda x: x.get("playCount", 0), reverse=True)
     print(f"\n{'='*65}")
     print(f"📊 TIKTOK SUMMARY — Top 20 / {len(items)} posts (Claude phân tích)")
@@ -133,14 +170,14 @@ def print_tiktok_summary(items: list):
         desc   = (it.get("text") or it.get("desc") or "")[:80]
         author = (it.get("authorMeta") or {}).get("name", "") or \
                  (it.get("author") or {}).get("uniqueId", "?")
-        print(f"{i:>2}. @{author} | {views:>10,} views | {likes:>8,} likes | {desc}")
+        print(f"{i:>2}. @{author} | {views:>10,} views | {likes:>7,} likes | {desc}")
 
 
 def print_comment_summary(items: list):
     if not items:
         return
     print(f"\n{'='*65}")
-    print(f"💬 FACEBOOK COMMENTS SUMMARY — {len(items)} comments (Claude phân tích)")
+    print(f"💬 FACEBOOK COMMENTS — {len(items)} comments (Claude phân tích)")
     print(f"{'='*65}")
     for it in items[:60]:
         text = (it.get("text") or "")[:120].strip()
@@ -161,14 +198,22 @@ def main():
         return
 
     print("🚀 update-intelligence — bắt đầu scrape")
-    print(f"   Ngân sách ước tính: ~$1.65 (TikTok {TIKTOK_MAX_RESULTS} items)")
+    print(f"   Ngân sách ước tính: ~$1.80/lần")
     print()
 
-    tiktok_items  = scrape_tiktok(api_key, args.dry_run)
-    comment_items = scrape_facebook_comments(api_key, args.dry_run)
-
+    # TikTok viral patterns
+    tiktok_items = scrape_tiktok(api_key, args.dry_run)
     if tiktok_items:
         save_raw({"items": tiktok_items}, "tiktok")
+
+    # Facebook: tự tìm bài viral → scrape comments
+    print()
+    fb_posts = scrape_facebook_posts(api_key, args.dry_run)
+    if fb_posts:
+        save_raw({"items": fb_posts}, "facebook-posts")
+
+    top_urls = pick_top_post_urls(fb_posts) if fb_posts else []
+    comment_items = scrape_facebook_comments(api_key, top_urls, args.dry_run)
     if comment_items:
         save_raw({"items": comment_items}, "facebook-comments")
 
