@@ -1,58 +1,49 @@
-# /update-intelligence
+# update-intelligence
 
-Cập nhật intelligence files từ Apify (TikTok viral patterns + Facebook pain points).
-Ngân sách: ~$1.65/lần — nằm trong $5 free tier Apify (2 lần/tháng).
+Cập nhật intelligence files từ Apify TikTok.
+Ngân sách: ~$2.00/lần — 2 lần/tháng trong $5 free tier Apify.
 
-## Quy trình
-
-### Bước 1 — Chạy Apify scraper
+## Bước 1 — Chạy scraper
 
 ```bash
 python3 scripts/update-intelligence.py
 ```
 
-Chờ script hoàn tất (2–5 phút). Script sẽ in SUMMARY để Claude đọc.
+Chờ 3–5 phút. Script tự động:
 
-### Bước 2 — Phân tích TikTok summary
+- Scrape 300 posts từ 12 hashtag BĐS Đà Nẵng (~$1.50)
+- Lọc bài views ≥ 10,000 + có keyword BĐS trong caption
+- Chọn top 5 bài nhiều comment nhất
+- Scrape top 20 comments (sort by likes) từ mỗi bài (~$0.50)
+- In SUMMARY để Claude đọc
 
-Từ danh sách top posts in ra:
+## Bước 2 — Phân tích posts → viral-patterns.md
+
+Từ TIKTOK POSTS SUMMARY:
 
 - Nhóm theo hook-type: **Confession** / **Data Lead** / **Paradox** / **Story Open**
-- Mỗi pattern ghi: hook mẫu, cấu trúc thân bài, format visual, tại sao hoạt động, gợi ý angle cho Bình Phan
-- Giữ tối đa 12–15 patterns có views cao nhất, bỏ các bài trùng nhau
+- Mỗi pattern: hook mẫu, cấu trúc thân bài, format visual, tại sao hoạt động, gợi ý angle cho Bình Phan
+- Giữ top 12–15 patterns, bỏ bài trùng nhau
 
-### Bước 3 — OVERWRITE `context/intelligence/viral-patterns.md`
+## Bước 3 — OVERWRITE viral-patterns.md
 
-- Thay toàn bộ nội dung (không giữ lại từ lần trước)
-- Cập nhật frontmatter `Cập nhật lần cuối: DD/MM/YYYY`
-- Giữ nguyên cấu trúc 4 nhóm hook-type
+- Thay toàn bộ nội dung, không giữ lại dữ liệu cũ
+- Cập nhật `Cập nhật lần cuối: DD/MM/YYYY`
+- Giữ cấu trúc 4 nhóm hook-type
 
-### Bước 4 — Phân tích Facebook comments (nếu có)
+## Bước 4 — Phân tích comments → audience-painpoints.md
 
-Nếu script trả về comment data:
+Từ TIKTOK COMMENTS SUMMARY:
 
-- Phân loại vào 6 nhóm chủ đề cố định
-- Paraphrase — không copy nguyên văn bất kỳ comment nào
-- Ghi tần suất và mức độ lo lắng theo quan sát thực tế
+- Phân vào 6 nhóm cố định: pháp lý / tài chính / thời điểm mua / rủi ro dự án / so sánh / cho thuê
+- Comment nhiều likes = pain point của số đông, ưu tiên phân tích
+- Paraphrase — không copy nguyên văn
 
-### Bước 5 — OVERWRITE nội dung `context/intelligence/audience-painpoints.md`
+## Bước 5 — OVERWRITE nội dung audience-painpoints.md
 
-- Giữ nguyên 6 nhóm chủ đề (không thêm, không xóa nhóm)
-- Thay toàn bộ nội dung bên trong mỗi nhóm
+- Giữ nguyên 6 nhóm chủ đề, thay toàn bộ nội dung bên trong
 - Cập nhật timestamp
 
-### Bước 6 — Báo cáo
+## Bước 6 — Báo cáo
 
-In ra:
-
-- Số patterns TikTok tìm được
-- Số comments phân tích được
-- Chi phí Apify ước tính
-- Ngày cập nhật tiếp theo (14 ngày sau)
-
-## Lưu ý
-
-- **Facebook comments** chỉ chạy nếu có URL trong `context/intelligence/fb-post-urls.txt`
-  Thêm URL bài viral BĐS vào file đó (1 URL/dòng) trước khi chạy
-- Raw data lưu tại `outputs/intelligence-raw/YYYY-MM-DD-*.json` để debug
-- Không để 2 lần chạy trong cùng 1 ngày (tốn tiền, data không khác nhiều)
+Tóm tắt: số patterns, số comments, chi phí ước tính, ngày nhắc tiếp theo.
