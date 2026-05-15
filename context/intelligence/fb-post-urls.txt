@@ -1,0 +1,4 @@
+# Facebook post URLs để scrape comments — thêm 1 URL mỗi dòng
+# Tìm bài BĐS viral trên Facebook → copy URL → paste vào đây → chạy /update-intelligence
+# Ví dụ:
+# https://www.facebook.com/xxx/posts/yyy
