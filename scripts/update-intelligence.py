@@ -35,6 +35,7 @@ TIKTOK_HASHTAGS = [
     "bophovebien",
     "chuyendensongdanang",
     "thanhphodangsong",
+    "dautudanang",
 ]
 
 # Giới hạn ngân sách
