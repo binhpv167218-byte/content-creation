@@ -47,6 +47,8 @@ GH_TABLES = {
 }
 
 # Cấu hình từng GH table: field tên loại căn và field giá chính
+# cover_paths: dict loại căn → đường dẫn ảnh local (relative từ WORKSPACE)
+# "default" dùng khi không match loại căn cụ thể. Để "" = text-only post.
 GH_CONFIG = {
     "Capital Square": {
         "unit_field": "Số PN",
@@ -54,7 +56,7 @@ GH_CONFIG = {
         "area_field":  "DT Căn Hộ (m²)",
         "status_field": "Tình Trạng",
         "status_ok": ["Còn hàng"],
-        "cover_url": "",   # điền URL ảnh cover project khi có
+        "cover_paths": {"default": ""},   # chưa có ảnh, text-only
     },
     "FourS Tower": {
         "unit_field": "Loại Căn",
@@ -62,7 +64,12 @@ GH_CONFIG = {
         "area_field":  "Tổng DT (m²)",
         "status_field": "Tình Trạng",
         "status_ok": ["Còn hàng", "Độc quyền"],
-        "cover_url": "",
+        "cover_paths": {
+            "1PN+": "context/images/projects/fours-tower/fours-mat-bang-can-ho-1pn-plus-53m2.jpg",
+            "2PN":  "context/images/projects/fours-tower/fours-mat-bang-can-ho-2pn-73m2.jpg",
+            "3PN":  "context/images/projects/fours-tower/fours-mat-bang-can-ho-3pn-103m2.jpg",
+            "default": "context/images/projects/fours-tower/fours-phoi-canh-hai-toa-thap-doc-dai-lo.jpg",
+        },
     },
     "Newtown Diamond": {
         "unit_field": "Số PN",
@@ -70,9 +77,19 @@ GH_CONFIG = {
         "area_field":  "DT Thông Thủy (m²)",
         "status_field": "Tình Trạng",
         "status_ok": ["Còn hàng"],
-        "cover_url": "",
+        "cover_paths": {"default": ""},   # chưa có ảnh, text-only
     },
 }
+
+
+def get_cover_path(project, unit_type):
+    """Trả về đường dẫn ảnh local cho giỏ hàng post, hoặc '' nếu không có."""
+    paths = GH_CONFIG[project].get("cover_paths", {})
+    path = paths.get(unit_type) or paths.get("default", "")
+    if not path:
+        return ""
+    full = WORKSPACE / path
+    return str(full) if full.exists() else ""
 
 # ── Rotation ──────────────────────────────────────────────────────────────────
 UNIT_CYCLE = ["1PN+", "2PN", "3PN"]
@@ -320,6 +337,20 @@ def fb_upload_photo(token, img_url):
     return data["id"]
 
 
+def fb_upload_local_photo(token, file_path):
+    """Upload ảnh từ file local lên Facebook (unpublished)."""
+    with open(file_path, "rb") as f:
+        r = requests.post(
+            "https://graph.facebook.com/v19.0/me/photos",
+            data={"published": "false", "access_token": token},
+            files={"source": f},
+        )
+    data = r.json()
+    if "id" not in data:
+        raise RuntimeError(f"Upload ảnh local thất bại: {data}")
+    return data["id"]
+
+
 def fb_post_single(token, caption, img_url, dry_run=False):
     if dry_run:
         return "dry-run-single"
@@ -332,6 +363,25 @@ def fb_post_single(token, caption, img_url, dry_run=False):
     if "id" not in result:
         raise RuntimeError(f"Đăng ảnh thất bại: {result}")
     return result.get("post_id", result["id"])
+
+
+def fb_post_with_local_image(token, caption, file_path, dry_run=False):
+    """Upload ảnh local rồi đăng kèm caption lên feed."""
+    if dry_run:
+        return "dry-run-local-image"
+    photo_id = fb_upload_local_photo(token, file_path)
+    r = requests.post(
+        "https://graph.facebook.com/v19.0/me/feed",
+        data={
+            "message": caption,
+            "attached_media": json.dumps([{"media_fbid": photo_id}]),
+            "access_token": token,
+        },
+    )
+    data = r.json()
+    if "id" not in data:
+        raise RuntimeError(f"Đăng với ảnh local thất bại: {data}")
+    return data["id"]
 
 
 def fb_post_carousel(token, caption, slide_urls, dry_run=False):
@@ -457,18 +507,22 @@ def main():
                 tg(env, f"⚠️ *IQI*: {msg}")
                 continue
 
-            caption = build_gio_hang_caption(project, unit, records,
-                                             GH_CONFIG[project])
-            cover   = GH_CONFIG[project].get("cover_url", "")
+            caption    = build_gio_hang_caption(project, unit, records,
+                                               GH_CONFIG[project])
+            cover_path = get_cover_path(project, unit)
 
             print(f"   ✓ {len(records)} căn {unit} Còn hàng")
+            if cover_path:
+                print(f"   🖼  Ảnh: {Path(cover_path).name}")
+            else:
+                print(f"   📝 Text-only (chưa có ảnh cover)")
             if args.dry_run:
                 print(f"   [DRY RUN] Caption:\n{caption[:200]}...")
                 continue
 
             try:
-                if cover:
-                    post_id = fb_post_single(fb_token, caption, cover)
+                if cover_path:
+                    post_id = fb_post_with_local_image(fb_token, caption, cover_path)
                 else:
                     post_id = fb_post_text_only(fb_token, caption)
                 fb_url = f"https://facebook.com/{post_id}"
