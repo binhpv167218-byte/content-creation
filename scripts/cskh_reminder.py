@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
 """
 Gửi Telegram reminder mỗi sáng: danh sách khách cần follow-up hôm nay và ngày mai.
+Field "Lần" xác định lần liên hệ thứ mấy (1-4).
 
-Chạy tự động qua GitHub Actions lúc 7:00 sáng (00:00 UTC).
+Chạy tự động qua GitHub Actions lúc 8:30 sáng (01:30 UTC).
 """
 
 import os
-import json
 import requests
 from datetime import date, timedelta
 from pathlib import Path
 
-WORKSPACE = Path(__file__).parent.parent
+WORKSPACE  = Path(__file__).parent.parent
 CSKH_TABLE = "tblOU5r9U7qZBpjvP"
+
+# Cadence: sau mỗi lần, cách bao nhiêu ngày đến lần tiếp theo
+CADENCE = {1: 2, 2: 2, 3: 3}  # lần 1 → +2 ngày, lần 2 → +2, lần 3 → +3
 
 
 def load_env():
@@ -33,7 +36,7 @@ def fetch_followups(at_key, at_base, target_date: date) -> list:
     date_str = target_date.isoformat()
     params = {
         "filterByFormula": f"{{Ngày follow-up}}='{date_str}'",
-        "fields[]": ["Khách hàng", "Dự án đề cập", "Hành động tiếp theo", "Ngày follow-up"],
+        "fields[]": ["Khách hàng", "Dự án đề cập", "Hành động tiếp theo", "Lần"],
         "pageSize": 100,
     }
     r = requests.get(
@@ -54,24 +57,35 @@ def send_telegram(bot_token, chat_id, message):
 
 
 def format_record(rec, prefix=""):
-    f = rec.get("fields", {})
-    name    = f.get("Khách hàng", "Không rõ")
+    f      = rec.get("fields", {})
+    name   = f.get("Khách hàng", "Không rõ")
     project = f.get("Dự án đề cập", "")
     action  = f.get("Hành động tiếp theo", "").strip()
-    line = f"{prefix}<b>{name}</b>"
+    lan     = f.get("Lần")
+
+    lan_tag = f" [Lần {int(lan)}/4]" if lan else ""
+    line = f"{prefix}<b>{name}</b>{lan_tag}"
     if project:
-        line += f" ({project})"
+        line += f" — {project}"
     if action:
         line += f"\n    {action}"
+
+    # Gợi ý lần tiếp theo
+    if lan and int(lan) < 4:
+        days_next = CADENCE.get(int(lan), 3)
+        line += f"\n    <i>Lần {int(lan)+1} dự kiến sau {days_next} ngày nếu không hồi âm</i>"
+    elif lan and int(lan) == 4:
+        line += f"\n    <i>Lần cuối — nếu không hồi âm chuyển sang Chờ sự kiện</i>"
+
     return line
 
 
 def main():
-    env        = load_env()
-    at_key     = env.get("AIRTABLE_API_KEY", "")
-    at_base    = env.get("AIRTABLE_BASE_ID", "")
-    bot_token  = env.get("TELEGRAM_BOT_TOKEN", "")
-    chat_id    = env.get("TELEGRAM_CHAT_ID", "")
+    env       = load_env()
+    at_key    = env.get("AIRTABLE_API_KEY", "")
+    at_base   = env.get("AIRTABLE_BASE_ID", "")
+    bot_token = env.get("TELEGRAM_BOT_TOKEN", "")
+    chat_id   = env.get("TELEGRAM_CHAT_ID", "")
 
     if not all([at_key, at_base, bot_token, chat_id]):
         print("Thiếu biến môi trường cần thiết")
