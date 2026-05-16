@@ -52,6 +52,13 @@ _Cập nhật: 2026-05-09 13:32 — Model: sonar-pro_
 
 - Không có thông tin cụ thể về phương thức thanh toán, % vốn tự có, lãi suất, ân hạn, chiết khấu
 
+## Bàn Giao
+
+- **Hình thức bàn giao: THÔ** (shell/rough handover) — xác nhận bởi Bình Phan 16/05/2026
+- Khách hàng tự hoàn thiện nội thất sau bàn giao
+- Chi phí nội thất cần tính thêm vào bài toán tổng đầu tư (ước tính 200-500 triệu tùy chuẩn)
+- Thực tế dọn vào ở: sau bàn giao 08/2028 cần thêm 2-4 tháng thi công nội thất → Q4/2028 sớm nhất
+
 ## Thông Tin Khác Đáng Chú Ý
 
 - Ra mắt tháng 5/2026 bởi Sun Property (Sun Group), hoàn thiện tổ hợp Sun Symphony Residence với >1.200 căn hộ mới bên sông Hàn (nguồn: sungroup.com.vn, 05/2026)
