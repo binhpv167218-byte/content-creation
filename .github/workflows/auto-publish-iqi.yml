@@ -1,0 +1,31 @@
+name: Auto Publish — IQI Page
+
+# Trigger từ cron-job.org mỗi 30 phút
+# Script tự detect slot nào đang trong window + jitter 0–400s ngẫu nhiên
+on:
+  workflow_dispatch:
+
+jobs:
+  publish-iqi:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run IQI scheduler
+        env:
+          AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+          FACEBOOK_TOKEN_BINH_PHAN_IQI: ${{ secrets.FACEBOOK_TOKEN_BINH_PHAN_IQI }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python scripts/schedule_publish_iqi.py

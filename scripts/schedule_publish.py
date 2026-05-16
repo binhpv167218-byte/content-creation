@@ -104,7 +104,6 @@ def verify_buffer(buffer_token: str, post_value: str) -> tuple:
 
 
 def verify_results(env: dict, results: dict) -> dict:
-    fb_iqi = env.get("FACEBOOK_TOKEN_BINH_PHAN_IQI", "")
     fb_bmn = env.get("FACEBOOK_TOKEN_BINH_ME_NHA", "")
     buf    = env.get("BUFFER_ACCESS_TOKEN", "")
     verified = {}
@@ -112,10 +111,7 @@ def verify_results(env: dict, results: dict) -> dict:
         if "LỖI" in value:
             verified[platform] = value
             continue
-        if platform == "Facebook IQI":
-            ok = verify_facebook(fb_iqi, value)
-            verified[platform] = value if ok else f"⚠️ CHƯA XÁC MINH: {value}"
-        elif platform in ("Facebook BMN", "Facebook"):
+        if platform in ("Facebook BMN", "Facebook"):
             ok = verify_facebook(fb_bmn, value)
             verified[platform] = value if ok else f"⚠️ CHƯA XÁC MINH: {value}"
         elif platform in ("Instagram", "TikTok", "Threads"):
@@ -276,9 +272,6 @@ def update_airtable(env: dict, rec_id: str, results: dict):
         "Ghi chú":  f"Tự đăng lúc {now.strftime('%d/%m/%Y %H:%M')}\n{notes}",
     }
     # Lưu platform IDs để evening summary có thể lấy link
-    fb_iqi = results.get("Facebook IQI", "")
-    if fb_iqi and "LỖI" not in fb_iqi:
-        fields["Facebook ID"] = fb_iqi.replace("https://facebook.com/", "")
     if "Instagram" in results and "LỖI" not in results["Instagram"]:
         fields["Instagram ID"] = results["Instagram"]
     if "TikTok" in results and "LỖI" not in results["TikTok"]:
@@ -344,22 +337,8 @@ def publish_post(env: dict, rec: dict, dry_run=False) -> dict:
     is_carousel = len(slide_urls) > 1
     results = {}
 
-    fb_iqi = env.get("FACEBOOK_TOKEN_BINH_PHAN_IQI", "")
     fb_bmn = env.get("FACEBOOK_TOKEN_BINH_ME_NHA", "")
     buf    = env.get("BUFFER_ACCESS_TOKEN", "")
-
-    # Facebook Bình Phan IQI — chỉ đăng Dự án + Thị Trường
-    # Nhận "Facebook IQI" (mới) hoặc "Facebook" (backward compat)
-    post_iqi = fb_iqi and any(p in platforms for p in ["Facebook IQI", "Facebook"])
-    if post_iqi:
-        try:
-            if is_carousel:
-                pid = fb_post_carousel(fb_iqi, caption, slide_urls, dry_run)
-            else:
-                pid = fb_post_single(fb_iqi, caption, slide_urls[0], dry_run)
-            results["Facebook IQI"] = f"https://facebook.com/{pid}"
-        except Exception as e:
-            results["Facebook IQI"] = f"LỖI: {e}"
 
     # Facebook Bình Mê Nhà — đăng tất cả loại nội dung
     # Nhận "Facebook BMN" (mới) hoặc "Facebook" (backward compat)
@@ -386,7 +365,7 @@ def publish_post(env: dict, rec: dict, dry_run=False) -> dict:
     if "Instagram" in platforms and buf:
         try:
             pid = buffer_post(BUFFER_INSTAGRAM, caption, slide_urls, buf,
-                              metadata={"instagram": {"type": "post"}}, dry_run=dry_run)
+                              metadata={"instagram": {"type": "post", "shouldShareToFeed": True}}, dry_run=dry_run)
             results["Instagram"] = pid
         except Exception as e:
             results["Instagram"] = f"LỖI: {e}"

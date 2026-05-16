@@ -238,9 +238,8 @@ def verify_results(results: dict) -> dict:
             verified[platform] = value
             continue
 
-        if platform in ("Facebook IQI", "Facebook BMN", "Facebook"):
-            token = FB_TOKEN_IQI if platform == "Facebook IQI" else FB_TOKEN_BMN
-            ok = verify_facebook(token, value)
+        if platform in ("Facebook BMN", "Facebook"):
+            ok = verify_facebook(FB_TOKEN_BMN, value)
             verified[platform] = value if ok else f"⚠️ CHƯA XÁC MINH: {value}"
 
         elif platform in ("Instagram", "TikTok", "Threads"):
@@ -368,8 +367,6 @@ def update_airtable_status(slug: str, results: dict):
         "Đăng lúc": now,
         "Ghi chú":  f"Đăng tự động lúc {now}\n{notes}",
     }
-    if "Facebook IQI" in results and "LỖI" not in results["Facebook IQI"]:
-        fields["Facebook ID"] = results["Facebook IQI"].replace("https://facebook.com/", "")
     if "Instagram" in results and "LỖI" not in results["Instagram"]:
         fields["Instagram ID"] = results["Instagram"]
     if "TikTok" in results and "LỖI" not in results["TikTok"]:
@@ -409,24 +406,10 @@ def main():
 
     results = {}
 
-    # ── Facebook Bình Phan IQI — chỉ Dự án + Thị Trường ──
-    post_iqi = FB_TOKEN_IQI and any(p in platforms for p in ["Facebook IQI", "Facebook"]) and (only is None or "Facebook IQI" in only)
-    print(f"1. Facebook — Bình Phan IQI {'(đăng)' if post_iqi else '(bỏ qua — không phải Dự án/Thị Trường)'}")
-    if post_iqi:
-        try:
-            if is_carousel:
-                post_id = fb_post_carousel(FB_TOKEN_IQI, caption, slide_urls, args.dry_run)
-            else:
-                post_id = fb_post_single_photo(FB_TOKEN_IQI, caption, slide_urls[0], dry_run=args.dry_run)
-            results["Facebook IQI"] = f"https://facebook.com/{post_id}"
-            print(f"   ✅ Post ID: {post_id}")
-        except Exception as e:
-            results["Facebook IQI"] = f"LỖI: {e}"
-            print(f"   ❌ {e}")
-
     # ── Facebook Bình Mê Nhà — tất cả nội dung ──
+    # Facebook IQI được quản lý riêng qua table 📣 IQI Posts — không đăng từ workflow này
     post_bmn = FB_TOKEN_BMN and any(p in platforms for p in ["Facebook BMN", "Facebook"]) and (only is None or "Facebook BMN" in only)
-    print(f"2. Facebook — Bình Mê Nhà {'(đăng)' if post_bmn else '(bỏ qua)'}")
+    print(f"1. Facebook — Bình Mê Nhà {'(đăng)' if post_bmn else '(bỏ qua)'}")
     if post_bmn:
         try:
             if is_carousel:
@@ -442,7 +425,7 @@ def main():
 
     # ── Buffer: TikTok — carousel only ──
     post_tiktok = BUFFER_TOKEN and "TikTok" in platforms and is_carousel and (only is None or "TikTok" in only)
-    print(f"3. TikTok {'(đăng)' if post_tiktok else '(bỏ qua — không phải carousel hoặc không có trong Platform)'}")
+    print(f"2. TikTok {'(đăng)' if post_tiktok else '(bỏ qua — không phải carousel hoặc không có trong Platform)'}")
     if post_tiktok:
         try:
             post_id = buffer_create_post(BUFFER_TIKTOK, caption, slide_urls, args.dry_run)
@@ -454,7 +437,7 @@ def main():
 
     # ── Buffer: Instagram ──
     post_ig = BUFFER_TOKEN and "Instagram" in platforms and (only is None or "Instagram" in only)
-    print(f"4. Instagram {'(đăng)' if post_ig else '(bỏ qua)'}")
+    print(f"3. Instagram {'(đăng)' if post_ig else '(bỏ qua)'}")
     if post_ig:
         ig_type = "carousel" if is_carousel else "post"
         ig_meta = {"instagram": {"type": ig_type, "shouldShareToFeed": True}}
@@ -468,7 +451,7 @@ def main():
 
     # ── Buffer: Threads — max 500 chars ──
     post_threads = BUFFER_TOKEN and "Threads" in platforms and (only is None or "Threads" in only)
-    print(f"5. Threads {'(đăng)' if post_threads else '(bỏ qua)'}")
+    print(f"4. Threads {'(đăng)' if post_threads else '(bỏ qua)'}")
     if post_threads:
         threads_meta = {"threads": {"type": "post"}}
         threads_caption = summarize_for_threads(caption)
