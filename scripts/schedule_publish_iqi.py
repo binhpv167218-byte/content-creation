@@ -8,9 +8,9 @@ Cấu trúc 12 slot/ngày:
   4x P1  Sun Symphony 5 (đang nhận booking): 07:00 | 08:30* | 17:30 | 21:00
            * 08:30: bắt buộc có CTA booking trong Ghi Chú
   6x P2  Capital Square, FourS Tower, Newtown Diamond (mở bán + có giỏ hàng):
-           09:30 CS dự án | 10:30 CS giỏ hàng
-           11:30 FT dự án | 12:30 FT giỏ hàng
-           13:30 ND dự án | 14:30 ND giỏ hàng
+           09:30 CS push (căn Nổi Bật) | 10:30 CS giỏ hàng (loại căn hôm đó)
+           11:30 FT push (căn Nổi Bật) | 12:30 FT giỏ hàng (loại căn hôm đó)
+           13:30 ND push (căn Nổi Bật) | 14:30 ND giỏ hàng (loại căn hôm đó)
   2x P3/P4  Vinhomes HVB, M Landmark, Nobu, The Legend City (rotate mỗi ngày):
            16:00 project A | 19:00 project B
 
@@ -167,11 +167,11 @@ def slot_meta(slot_type, ctx):
     mapping = {
         "p1":       (P1_PROJECT,        "du_an",   None,             False),
         "p1_cta":   (P1_PROJECT,        "du_an",   None,             True),
-        "p2_cs_da": (P2_PROJECTS["cs"], "du_an",   None,             False),
+        "p2_cs_da": (P2_PROJECTS["cs"], "push",    None,             False),
         "p2_cs_gh": (P2_PROJECTS["cs"], "gio_hang",ctx["unit_type"], False),
-        "p2_ft_da": (P2_PROJECTS["ft"], "du_an",   None,             False),
+        "p2_ft_da": (P2_PROJECTS["ft"], "push",    None,             False),
         "p2_ft_gh": (P2_PROJECTS["ft"], "gio_hang",ctx["unit_type"], False),
-        "p2_nd_da": (P2_PROJECTS["nd"], "du_an",   None,             False),
+        "p2_nd_da": (P2_PROJECTS["nd"], "push",    None,             False),
         "p2_nd_gh": (P2_PROJECTS["nd"], "gio_hang",ctx["unit_type"], False),
         "p3p4_a":   (ctx["p3p4_a"],     "du_an",   None,             False),
         "p3p4_b":   (ctx["p3p4_b"],     "du_an",   None,             False),
@@ -270,6 +270,78 @@ def fetch_gio_hang(at_key, at_base, project, unit_type):
                 "maxRecords": 10},
     )
     return r.json().get("records", [])
+
+
+def fetch_push_can(at_key, at_base, project):
+    """
+    Lấy danh sách căn đang tick Nổi Bật + còn hàng từ GH table.
+    Trả về list records, random 1 record khi đăng.
+    """
+    cfg      = GH_CONFIG[project]
+    table_id = GH_TABLES[project]
+
+    status_filters = [f"{{Tình Trạng}}='{s}'" for s in cfg["status_ok"]]
+    formula = f"AND({{Nổi Bật}}=1, OR({', '.join(status_filters)}))"
+
+    fields = ["Mã Căn", cfg["unit_field"], cfg["price_field"], cfg["area_field"],
+              cfg["status_field"], "Lý Do Nổi Bật"]
+    if project == "FourS Tower":
+        fields += ["Tòa", "Hướng", "Sàn", "Giá Có Vay", "Giá Không Vay", "Giá TTS 95%"]
+    else:
+        fields += ["Tòa", "Tầng"]
+
+    r = requests.get(
+        f"https://api.airtable.com/v0/{at_base}/{table_id}",
+        headers={"Authorization": f"Bearer {at_key}"},
+        params={"filterByFormula": formula, "fields[]": fields, "maxRecords": 20},
+    )
+    return r.json().get("records", [])
+
+
+def build_push_caption(project, rec, cfg):
+    """Tạo caption spotlight cho 1 căn cụ thể."""
+    f       = rec["fields"]
+    ma_can  = f.get("Mã Căn", "")
+    ly_do   = f.get("Lý Do Nổi Bật", "").strip()
+    unit    = f.get(cfg["unit_field"], "")
+    area    = f.get(cfg["area_field"], "")
+    toa     = f.get("Tòa", "")
+    tang    = f.get("Tầng", "") or f.get("Sàn", "")
+    huong   = f.get("Hướng", "")
+
+    hook = f"🔥 {ly_do}" if ly_do else f"🔥 Căn đáng chú ý tại {project}"
+
+    lines = [hook, ""]
+
+    # Thông tin căn
+    info = f"📍 {project} — {unit}  |  {area}m²"
+    if toa:
+        info += f"  |  Tòa {toa}"
+    if tang:
+        info += f"  |  {'Tầng' if isinstance(tang, (int,float)) else ''} {tang}".strip()
+    if huong:
+        info += f"  |  {huong}"
+    lines.append(info)
+    lines.append("")
+
+    # Giá — FourS Tower hiển thị 3 phương án
+    if project == "FourS Tower" and f.get("Giá Có Vay"):
+        lines.append("💰 Giá theo phương án thanh toán:")
+        lines.append(f"   Có vay    : {format_price(f.get('Giá Có Vay'))}")
+        lines.append(f"   Không vay : {format_price(f.get('Giá Không Vay'))}")
+        lines.append(f"   TTS 95%   : {format_price(f.get('Giá TTS 95%'))}")
+    else:
+        gia = f.get(cfg["price_field"])
+        if gia:
+            lines.append(f"💰 {format_price(gia)}")
+
+    lines += [
+        "",
+        "Nhắn Bình để xem chi tiết + chính sách.",
+        "",
+        f"#BinhPhanBDS #IQI #{project.replace(' ','')}",
+    ]
+    return "\n".join(lines)
 
 
 def format_price(value):
@@ -533,7 +605,41 @@ def main():
                 tg(env, f"❌ *IQI GH lỗi* [{slot_time}] {project}\n`{e}`")
             continue
 
-        # ── Dự án: lấy từ IQI Posts ──
+        # ── Push căn nổi bật: lấy từ GH table ──
+        if content == "push":
+            candidates = fetch_push_can(at_key, at_base, project)
+            if not candidates:
+                msg = f"⚠️ {project} chưa có căn Nổi Bật — bỏ slot [{slot_time}]"
+                print(f"   {msg}")
+                tg(env, f"⚠️ *IQI Push*: {msg}\nTick ⭐ Nổi Bật trong GH {project}.")
+                continue
+
+            rec     = random.choice(candidates)
+            caption = build_push_caption(project, rec, GH_CONFIG[project])
+            unit_val = rec["fields"].get(GH_CONFIG[project]["unit_field"], "")
+            cover_path = get_cover_path(project, unit_val)
+
+            print(f"   ⭐ Push: {rec['fields'].get('Mã Căn','')} — {rec['fields'].get('Lý Do Nổi Bật','')}")
+            if cover_path:
+                print(f"   🖼  Ảnh: {Path(cover_path).name}")
+            if args.dry_run:
+                print(f"   [DRY RUN] Caption:\n{caption[:300]}...")
+                continue
+
+            try:
+                if cover_path:
+                    post_id = fb_post_with_local_image(fb_token, caption, cover_path)
+                else:
+                    post_id = fb_post_text_only(fb_token, caption)
+                fb_url = f"https://facebook.com/{post_id}"
+                print(f"   ✅ {fb_url}")
+                tg(env, f"✅ *IQI Push* [{slot_time}] [{project} ⭐]({fb_url})")
+            except Exception as e:
+                print(f"   ❌ {e}")
+                tg(env, f"❌ *IQI Push lỗi* [{slot_time}] {project}\n`{e}`")
+            continue
+
+        # ── Dự án: lấy từ IQI Posts (P1 + P3/P4) ──
         post = find_du_an_post(at_key, at_base, project, prefer_cta=is_cta)
         if not post:
             msg = f"⚠️ Không có bài Sẵn sàng — {project} [{slot_time}]"
