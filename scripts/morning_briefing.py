@@ -15,6 +15,25 @@ from pathlib import Path
 
 WORKSPACE = Path(__file__).parent.parent
 
+# 2 trigger slots (giờ VN) — đa kênh BMN/TikTok/IG/Threads
+TRIGGER_HOURS = [8, 18]
+WINDOW_MIN    = 60   # phút trước trigger
+WINDOW_MAX    = 10   # phút sau trigger
+
+
+def in_trigger_window(dang_luc: str) -> bool:
+    try:
+        part = dang_luc.split(" ")[1] if " " in dang_luc else dang_luc
+        h, m = map(int, part.split(":"))
+        post_min = h * 60 + m
+        for t in TRIGGER_HOURS:
+            if (t * 60 - WINDOW_MIN) <= post_min <= (t * 60 + WINDOW_MAX):
+                return True
+        return False
+    except Exception:
+        return True
+
+
 FORMAT_ICON = {
     "Ảnh cá nhân":   "🖼",
     "Carousel":       "📊",
@@ -67,6 +86,7 @@ def get_schedule(target_date: str) -> list:
         rec for rec in all_records
         if rec["fields"].get("Ngày đăng") == target_date
         and rec["fields"].get("Status") == "Scheduled"
+        and in_trigger_window(rec["fields"].get("Đăng lúc", ""))
     ]
 
 

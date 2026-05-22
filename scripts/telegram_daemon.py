@@ -241,11 +241,17 @@ Bạn có thể thực hiện các actions sau qua function calling:
 - add_post_to_schedule: thêm bài vào lịch
 - trigger_event_followup: khi Bình báo có sự kiện mới (FourS F2/F3 mở bán, dự án mới, có giá chính thức...) thì kích hoạt follow-up cho tất cả khách Chờ sự kiện
 
+Lịch đăng đa kênh (BMN/TikTok/IG/Threads) chỉ có 2 slot hợp lệ:
+- 08:00 — bài chính (Carousel hoặc Ảnh + story)
+- 18:00 — bài phụ (Infographic hoặc Ảnh cảnh)
+Không lên lịch ở các giờ khác (12:00, 21:00... đã bỏ).
+
 Khi nhận được yêu cầu thêm lịch, hãy:
-1. Phân tích ngày/giờ từ text (ví dụ "thứ 3 tới" = ngày cụ thể, dựa vào ngày hôm nay)
-2. Xác định format phù hợp (Ảnh cá nhân / Carousel / Infographic)
-3. Xác định platform (Facebook BMN, Facebook IQI, TikTok, Instagram, Threads)
-4. Gọi function add_post_to_schedule
+1. Phân tích ngày từ text (ví dụ "thứ 3 tới" = ngày cụ thể, dựa vào ngày hôm nay)
+2. Hỏi Bình muốn slot 08:00 hay 18:00 nếu không nói rõ
+3. Xác định format phù hợp (Ảnh cá nhân / Carousel / Infographic / AI Infographic)
+4. Xác định platform: BMN luôn có; TikTok chỉ khi Carousel slot 08:00; IG+Threads khi slot 18:00
+5. Gọi function add_post_to_schedule
 
 Khi người dùng gửi ảnh, hãy phân tích và mô tả ảnh, đồng thời gợi ý cách dùng cho content.
 

@@ -2,6 +2,9 @@
 .env
 .DS_Store
 
+# Agent memory database (contains API keys in binary files)
+data/state_store.db/
+
 # Python
 __pycache__/
 *.pyc
