@@ -12,7 +12,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 WORKSPACE  = Path(__file__).parent.parent
-CSKH_TABLE = "tblOU5r9U7qZBpjvP"
+CSKH_TABLE = "tbl8hbsOvV2y2MnfN"  # 🤝 Khách Hàng
 
 # Cadence: sau mỗi lần, cách bao nhiêu ngày đến lần tiếp theo
 CADENCE = {1: 2, 2: 2, 3: 3}  # lần 1 → +2 ngày, lần 2 → +2, lần 3 → +3
@@ -35,8 +35,8 @@ def fetch_followups(at_key, at_base, target_date: date) -> list:
     headers = {"Authorization": f"Bearer {at_key}"}
     date_str = target_date.isoformat()
     params = {
-        "filterByFormula": f"{{Ngày follow-up}}='{date_str}'",
-        "fields[]": ["Khách hàng", "Dự án đề cập", "Hành động tiếp theo", "Lần"],
+        "filterByFormula": f"IS_SAME({{Ngày follow-up}},'{date_str}','day')",
+        "fields[]": ["Tên", "Dự án quan tâm", "Hành động tiếp theo", "Số lần liên hệ"],
         "pageSize": 100,
     }
     r = requests.get(
@@ -58,10 +58,10 @@ def send_telegram(bot_token, chat_id, message):
 
 def format_record(rec, prefix=""):
     f      = rec.get("fields", {})
-    name   = f.get("Khách hàng", "Không rõ")
-    project = f.get("Dự án đề cập", "")
+    name   = f.get("Tên", "Không rõ")
+    project = f.get("Dự án quan tâm", "")
     action  = f.get("Hành động tiếp theo", "").strip()
-    lan     = f.get("Lần")
+    lan     = f.get("Số lần liên hệ")
 
     lan_tag = f" [Lần {int(lan)}/4]" if lan else ""
     line = f"{prefix}<b>{name}</b>{lan_tag}"
