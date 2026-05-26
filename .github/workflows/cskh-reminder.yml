@@ -1,8 +1,6 @@
 name: CSKH Reminder — Telegram
 
 on:
-  schedule:
-    - cron: "30 1 * * *" # 01:30 UTC = 08:30 sáng giờ VN (buffer delay GH Actions, nhận trước 9h)
   workflow_dispatch:
 
 jobs:
