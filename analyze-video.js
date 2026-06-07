@@ -7,17 +7,22 @@ dotenv.config();
 const API_KEY = process.env.GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(API_KEY);
 const fileManager = new GoogleAIFileManager(API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+// Phân tích video sâu (YouTube URL + local file) — dùng model mạnh
+const videoModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+// Việc lặt vặt: đặt tên file, extract metadata, classify — tiết kiệm quota
+const liteModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 function isYouTubeUrl(input) {
   return /^https?:\/\/(www\.)?(youtube\.com|youtu\.be)/.test(input);
 }
 
+// Phân tích video từ YouTube URL hoặc file local MP4
 async function analyzeVideo(videoPathOrUrl, task) {
-  // YouTube URL — Gemini nhận trực tiếp, không cần upload
   if (isYouTubeUrl(videoPathOrUrl)) {
     console.log("Analyzing YouTube video...");
-    const result = await model.generateContent({
+    const result = await videoModel.generateContent({
       contents: [
         {
           parts: [
@@ -49,7 +54,7 @@ async function analyzeVideo(videoPathOrUrl, task) {
   if (file.state === "FAILED") throw new Error("Video processing failed");
   console.log("Upload done, analyzing...");
 
-  const result = await model.generateContent({
+  const result = await videoModel.generateContent({
     contents: [
       {
         parts: [
@@ -64,4 +69,10 @@ async function analyzeVideo(videoPathOrUrl, task) {
   return result.response.text();
 }
 
-export { analyzeVideo };
+// Việc nhẹ: đặt tên file, extract metadata, phân loại — dùng gemini-1.5-flash
+async function quickTask(prompt) {
+  const result = await liteModel.generateContent(prompt);
+  return result.response.text();
+}
+
+export { analyzeVideo, quickTask };
