@@ -115,6 +115,12 @@ Xem chi tiết đầy đủ tại `context/voice-analysis.md`.
 │   │   └── market-pulse.md       #     Giá thứ cấp, tỷ suất cho thuê (1 tháng/lần)
 │   └── data/              #   Dữ liệu scrape từ social
 ├── posts/                 # Nội dung cuối cùng — mỗi post một thư mục
+├── studio/                # Tất cả video projects HyperFrames — xem studio/CLAUDE.md
+│   ├── _shared/           #   Assets dùng chung (fonts, BGM, SFX, ảnh portrait)
+│   ├── video-danang/      #   "Du Lịch Đà Nẵng & Tỷ Suất Cho Thuê" — 9:16, RENDERED ✅
+│   ├── video-effects-demo/   #   "11 Hiệu Ứng Demo" — 9:16, chưa render
+│   ├── video-effects-demo-2/ #   "11 Hiệu Ứng Demo — Part 2" — 9:16, RENDERED ✅
+│   └── video-symphony5-bao-lon/ #  "Sun Group Báo Lớn" — 9:16, đang làm
 ├── outputs/               # File làm việc, dashboard, bản nháp
 ├── reference/             # Style guide, visual refs, ví dụ copywriting
 ├── scripts/               # Tự động hóa (dashboard builder, carousel generator)
@@ -131,6 +137,7 @@ Xem chi tiết đầy đủ tại `context/voice-analysis.md`.
 | `reference/`            | Tài liệu tham chiếu về visual style, copywriting và ví dụ nội dung.                                              |
 | `outputs/`              | File làm việc, dashboard, bản nháp, idea bank, research.                                                         |
 | `scripts/`              | Script dựng dashboard, tạo carousel và các phần tự động hóa.                                                     |
+| `studio/`               | **Tất cả video HyperFrames** — mỗi project một thư mục con. Quy tắc chi tiết trong `studio/CLAUDE.md`.           |
 | `plans/`                | Kế hoạch nội dung và kế hoạch triển khai. Được tạo bởi `/create-plan`.                                           |
 
 ---
@@ -150,18 +157,6 @@ Ví dụ: `/init-context https://www.linkedin.com/in/username/ https://www.youtu
 **Mục đích:** Khởi tạo một session mới với đầy đủ nhận thức về context.
 
 Hãy chạy command này ở đầu mỗi session. Claude sẽ đọc toàn bộ context và xác nhận đã sẵn sàng.
-
-### /update-intelligence
-
-**Mục đích:** Cập nhật intelligence files từ Apify (viral patterns + audience pain points).
-
-Chạy khi nhận được nhắc nhở qua Gmail/Telegram (mỗi 14 ngày). Claude sẽ:
-
-1. Chạy `scripts/update-intelligence.py` — scrape TikTok hashtags BĐS (~$1.65/lần)
-2. Phân tích kết quả, overwrite `context/intelligence/viral-patterns.md`
-3. Phân tích Facebook comments (nếu có URL trong `context/intelligence/fb-post-urls.txt`), overwrite nội dung `context/intelligence/audience-painpoints.md`
-
-**Ngân sách:** ~$1.65/lần × 2 lần/tháng = ~$3.30 trong $5 free tier Apify.
 
 ### /create-10-posts
 
@@ -207,21 +202,89 @@ Ví dụ: `/implement plans/2026-03-05-linkedin-series.md`
 - **Facebook BMN (Bình Mê Nhà):** Đăng tất cả loại nội dung — cá nhân, dự án, thị trường.
 - **Facebook IQI (Bình Phan IQI):** Chỉ đăng **Dự án** và **Phân Tích Thị Trường**. Không đăng bài cá nhân/storytelling.
 
-### Lịch Đăng Chuẩn — BMN 7 Bài / IQI 4 Bài / Ngày
+### Lịch Đăng Tổng Hợp — Tất Cả Kênh Theo Tuần
 
-| Giờ cơ sở | #   | Định dạng   | Chủ đề     | BMN | IQI | TikTok | IG  | Threads |
-| --------- | --- | ----------- | ---------- | :-: | :-: | :----: | :-: | :-----: |
-| 6:30      | 1   | Ảnh cá nhân | Cá nhân    | ✅  | ❌  |   —    | ✅  |   ✅    |
-| 8:30      | 2   | Carousel    | Dự án      | ✅  | ✅  |   ✅   |  —  |    —    |
-| 11:00     | 3   | Infographic | Thị Trường | ✅  | ✅  |   —    | ✅  |   ✅    |
-| 13:00     | 4   | Ảnh cá nhân | Dự án      | ✅  | ✅  |   —    |  —  |    —    |
-| 16:00     | 5   | Carousel    | Cá nhân    | ✅  | ❌  |   ✅   |  —  |    —    |
-| 19:00     | 6   | Ảnh cá nhân | Cá nhân    | ✅  | ❌  |   —    | ✅  |   ✅    |
-| 21:00     | 7   | Infographic | Dự án      | ✅  | ✅  |   —    |  —  |    —    |
+_Cập nhật 2026-06-06. Infographic đã bỏ. IQI auto-publish tách riêng._
 
-**Tổng mỗi ngày:** BMN 7 · IQI 4 · TikTok 2 · Instagram 3 · Threads 3
+**Thể loại & kênh nhận:**
 
-**Randomization ±180 giây:** Mỗi lần đăng, lệch ngẫu nhiên −180 đến +180 giây so với giờ cơ sở. Mỗi ngày lệch khác nhau để tránh thuật toán nhận ra pattern tự động.
+| Thể loại         | Kênh cá nhân | BMN | TikTok | TikTok (mới) | IG  | Threads | YT Shorts |
+| ---------------- | :----------: | :-: | :----: | :----------: | :-: | :-----: | :-------: |
+| Video Cộng đồng  |      ✅      |  —  |   —    |      ✅      | ✅  |   ✅    |    ✅     |
+| Video Thị trường |      —       | ✅  |   ✅   |      —       |  —  |    —    |     —     |
+| Vlog             |      ✅      |  —  |   —    |      —       | ✅  |   ✅    |     —     |
+| Carousel         |      —       | ✅  |   —    |      —       |  —  |    —    |     —     |
+| Ảnh cá nhân      |      ✅      | ✅  |   —    |      —       | ✅  |   ✅    |     —     |
+
+**Quy tắc:**
+
+- Tối đa 2 bài/ngày tại bất kỳ kênh nào
+- Kênh cá nhân: không đăng Ảnh cá nhân ngày có Video Cộng đồng
+- BMN: không đăng Video và Carousel cùng ngày — Ảnh cá nhân chỉ vào ngày Carousel
+- IG/Threads: không đăng Ảnh cá nhân ngày có video — không đăng Carousel
+- TikTok hiện tại: chỉ Video Thị trường · TikTok mới: chỉ Video Cộng đồng
+- Vlog khi chưa có → bỏ qua, không bù
+
+**Giờ đăng theo loại nội dung:**
+
+| Loại            | Giờ     | Lý do                                                   |
+| --------------- | ------- | ------------------------------------------------------- |
+| Community video | 7:00pm  | Tối — người xem thư giãn, storytelling hiệu quả nhất    |
+| Market video    | 8:00am  | Sáng sớm — môi giới/nhà đầu tư đọc tin trước khi đi làm |
+| Vlog            | 8:00pm  | Sau bữa tối — casual, xem nhẹ                           |
+| Carousel        | 8:00am  | Cùng slot thông tin buổi sáng                           |
+| Ảnh cá nhân     | 12:00pm | Giờ trưa — lướt điện thoại                              |
+
+**Randomization ±180 giây:** Mỗi lần đăng lệch ngẫu nhiên −180 đến +180 giây so với giờ cơ sở. Mỗi ngày lệch khác nhau để tránh thuật toán nhận ra pattern tự động.
+
+**Lịch theo kênh:**
+
+| Kênh           | T2              | T3                      | T4              | T5           | T6                          | T7                      | CN           | /tuần |
+| -------------- | --------------- | ----------------------- | --------------- | ------------ | --------------------------- | ----------------------- | ------------ | :---: |
+| **Kênh CN**    | 7pm — Community | 12pm — Ảnh · 8pm — Vlog | 7pm — Community | 12pm — Ảnh   | 7pm — Community             | 12pm — Ảnh · 8pm — Vlog | 12pm — Ảnh   | **9** |
+| **BMN**        | 8am — Carousel  | 8am — Market            | 8am — Ảnh       | 8am — Market | 8am — Carousel · 12pm — Ảnh | 8am — Market            | 8am — Market | **8** |
+| **TikTok**     | —               | 8am — Market            | —               | 8am — Market | —                           | 8am — Market            | 8am — Market | **4** |
+| **TikTok mới** | 7pm — Community | —                       | 7pm — Community | —            | 7pm — Community             | —                       | —            | **3** |
+| **IG**         | 7pm — Community | 8pm — Vlog              | 7pm — Community | 12pm — Ảnh   | 7pm — Community             | 8pm — Vlog              | 12pm — Ảnh   | **7** |
+| **Threads**    | 7pm — Community | 8pm — Vlog              | 7pm — Community | 12pm — Ảnh   | 7pm — Community             | 8pm — Vlog              | 12pm — Ảnh   | **7** |
+| **YT Shorts**  | 7pm — Community | —                       | 7pm — Community | —            | 7pm — Community             | —                       | —            | **3** |
+
+---
+
+### Nội Dung Từng Loại Bài Đăng
+
+#### Carousel — 2 bài/tuần (BMN, Thứ 2 + Thứ 6)
+
+|          | Thứ 2                                                     | Thứ 6                                                     |
+| -------- | --------------------------------------------------------- | --------------------------------------------------------- |
+| Chủ đề   | Phân tích thị trường + góc nhìn cá nhân Bình              | Phân tích thị trường khách quan                           |
+| Hình ảnh | Ảnh Bình                                                  | Ảnh đẹp chất lượng cao — không có Bình                    |
+| Tông     | "Mình thấy thị trường đang..."                            | "Dữ liệu cho thấy..."                                     |
+| Nội dung | Thị trường BĐS Đà Nẵng chung — không gắn với dự án cụ thể | Thị trường BĐS Đà Nẵng chung — không gắn với dự án cụ thể |
+
+#### Ảnh Cá Nhân — Content Pillars
+
+Tập trung vào hành trình đang đi trong môi trường mới. **Không so sánh đất nền cũ vs căn hộ mới theo kiểu "ngày xưa... bây giờ..."**
+
+| Pillar                 | Mô tả                                                                                                               |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Kinh nghiệm cũ làm nền | 10 năm đất nền đang giúp ích gì — cái gì phải học lại từ đầu                                                        |
+| Tự nhận diện           | Mạnh ở đâu, yếu ở đâu, đang làm gì với nó                                                                           |
+| Va chạm & bài học      | Mỗi tình huống mới với khách căn hộ là học phí — không phán xét đúng/sai, đúng thì hoan hỉ, sai thì có thêm bài học |
+| Tư duy chuyển đổi      | Thinking outside the box, tận hưởng môi trường mới, không nhìn ngược                                                |
+| Mindset vận động       | Rủi ro nhất là đứng yên — có bắt đầu là có hướng tới                                                                |
+
+#### Video Cộng Đồng
+
+Storytelling cá nhân về hành trình, AI workflow, góc nhìn nghề. Tệp mục tiêu: đồng nghiệp môi giới, sales BĐS cùng định hướng — không phải khách mua nhà.
+
+#### Video Thị Trường
+
+Thông tin, phân tích, dữ liệu về thị trường BĐS Đà Nẵng và các dự án. Tệp mục tiêu: nhà đầu tư, người mua nhà.
+
+#### Vlog
+
+Cuộc sống thật, hậu trường công việc. Độc lập về nội dung — không cần liên kết với bài đăng khác trong ngày.
 
 ---
 
@@ -354,7 +417,8 @@ python3 scripts/add-photo-overlay.py \
 ```
 
 - `--text`: lấy từ hook đầu bài (dòng 1-2), đủ ngắn để đọc khi lướt
-- `--highlight`: số liệu và từ nhấn mạnh sẽ hiện màu lime `#C8E64A`
+- `--highlight`: từ nhấn mạnh sẽ hiện **trắng** — chữ chính là cam pastel `(245,160,80)`, highlight là trắng nổi bật trên nền cam
+- `--white`: dùng cho ảnh storytelling/đen trắng — toàn bộ chữ trắng, không có cam
 - `--position`: `bottom` (mặc định), `top` cho ảnh cảnh quan, `center` cho ảnh chân dung đơn
 - Không overlay lên mặt người — chọn position tránh vùng mặt
 
@@ -414,6 +478,55 @@ python3 scripts/generate-carousel.py \
 - `label` → category label ALL CAPS lime, optional
 - `**word**` → inline lime highlight trong subtitle/takeaway
 - `• ` đầu dòng → bullet với indent tự động
+
+### Video Projects — HyperFrames + Claude Code
+
+Video được tạo bằng HyperFrames (HTML/GSAP composition) và render ra MP4. Mỗi project là một thư mục trong `studio/<tên>/`. Quy tắc đầy đủ: `studio/CLAUDE.md`.
+
+**Projects hiện có:**
+
+| Project                   | Tên                                | Kích cỡ          | Trạng thái  |
+| ------------------------- | ---------------------------------- | ---------------- | ----------- |
+| `video-danang`            | Du Lịch Đà Nẵng & Tỷ Suất Cho Thuê | 1080×1920 (9:16) | RENDERED ✅ |
+| `video-effects-demo`      | 11 Hiệu Ứng Demo                   | 1080×1920 (9:16) | Chưa render |
+| `video-effects-demo-2`    | 11 Hiệu Ứng Demo — Part 2          | 1080×1920 (9:16) | RENDERED ✅ |
+| `video-symphony5-bao-lon` | Sun Group Báo Lớn — Symphony 5     | 1080×1920 (9:16) | Đang làm    |
+
+**Cấu trúc chuẩn một project:**
+
+```
+studio/<tên>/
+├── index.html        # Composition HyperFrames (HTML + GSAP)
+├── meta.json         # { "id": "...", "name": "...", "createdAt": "..." }
+├── package.json      # HyperFrames config
+├── gen_vo.py         # Script tạo VO qua MiniMaxi TTS API
+├── assets/
+│   ├── vo_s0.mp3     # Voiceover từng segment (44100Hz)
+│   ├── vo_s1.mp3
+│   ├── bgm.mp3       # Background music
+│   ├── sfx_impact.mp3
+│   ├── sfx_pop.mp3
+│   └── sfx_whoosh.mp3
+├── fonts/            # Be Vietnam Pro (woff2, local)
+└── renders/          # MP4 output sau khi render
+```
+
+**Workflow:**
+
+1. Viết `index.html` — HyperFrames composition (GSAP animation, data-driven ANIMS[], synchronous XHR)
+2. Tạo VO bằng `python3 gen_vo.py` — gọi MiniMaxi TTS API (model `speech-02-hd`, voice `moss_audio_*`, 44100Hz mp3)
+3. Preview: mở HyperFrames dev server
+4. Render: `hyperframes render` → output vào `renders/<tên>_<timestamp>.mp4`
+
+**TTS — MiniMaxi API (không phải Kokoro):**
+
+- Kokoro không hỗ trợ tiếng Việt (xem memory). Dùng MiniMaxi `speech-02-hd` cho VO tiếng Việt.
+- Pattern `gen_vo.py`: list `segs = [(name, text), ...]` → POST lên `https://api.minimaxi.chat/v1/t2a_v2`
+- Key và voice_id lấy từ `.env` hoặc hardcode trong script (đã có ở `studio/video-danang` làm mẫu)
+
+**Khi tạo video mới:** Dùng skill `/hyperframes` để viết composition; tham khảo `studio/video-danang/index.html` làm template thực tế nhất vì đã render xong.
+
+---
 
 ### Phong Cách Copywriting (Adam Robinson)
 
