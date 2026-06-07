@@ -670,13 +670,12 @@ Ví dụ:
 
 Khi user đưa bất kỳ file nào thuộc các loại sau, **Claude PHẢI tự chạy markitdown trước** rồi mới đọc/phân tích nội dung:
 
-| Loại file   | Ví dụ                          | Lệnh                   |
-| ----------- | ------------------------------ | ---------------------- |
-| PDF         | Bảng giá, brochure, chính sách | `markitdown file.pdf`  |
-| Word        | DOCX, DOC                      | `markitdown file.docx` |
-| PowerPoint  | PPTX, PPT                      | `markitdown file.pptx` |
-| Excel       | XLSX, XLS                      | `markitdown file.xlsx` |
-| Ảnh có text | Scan, screenshot tài liệu      | `markitdown image.png` |
+| Loại file  | Ví dụ                          | Lệnh                   |
+| ---------- | ------------------------------ | ---------------------- |
+| PDF        | Bảng giá, brochure, chính sách | `markitdown file.pdf`  |
+| Word       | DOCX, DOC                      | `markitdown file.docx` |
+| PowerPoint | PPTX, PPT                      | `markitdown file.pptx` |
+| Excel      | XLSX, XLS                      | `markitdown file.xlsx` |
 
 **Workflow bắt buộc:**
 
