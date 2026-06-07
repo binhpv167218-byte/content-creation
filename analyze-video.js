@@ -8,7 +8,7 @@ const API_KEY = process.env.GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(API_KEY);
 const fileManager = new GoogleAIFileManager(API_KEY);
 
-// Phân tích video sâu (YouTube URL + local file) — dùng model mạnh
+// Phân tích video sâu (YouTube URL + local file) — cần 2.5-flash, 3.5 chưa hỗ trợ video input
 const videoModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 // Việc lặt vặt: đặt tên file, extract metadata, classify — 1500 RPD free
@@ -18,17 +18,23 @@ function isYouTubeUrl(input) {
   return /^https?:\/\/(www\.)?(youtube\.com|youtu\.be)/.test(input);
 }
 
+// Strip &t=... timestamp param — Gemini không nhận URL có timestamp
+function cleanYouTubeUrl(url) {
+  const u = new URL(url);
+  u.searchParams.delete("t");
+  return u.toString();
+}
+
 // Phân tích video từ YouTube URL hoặc file local MP4
 async function analyzeVideo(videoPathOrUrl, task) {
   if (isYouTubeUrl(videoPathOrUrl)) {
+    const cleanUrl = cleanYouTubeUrl(videoPathOrUrl);
     console.log("Analyzing YouTube video...");
+    videoPathOrUrl = cleanUrl;
     const result = await videoModel.generateContent({
       contents: [
         {
-          parts: [
-            { text: task },
-            { fileData: { mimeType: "video/mp4", fileUri: videoPathOrUrl } },
-          ],
+          parts: [{ text: task }, { fileData: { fileUri: videoPathOrUrl } }],
         },
       ],
     });
