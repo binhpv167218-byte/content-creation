@@ -92,7 +92,7 @@ Xem chi tiết đầy đủ tại `context/voice-analysis.md`.
 .
 ├── CLAUDE.md              # File này — context cốt lõi, luôn được nạp
 ├── .claude/
-│   ├── commands/          # Slash commands: /init-context, /prime, /create-10-posts, /create-plan, /implement
+│   ├── commands/          # Slash commands: /init-context, /prime, /create-10-posts, /create-2week-posts, /create-plan, /implement
 │   └── skills/            # Skills: viral-replication, content-ideation, carousel-creation, gmail-label
 ├── .env                   # API keys (Apify, Kie.ai) — không commit
 ├── context/               # Toàn bộ bối cảnh về bạn
@@ -169,6 +169,15 @@ Batch này tạo ra:
 - **Mọi nội dung đều có visual** — không có bài chỉ có text
 - Tất cả nội dung đều phải tự đứng được một mình
 - Có kiểm soát độ đa dạng về chủ đề, hook, visual và tông giọng
+
+### /create-2week-posts
+
+**Mục đích:** Tạo đúng 16 bài stock cho 2 tuần — 4 Carousel + 12 Ảnh cá nhân.
+
+- **4 Carousel:** 2 × Thứ 2 style (ảnh Bình + góc nhìn cá nhân) + 2 × Thứ 6 style (ảnh đẹp + khách quan)
+- **12 Ảnh cá nhân:** 6 bài/tuần × 2 tuần, trải đều 5 pillars, phân bổ đúng kênh theo lịch
+- Trình bày kế hoạch 16 bài để duyệt trước — chỉ viết nội dung sau khi user confirm
+- Không generate ảnh, không chạy carousel script trong command này
 
 ### /create-plan [request]
 
