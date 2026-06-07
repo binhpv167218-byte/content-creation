@@ -92,7 +92,7 @@ Xem chi tiết đầy đủ tại `context/voice-analysis.md`.
 .
 ├── CLAUDE.md              # File này — context cốt lõi, luôn được nạp
 ├── .claude/
-│   ├── commands/          # Slash commands: /init-context, /prime, /create-10-posts, /create-2week-posts, /create-plan, /implement
+│   ├── commands/          # Slash commands: /init-context, /prime, /create-10-posts, /create-2week-posts, /create-plan, /implement, /wrap-up
 │   └── skills/            # Skills: viral-replication, content-ideation, carousel-creation, gmail-label
 ├── .env                   # API keys (Apify, Kie.ai) — không commit
 ├── context/               # Toàn bộ bối cảnh về bạn
@@ -190,6 +190,10 @@ Ví dụ: `/create-plan chuỗi nội dung hàng tuần về các sai lầm khi 
 **Mục đích:** Thực thi một kế hoạch đã được tạo bởi `/create-plan`.
 
 Ví dụ: `/implement plans/2026-03-05-linkedin-series.md`
+
+### /wrap-up
+
+**Mục đích:** Kết thúc session — lưu lại những gì đã làm, cập nhật context nếu cần, tóm tắt việc còn dở.
 
 ---
 
