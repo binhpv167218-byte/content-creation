@@ -657,13 +657,32 @@ Ví dụ:
 
 ## Tools & APIs
 
-| Công cụ        | Mục đích                                                              | Cấu hình                          |
-| -------------- | --------------------------------------------------------------------- | --------------------------------- |
-| **Apify**      | Scrape dữ liệu social media                                           | `APIFY_API_KEY` trong `.env`      |
-| **Kie.ai**     | Tạo ảnh bằng model `nano-banana-pro`, bắt buộc dùng `reference_image` | `KIE_AI_API_KEY` trong `.env`     |
-| **Perplexity** | Research thời gian thực qua `research_bot.py`, model `sonar-pro`      | `PERPLEXITY_API_KEY` trong `.env` |
-| **Gmail MCP**  | Đọc, phân loại, gán nhãn email tự động. Xem skill `gmail-label`       | Gmail OAuth qua MCP server        |
-| **Anthropic**  | Claude API — dùng trong `telegram_daemon.py`, model haiku-4-5         | `ANTHROPIC_API_KEY` trong `.env`  |
+| Công cụ        | Mục đích                                                              | Cấu hình                            |
+| -------------- | --------------------------------------------------------------------- | ----------------------------------- |
+| **Apify**      | Scrape dữ liệu social media                                           | `APIFY_API_KEY` trong `.env`        |
+| **Kie.ai**     | Tạo ảnh bằng model `nano-banana-pro`, bắt buộc dùng `reference_image` | `KIE_AI_API_KEY` trong `.env`       |
+| **Perplexity** | Research thời gian thực qua `research_bot.py`, model `sonar-pro`      | `PERPLEXITY_API_KEY` trong `.env`   |
+| **Gmail MCP**  | Đọc, phân loại, gán nhãn email tự động. Xem skill `gmail-label`       | Gmail OAuth qua MCP server          |
+| **Anthropic**  | Claude API — dùng trong `telegram_daemon.py`, model haiku-4-5         | `ANTHROPIC_API_KEY` trong `.env`    |
+| **markitdown** | Convert file sang Markdown trước khi đọc — tự động, không cần nhắc    | `markitdown` trong PATH (Miniconda) |
+
+### Quy Tắc Dùng markitdown (TỰ ĐỘNG — Không Cần User Nhắc)
+
+Khi user đưa bất kỳ file nào thuộc các loại sau, **Claude PHẢI tự chạy markitdown trước** rồi mới đọc/phân tích nội dung:
+
+| Loại file   | Ví dụ                          | Lệnh                   |
+| ----------- | ------------------------------ | ---------------------- |
+| PDF         | Bảng giá, brochure, chính sách | `markitdown file.pdf`  |
+| Word        | DOCX, DOC                      | `markitdown file.docx` |
+| PowerPoint  | PPTX, PPT                      | `markitdown file.pptx` |
+| Excel       | XLSX, XLS                      | `markitdown file.xlsx` |
+| Ảnh có text | Scan, screenshot tài liệu      | `markitdown image.png` |
+
+**Workflow bắt buộc:**
+
+1. User đưa file → Claude chạy `markitdown <file>` qua Bash
+2. Đọc output markdown → phân tích, tóm tắt, trích xuất thông tin
+3. Không yêu cầu user phải nói "dùng markitdown" — tự xử lý
 
 ### Telegram Daemon
 
