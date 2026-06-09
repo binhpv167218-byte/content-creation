@@ -1,7 +1,13 @@
 name: Auto Publish — Scheduled Posts
 
 on:
-  workflow_dispatch: # Trigger từ cron-job.org tại 08:00 / 12:00 / 18:00 / 21:00 giờ VN
+  schedule:
+    # 08:00, 12:00, 18:00, 21:00 giờ VN (UTC+7)
+    - cron: "55 0 * * *" # 07:55 VN
+    - cron: "55 4 * * *" # 11:55 VN
+    - cron: "55 10 * * *" # 17:55 VN
+    - cron: "55 13 * * *" # 20:55 VN
+  workflow_dispatch: # Fallback: trigger thủ công hoặc từ cron-job.org
 
 jobs:
   publish:

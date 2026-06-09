@@ -384,25 +384,47 @@ def publish_post(env: dict, rec: dict, dry_run=False) -> dict:
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
+def get_posts_by_slug(env: dict, slugs: list) -> list:
+    """Lấy records theo slug — dùng cho --force."""
+    at_key  = env["AIRTABLE_API_KEY"]
+    at_base = env["AIRTABLE_BASE_ID"]
+    formula = "OR(" + ",".join(f"{{Slug}}='{s}'" for s in slugs) + ")"
+    r = requests.get(
+        f"https://api.airtable.com/v0/{at_base}/tbll5ikhBQPeak8xR",
+        headers={"Authorization": f"Bearer {at_key}"},
+        params={"filterByFormula": formula,
+                "fields[]": ["Slug", "Nội dung", "Format", "Platform",
+                             "Đăng lúc", "Ngày đăng", "Status", "Slide URLs"]},
+    )
+    return [rec for rec in r.json().get("records", [])
+            if rec["fields"].get("Status") == "Scheduled"]
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--force", nargs="+", metavar="SLUG",
+                        help="Force-publish specific slugs bất kể ngày/giờ")
     args = parser.parse_args()
 
-    env    = load_env()
+    env = load_env()
 
-    # Random delay ±200s: trigger sớm 200s, ngủ thêm 0–400s ngẫu nhiên
-    if not args.dry_run:
-        import random
-        delay = random.randint(0, 400)
-        print(f"⏱  Jitter: {delay}s ({delay//60}m{delay%60:02d}s) — tránh pattern cố định")
-        time.sleep(delay)
+    if args.force:
+        due_posts = get_posts_by_slug(env, args.force)
+        now_vn = datetime.utcnow() + timedelta(hours=7)
+        print(f"⚡ Force mode: {args.force}")
+    else:
+        # Random delay ±200s: trigger sớm 200s, ngủ thêm 0–400s ngẫu nhiên
+        if not args.dry_run:
+            import random
+            delay = random.randint(0, 400)
+            print(f"⏱  Jitter: {delay}s ({delay//60}m{delay%60:02d}s) — tránh pattern cố định")
+            time.sleep(delay)
 
-    now_vn = datetime.utcnow() + timedelta(hours=7)
+        now_vn = datetime.utcnow() + timedelta(hours=7)
+        due_posts = get_due_posts(env, now_vn, window_min=60, window_max=10)
 
     print(f"🕐 Kiểm tra lịch: {now_vn.strftime('%d/%m/%Y %H:%M:%S')} (giờ VN)")
-
-    due_posts = get_due_posts(env, now_vn, window_min=60, window_max=10)
 
     if not due_posts:
         print("✓ Không có bài nào cần đăng lúc này.")

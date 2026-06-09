@@ -1,9 +1,10 @@
 name: Auto Publish — IQI Page
 
-# Trigger từ cron-job.org mỗi 30 phút
-# Script tự detect slot nào đang trong window + jitter 0–400s ngẫu nhiên
+# Chạy mỗi 30 phút — script tự detect slot + jitter 0–400s
 on:
-  workflow_dispatch:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch: # Fallback thủ công
 
 jobs:
   publish-iqi:
