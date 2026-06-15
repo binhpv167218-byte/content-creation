@@ -19,7 +19,7 @@ import requests
 
 WORKSPACE = Path(__file__).parent.parent
 
-FORMAT_ICON = {"Ảnh cá nhân": "🖼", "Carousel": "📊", "AI Infographic": "📈"}
+FORMAT_ICON = {"Ảnh cá nhân": "🖼", "Carousel": "📊", "AI Infographic": "📈", "Video Market": "🎬"}
 
 BUFFER_GQL       = "https://api.buffer.com/graphql"
 BUFFER_TIKTOK    = "6a030a3f090476fb990f46e6"
@@ -149,7 +149,7 @@ def get_due_posts(env: dict, now_vn: datetime, window_min=5, window_max=10) -> l
         f"https://api.airtable.com/v0/{at_base}/tbll5ikhBQPeak8xR",
         headers={"Authorization": f"Bearer {at_key}"},
         params={"fields[]": ["Slug", "Nội dung", "Format", "Platform",
-                              "Đăng lúc", "Ngày đăng", "Status", "Slide URLs"]},
+                              "Đăng lúc", "Ngày đăng", "Status", "Slide URLs", "Ảnh URL"]},
     )
 
     due = []
@@ -257,6 +257,60 @@ def buffer_post(channel_id: str, caption: str, slide_urls: list, buffer_token: s
     return post.get("url") or post_id
 
 
+# ── Facebook video ────────────────────────────────────────────────────────────
+
+def fb_post_video(token: str, caption: str, video_url: str, dry_run=False) -> str:
+    if dry_run:
+        return "dry-run-video"
+    data = {
+        "file_url": video_url,
+        "description": caption,
+        "published": "true",
+        "access_token": token,
+    }
+    r = requests.post("https://graph.facebook.com/v19.0/me/videos", data=data, timeout=60)
+    result = r.json()
+    if "id" not in result:
+        raise RuntimeError(f"FB video lỗi: {result}")
+    return result.get("post_id", result["id"])
+
+
+def buffer_post_video(channel_id: str, caption: str, video_url: str, buffer_token: str, dry_run=False) -> str:
+    if dry_run:
+        return "dry-run-buffer-video"
+    mutation = """
+    mutation CreatePost($input: CreatePostInput!) {
+      createPost(input: $input) {
+        ... on PostActionSuccess { post { id } }
+        ... on NotFoundError { message }
+        ... on UnauthorizedError { message }
+        ... on LimitReachedError { message }
+        ... on InvalidInputError { message }
+        ... on UnexpectedError { message }
+        ... on RestProxyError { message }
+      }
+    }
+    """
+    post_input = {
+        "channelId": channel_id, "text": caption,
+        "schedulingType": "automatic", "mode": "shareNow",
+        "assets": [{"video": {"url": video_url}}],
+    }
+    r = requests.post(
+        BUFFER_GQL,
+        headers={"Authorization": f"Bearer {buffer_token}", "Content-Type": "application/json"},
+        json={"query": mutation, "variables": {"input": post_input}},
+    )
+    data = r.json()
+    if "errors" in data:
+        raise RuntimeError(f"Buffer video error: {data['errors']}")
+    result = data.get("data", {}).get("createPost", {})
+    post_id = result.get("post", {}).get("id")
+    if not post_id:
+        raise RuntimeError(result.get("message", f"Unexpected: {result}"))
+    return post_id
+
+
 # ── Airtable update ───────────────────────────────────────────────────────────
 
 def update_airtable(env: dict, rec_id: str, results: dict):
@@ -332,14 +386,35 @@ def publish_post(env: dict, rec: dict, dry_run=False) -> dict:
     fields     = rec["fields"]
     caption    = fields.get("Nội dung", "")
     platforms  = fields.get("Platform", [])
+    fmt        = fields.get("Format", "")
     slide_urls = json.loads(fields.get("Slide URLs", "[]"))
 
+
+    is_video    = fmt == "Video Market"
     is_carousel = len(slide_urls) > 1
     results = {}
 
     fb_bmn = env.get("FACEBOOK_TOKEN_BINH_ME_NHA", "")
     buf    = env.get("BUFFER_ACCESS_TOKEN", "")
 
+    # ── Video Market ──────────────────────────────────────────────────────────
+    if is_video and slide_urls:
+        video_url = slide_urls[0]
+        if fb_bmn and any(p in platforms for p in ["Facebook BMN", "Facebook"]):
+            try:
+                pid = fb_post_video(fb_bmn, caption, video_url, dry_run)
+                results["Facebook BMN"] = f"https://facebook.com/{pid}"
+            except Exception as e:
+                results["Facebook BMN"] = f"LỖI: {e}"
+        if "TikTok" in platforms and buf:
+            try:
+                pid = buffer_post_video(BUFFER_TIKTOK, caption, video_url, buf, dry_run)
+                results["TikTok"] = pid
+            except Exception as e:
+                results["TikTok"] = f"LỖI: {e}"
+        return results
+
+    # ── Image / Carousel ─────────────────────────────────────────────────────
     # Facebook Bình Mê Nhà — đăng tất cả loại nội dung
     # Nhận "Facebook BMN" (mới) hoặc "Facebook" (backward compat)
     post_bmn = fb_bmn and any(p in platforms for p in ["Facebook BMN", "Facebook"])
@@ -394,7 +469,7 @@ def get_posts_by_slug(env: dict, slugs: list) -> list:
         headers={"Authorization": f"Bearer {at_key}"},
         params={"filterByFormula": formula,
                 "fields[]": ["Slug", "Nội dung", "Format", "Platform",
-                             "Đăng lúc", "Ngày đăng", "Status", "Slide URLs"]},
+                             "Đăng lúc", "Ngày đăng", "Status", "Slide URLs", "Ảnh URL"]},
     )
     return [rec for rec in r.json().get("records", [])
             if rec["fields"].get("Status") == "Scheduled"]

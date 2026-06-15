@@ -9,10 +9,12 @@ Usage:
     python3 scripts/airtable_sync.py --post 025-slug  # sync 1 post cụ thể
 """
 
+import random
 import re
 import sys
 import time
 import requests
+from datetime import datetime, timedelta
 from pathlib import Path
 
 WORKSPACE = Path(__file__).parent.parent
@@ -56,6 +58,7 @@ def parse_post(post_dir: Path):
     plat_m     = re.search(r"\*\*Platform:\*\*\s*(.+)", content)
     date_m     = re.search(r"\*\*Date created:\*\*\s*(\d{4}-\d{2}-\d{2})", content)
     pub_m      = re.search(r"\*\*Ngày đăng:\*\*\s*(\d{2}/\d{2}/\d{4})", content)
+    lich_m     = re.search(r"\*\*Lịch đăng:\*\*\s*(.+)", content)
     dang_luc_m = re.search(r"\*\*Đăng lúc:\*\*\s*(.+)", content)
     status_m   = re.search(r"\*\*Status:\*\*\s*(.+)", content)
     proj_m     = re.search(r"\*\*Dự án.*?:\*\*\s*(.+)", content)
@@ -105,30 +108,75 @@ def parse_post(post_dir: Path):
     status = "Draft"
     if status_m:
         raw = status_m.group(1).lower()
-        if "published" in raw:  status = "Published"
-        elif "approved" in raw: status = "Approved"
+        if "published" in raw:   status = "Published"
+        elif "approved" in raw:  status = "Approved"
         elif "scheduled" in raw: status = "Scheduled"
         elif "chờ duyệt" in raw: status = "Chờ duyệt"
 
-    # Ngày đăng — convert DD/MM/YYYY → YYYY-MM-DD
+    # Ngày đăng — parse từ **Ngày đăng:** DD/MM/YYYY hoặc **Lịch đăng:** ... DD/MM ...
     pub_date = None
+    slot_time = None
     if pub_m:
         d, m, y = pub_m.group(1).split("/")
         pub_date = f"{y}-{m}-{d}"
+        slot_m2 = re.search(r"Slot\s+(\d{1,2}:\d{2})", pub_m.string[pub_m.start():pub_m.start()+80])
+        if slot_m2:
+            slot_time = slot_m2.group(1)
+    elif lich_m:
+        raw_lich = lich_m.group(1)
+        date_in_lich = re.search(r"(\d{2}/\d{2})", raw_lich)
+        if date_in_lich:
+            d, m = date_in_lich.group(1).split("/")
+            pub_date = f"2026-{m}-{d}"
+        time_in_lich = re.search(r"(\d{1,2}:\d{2}(?:am|pm)?)", raw_lich)
+        if time_in_lich:
+            slot_time = time_in_lich.group(1)
+        # Platform từ Lịch đăng nếu chưa có
+        if not plat_m:
+            if "BMN" in raw_lich and "Facebook BMN" not in platforms:
+                platforms.append("Facebook BMN")
+            if "Kênh cá nhân" in raw_lich or "Kênh CN" in raw_lich:
+                if "Facebook" not in platforms and "Facebook BMN" not in platforms:
+                    platforms.append("Facebook")
+            for p in ["Instagram", "Threads", "TikTok"]:
+                if p in raw_lich and p not in platforms:
+                    platforms.append(p)
+
+    # Auto-set Scheduled nếu có ngày đăng và chưa Published
+    if pub_date and status == "Draft":
+        status = "Scheduled"
+
+    # Build full datetime "DD/MM/YYYY HH:MM" với ±180s randomization
+    dang_luc_full = None
+    raw_slot = dang_luc_m.group(1).strip() if dang_luc_m else slot_time
+    if pub_date and raw_slot:
+        # Normalize slot: "8:00am"→"08:00", "12:00pm"→"12:00", "12:00"→"12:00"
+        t = raw_slot.lower().replace("am", "").replace("pm", "").strip()
+        h, mn = t.split(":")
+        h = int(h)
+        if "pm" in raw_slot.lower() and h != 12:
+            h += 12
+        elif "am" in raw_slot.lower() and h == 12:
+            h = 0
+        # ±180s randomization
+        jitter = random.randint(-180, 180)
+        base = datetime.strptime(pub_date, "%Y-%m-%d") + timedelta(hours=h, minutes=int(mn), seconds=jitter)
+        y2, m2, d2 = base.year, base.month, base.day
+        dang_luc_full = f"{d2:02d}/{m2:02d}/{y2} {base.hour:02d}:{base.minute:02d}"
 
     fields: dict = {
         "Slug": post_dir.name,
         "Tiêu đề": title_m.group(1).strip() if title_m else post_dir.name,
         "Status": status,
     }
-    if num_m:         fields["Số bài"]      = int(num_m.group(1))
-    if hook:          fields["Hook"]         = hook
-    if platforms:     fields["Platform"]     = platforms
-    if method:        fields["Phương pháp"]  = method
-    if fmt:           fields["Format"]       = fmt
-    if date_m:        fields["Ngày tạo"]     = date_m.group(1)
-    if pub_date:      fields["Ngày đăng"]    = pub_date
-    if dang_luc_m:    fields["Đăng lúc"]     = dang_luc_m.group(1).strip()
+    if num_m:           fields["Số bài"]      = int(num_m.group(1))
+    if hook:            fields["Hook"]         = hook
+    if platforms:       fields["Platform"]     = platforms
+    if method:          fields["Phương pháp"]  = method
+    if fmt:             fields["Format"]       = fmt
+    if date_m:          fields["Ngày tạo"]     = date_m.group(1)
+    if pub_date:        fields["Ngày đăng"]    = pub_date
+    if dang_luc_full:   fields["Đăng lúc"]     = dang_luc_full
     if proj_m:        fields["Dự án liên quan"] = proj_m.group(1).strip()
     if noidung:       fields["Nội dung"]        = noidung
 

@@ -1,0 +1,1439 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Be Vietnam Pro";
+        font-weight: 300;
+        src:
+          url("../_shared/fonts/BeVietnamPro-Light-vietnamese.woff2")
+            format("woff2"),
+          url("../_shared/fonts/BeVietnamPro-Light-latin.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Be Vietnam Pro";
+        font-weight: 400;
+        src:
+          url("../_shared/fonts/BeVietnamPro-Regular-vietnamese.woff2")
+            format("woff2"),
+          url("../_shared/fonts/BeVietnamPro-Regular-latin.woff2")
+            format("woff2");
+      }
+      @font-face {
+        font-family: "Be Vietnam Pro";
+        font-weight: 600;
+        src:
+          url("../_shared/fonts/BeVietnamPro-SemiBold-vietnamese.woff2")
+            format("woff2"),
+          url("../_shared/fonts/BeVietnamPro-SemiBold-latin.woff2")
+            format("woff2");
+      }
+      @font-face {
+        font-family: "Be Vietnam Pro";
+        font-weight: 900;
+        src:
+          url("../_shared/fonts/BeVietnamPro-Black-vietnamese.woff2")
+            format("woff2"),
+          url("../_shared/fonts/BeVietnamPro-Black-latin.woff2") format("woff2");
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #020c18;
+        font-family: "Be Vietnam Pro", system-ui, sans-serif;
+        cursor: none;
+      }
+
+      /* ── Background clips ── */
+      .bg-vid {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        opacity: 0;
+      }
+      #bg-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        background: linear-gradient(
+          to top,
+          rgba(2, 12, 24, 0.82) 0%,
+          rgba(2, 12, 24, 0.3) 60%,
+          transparent 100%
+        );
+      }
+
+      /* ── Neon border — màu trùng hook text (#ffd166) ── */
+      #neon-svg {
+        position: absolute;
+        inset: 0;
+        width: 1080px;
+        height: 1920px;
+        z-index: 5;
+        pointer-events: none;
+      }
+      #neon-path {
+        fill: none;
+        stroke: #ffd166;
+        stroke-width: 4;
+        filter: drop-shadow(0 0 8px #ffd166) drop-shadow(0 0 18px #ffc300);
+        stroke-dasharray: 5900;
+        stroke-dashoffset: 5900;
+      }
+
+      /* ── Progress bar ── */
+      #progress-fill {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(90deg, #ffd166, #06d6a0);
+        transform-origin: left;
+        transform: scaleX(0);
+        z-index: 100;
+      }
+
+      /* ── Scene base ── */
+      .scene {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 200px 64px 400px;
+        overflow: hidden;
+      }
+      .scene-center {
+        align-items: center;
+        text-align: center;
+      }
+
+      /* ══ S0 HOOK — chuẩn video-danang ══ */
+      .eyebrow {
+        font-size: 22px;
+        font-weight: 600;
+        color: rgba(255, 209, 102, 0.75);
+        letter-spacing: 1px;
+        margin-bottom: 20px;
+      }
+      .hdivider {
+        width: 80px;
+        height: 3px;
+        background: linear-gradient(90deg, #ffd166, #06d6a0);
+        border-radius: 2px;
+        margin: 22px auto 32px;
+      }
+      #s0-burst {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 700px;
+        height: 700px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(255, 209, 102, 0.35) 0%,
+          transparent 70%
+        );
+        z-index: 1;
+        pointer-events: none;
+      }
+      #s0-num {
+        font-size: 200px;
+        font-weight: 900;
+        color: #ffd166;
+        line-height: 0.85;
+        letter-spacing: -8px;
+        text-shadow:
+          0 0 50px rgba(255, 209, 102, 0.55),
+          4px 7px 0 rgba(139, 98, 0, 0.85);
+        position: relative;
+        z-index: 2;
+      }
+      #s0-unit {
+        font-size: 62px;
+        font-weight: 900;
+        color: #ffd166;
+        letter-spacing: -2px;
+        margin-bottom: 36px;
+        text-shadow: 0 0 30px rgba(255, 209, 102, 0.35);
+        position: relative;
+        z-index: 2;
+      }
+      #s0-sub {
+        font-size: 40px;
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.88);
+        line-height: 1.45;
+        max-width: 780px;
+        position: relative;
+        z-index: 2;
+      }
+      #s0-sub strong {
+        color: #06d6a0;
+        font-weight: 700;
+      }
+      #s0-tag {
+        margin-top: 44px;
+        display: inline-block;
+        background: rgba(6, 214, 160, 0.12);
+        border: 1px solid rgba(6, 214, 160, 0.45);
+        border-radius: 40px;
+        padding: 14px 48px;
+        font-size: 26px;
+        font-weight: 600;
+        color: #06d6a0;
+        letter-spacing: 2px;
+        position: relative;
+        z-index: 2;
+      }
+
+      /* ══ S1 / S2 SCREENSHOT ══ */
+      .s-eyebrow {
+        font-size: 21px;
+        font-weight: 600;
+        color: rgba(255, 214, 10, 0.8);
+        letter-spacing: 2px;
+        margin-bottom: 20px;
+      }
+      .news-card {
+        width: 100%;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85);
+        clip-path: inset(0% 0 100% 0);
+        position: relative;
+      }
+      .news-card img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .news-hl {
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        height: 46px;
+        background: rgba(255, 214, 10, 0.38);
+        border-radius: 4px;
+        transform: scaleX(0);
+        transform-origin: left;
+        z-index: 2;
+      }
+      .news-src {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 10px 18px;
+        background: rgba(2, 12, 24, 0.9);
+        font-size: 19px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.75);
+        letter-spacing: 0.5px;
+      }
+      /* B05 Glassmorphism stat card */
+      .stat-card {
+        margin-top: 24px;
+        background: rgba(2, 12, 24, 0.78);
+        border: 1px solid rgba(255, 220, 80, 0.28);
+        border-radius: 18px;
+        backdrop-filter: blur(16px);
+        padding: 28px 40px;
+        transform: translateX(200px);
+        opacity: 0;
+      }
+      .stat-num {
+        font-size: 88px;
+        font-weight: 900;
+        color: #ffe566;
+        line-height: 0.88;
+        text-shadow: 0 0 36px rgba(255, 220, 80, 0.5);
+      }
+      .stat-lbl {
+        font-size: 28px;
+        font-weight: 400;
+        color: rgba(200, 220, 240, 0.8);
+        margin-top: 10px;
+        line-height: 1.4;
+      }
+
+      /* ══ S3 DATA ══ */
+      #s3-eyebrow {
+        font-size: 21px;
+        font-weight: 600;
+        color: rgba(255, 214, 10, 0.75);
+        letter-spacing: 2px;
+        margin-bottom: 24px;
+      }
+      #s3-counter {
+        font-size: 210px;
+        font-weight: 900;
+        color: #ffe566;
+        line-height: 0.85;
+        text-shadow: 0 0 60px rgba(255, 220, 80, 0.7);
+      }
+      #s3-unit {
+        font-size: 46px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.85);
+        letter-spacing: 1px;
+        margin-top: 4px;
+      }
+      #s3-sub {
+        font-size: 25px;
+        font-weight: 300;
+        color: rgba(180, 210, 230, 0.7);
+        margin-top: 8px;
+      }
+      /* B12 Progress Ring */
+      #s3-ring-wrap {
+        position: relative;
+        width: 210px;
+        height: 210px;
+        margin: 36px auto 0;
+        opacity: 0;
+      }
+      #s3-ring-wrap svg {
+        position: absolute;
+        inset: 0;
+      }
+      #s3-ring-bg {
+        fill: none;
+        stroke: rgba(255, 123, 58, 0.15);
+        stroke-width: 14;
+      }
+      #s3-ring {
+        fill: none;
+        stroke: #ff7b3a;
+        stroke-width: 14;
+        stroke-dasharray: 534;
+        stroke-dashoffset: 534;
+        stroke-linecap: round;
+      }
+      #s3-ring-label {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      #s3-yield {
+        font-size: 56px;
+        font-weight: 900;
+        color: #ff7b3a;
+        text-shadow: 0 0 28px rgba(255, 123, 58, 0.7);
+        line-height: 1;
+      }
+      #s3-yield-lbl {
+        font-size: 19px;
+        font-weight: 400;
+        color: rgba(200, 220, 240, 0.72);
+        margin-top: 4px;
+        text-align: center;
+        line-height: 1.3;
+      }
+      /* B10 badge */
+      #s3-badge {
+        display: inline-block;
+        margin-top: 0;
+        background: rgba(0, 229, 232, 0.1);
+        border: 2px solid rgba(0, 229, 232, 0.55);
+        border-radius: 48px;
+        padding: 14px 48px;
+        font-size: 52px;
+        font-weight: 900;
+        color: #00e5e8;
+        text-shadow: 0 0 24px rgba(0, 229, 232, 0.7);
+        opacity: 0;
+        clip-path: inset(0 100% 0 0);
+      }
+      #s3-badge-sub {
+        font-size: 24px;
+        font-weight: 400;
+        color: rgba(180, 210, 230, 0.7);
+        margin-top: 8px;
+        opacity: 0;
+      }
+
+      /* ══ S4 STORY ══ */
+      /* B13 Perspective Grid */
+      #s4-grid {
+        position: absolute;
+        inset: -20%;
+        z-index: 0;
+        background-image:
+          linear-gradient(rgba(255, 220, 80, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 220, 80, 0.05) 1px, transparent 1px);
+        background-size: 64px 64px;
+        transform: perspective(900px) rotateX(18deg);
+        opacity: 0;
+      }
+      .story-lines {
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+        position: relative;
+        z-index: 2;
+      }
+      .story-line {
+        font-size: 68px;
+        font-weight: 900;
+        color: #ffffff;
+        line-height: 1.05;
+        opacity: 0;
+      }
+      .story-line span {
+        color: #ffe566;
+      }
+      #s4-note {
+        margin-top: 56px;
+        font-size: 34px;
+        font-weight: 300;
+        color: rgba(200, 220, 240, 0.75);
+        line-height: 1.6;
+        opacity: 0;
+        position: relative;
+        z-index: 2;
+      }
+      #s4-note strong {
+        color: #ffe566;
+        font-weight: 700;
+      }
+
+      /* ══ S5 CTA ══ */
+      .morph-bg {
+        position: absolute;
+        width: 720px;
+        height: 720px;
+        border-radius: 60% 40% 30% 70%/60% 30% 70% 40%;
+        background: radial-gradient(
+          circle,
+          rgba(255, 209, 102, 0.1) 0%,
+          transparent 70%
+        );
+        z-index: 0;
+        animation: morphBg 7s ease-in-out infinite;
+      }
+      @keyframes morphBg {
+        0%,
+        100% {
+          border-radius: 60% 40% 30% 70%/60% 30% 70% 40%;
+        }
+        33% {
+          border-radius: 30% 70% 70% 30%/30% 40% 60% 70%;
+        }
+        66% {
+          border-radius: 50% 50% 30% 70%/40% 60% 40% 60%;
+        }
+      }
+      .cta-inner {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+        width: 100%;
+      }
+      /* ══ S5 CTA — chuẩn video-danang ══ */
+      .cta-label {
+        font-size: 24px;
+        font-weight: 600;
+        color: rgba(6, 214, 160, 0.8);
+        letter-spacing: 1px;
+        margin-bottom: 22px;
+        opacity: 0;
+      }
+      .cta-title {
+        font-size: 78px;
+        font-weight: 900;
+        color: #efefef;
+        line-height: 1.1;
+        margin-bottom: 44px;
+        text-align: center;
+        text-shadow: 3px 5px 0 rgba(0, 0, 0, 0.5);
+        opacity: 0;
+      }
+      .cta-title span {
+        color: #ffd166;
+      }
+      .cta-stats {
+        display: flex;
+        gap: 44px;
+        margin-bottom: 64px;
+        align-items: center;
+        opacity: 0;
+      }
+      .cs-num {
+        font-size: 64px;
+        font-weight: 900;
+        color: #ffd166;
+        line-height: 1;
+        text-shadow: 0 0 18px rgba(255, 209, 102, 0.45);
+      }
+      .cs-lbl {
+        font-size: 20px;
+        color: #7a9cb8;
+        margin-top: 8px;
+        letter-spacing: 2px;
+      }
+      .cs-sep {
+        width: 1px;
+        height: 90px;
+        background: rgba(255, 209, 102, 0.18);
+      }
+      .cta-btn {
+        display: inline-block;
+        background: rgba(255, 209, 102, 0.08);
+        border: 1.5px solid rgba(255, 209, 102, 0.5);
+        color: #ffd166;
+        font-size: 32px;
+        font-weight: 700;
+        padding: 22px 72px;
+        border-radius: 20px;
+        box-shadow: 0 0 20px rgba(255, 209, 102, 0.12);
+        animation: hapticPulse 3.5s ease-in-out infinite;
+        opacity: 0;
+      }
+      @keyframes hapticPulse {
+        0%,
+        100% {
+          transform: scale(1);
+          box-shadow: 0 0 20px rgba(255, 209, 102, 0.12);
+        }
+        50% {
+          transform: scale(1.02);
+          box-shadow: 0 0 36px rgba(255, 209, 102, 0.28);
+        }
+      }
+      .cta-contact {
+        margin-top: 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+        opacity: 0;
+      }
+      .cta-contact-name {
+        font-size: 34px;
+        font-weight: 700;
+        color: #efefef;
+      }
+      .cta-avatar {
+        width: 336px;
+        height: 336px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid rgba(255, 209, 102, 0.6);
+        box-shadow: 0 0 40px rgba(255, 209, 102, 0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="video-symphony5-bao-lon"
+      data-start="0"
+      data-duration="50"
+      data-width="1080"
+      data-height="1920"
+    >
+      <div id="progress-fill"></div>
+
+      <svg id="neon-svg" viewBox="0 0 1080 1920">
+        <rect id="neon-path" x="64" y="200" width="952" height="1320" rx="22" />
+      </svg>
+
+      <!-- ── 6 background clips (≤7 ✓) ── -->
+      <!-- c01 phong-an-nho 14s — hook 0-5.5s -->
+      <video
+        id="c01"
+        class="clip bg-vid"
+        src="assets/c01.mp4"
+        muted
+        preload="auto"
+        playsinline
+        data-start="0"
+        data-duration="6"
+        data-track-index="1"
+        data-volume="0"
+      ></video>
+      <!-- c02 phong-khach-hien-dai 35s — scene1 4.5-18s -->
+      <video
+        id="c02"
+        class="clip bg-vid"
+        src="assets/c02.mp4"
+        muted
+        preload="auto"
+        playsinline
+        data-start="4.5"
+        data-duration="14"
+        data-track-index="2"
+        data-volume="0"
+      ></video>
+      <!-- c03 ban-lam-viec 7s loop — scene2 17.3-27.5s -->
+      <video
+        id="c03"
+        class="clip bg-vid"
+        src="assets/c03.mp4"
+        muted
+        loop
+        preload="auto"
+        playsinline
+        data-start="17.3"
+        data-duration="11"
+        data-track-index="3"
+        data-volume="0"
+      ></video>
+      <!-- c04 tran-thach-cao 7s loop — scene3 27-37.5s -->
+      <video
+        id="c04"
+        class="clip bg-vid"
+        src="assets/c04.mp4"
+        muted
+        loop
+        preload="auto"
+        playsinline
+        data-start="27"
+        data-duration="11"
+        data-track-index="4"
+        data-volume="0"
+      ></video>
+      <!-- c05 phong-khach-can-ho 6s loop — scene4 36.6-44.5s -->
+      <video
+        id="c05"
+        class="clip bg-vid"
+        src="assets/c05.mp4"
+        muted
+        loop
+        preload="auto"
+        playsinline
+        data-start="36.6"
+        data-duration="8.5"
+        data-track-index="5"
+        data-volume="0"
+      ></video>
+      <!-- c06 phong-bep-an-uong 8s — CTA 43.9-50s -->
+      <video
+        id="c06"
+        class="clip bg-vid"
+        src="assets/c06.mp4"
+        muted
+        preload="auto"
+        playsinline
+        data-start="43.9"
+        data-duration="7"
+        data-track-index="6"
+        data-volume="0"
+      ></video>
+
+      <div id="bg-overlay"></div>
+
+      <!-- ── BGM track2 Stan Town vol=0.2 ── -->
+      <audio
+        id="bgm"
+        class="clip"
+        src="assets/bgm.mp3"
+        preload="auto"
+        data-start="0"
+        data-duration="50"
+        data-track-index="0"
+        data-volume="0.2"
+      ></audio>
+
+      <!-- ── VO segments ── -->
+      <audio
+        id="vo0"
+        class="clip"
+        src="assets/vo_s0.mp3"
+        preload="auto"
+        data-start="0.5"
+        data-duration="4"
+        data-track-index="20"
+        data-volume="1"
+      ></audio>
+      <audio
+        id="vo1"
+        class="clip"
+        src="assets/vo_s1.mp3"
+        preload="auto"
+        data-start="5.5"
+        data-duration="12"
+        data-track-index="21"
+        data-volume="1"
+      ></audio>
+      <audio
+        id="vo2"
+        class="clip"
+        src="assets/vo_s2.mp3"
+        preload="auto"
+        data-start="18"
+        data-duration="9"
+        data-track-index="22"
+        data-volume="1"
+      ></audio>
+      <audio
+        id="vo3"
+        class="clip"
+        src="assets/vo_s3.mp3"
+        preload="auto"
+        data-start="28"
+        data-duration="9"
+        data-track-index="23"
+        data-volume="1"
+      ></audio>
+      <audio
+        id="vo4"
+        class="clip"
+        src="assets/vo_s4.mp3"
+        preload="auto"
+        data-start="37.5"
+        data-duration="7"
+        data-track-index="24"
+        data-volume="1"
+      ></audio>
+      <audio
+        id="vo5"
+        class="clip"
+        src="assets/vo_s5.mp3"
+        preload="auto"
+        data-start="44.5"
+        data-duration="5"
+        data-track-index="25"
+        data-volume="1"
+      ></audio>
+
+      <!-- ══ S0: HOOK — COMBO 0 (chuẩn video-danang) ══ -->
+      <div
+        id="s0"
+        class="clip scene scene-center"
+        data-start="0"
+        data-duration="6.5"
+        data-track-index="10"
+      >
+        <div id="s0-eye" class="eyebrow">Bình Phan · BĐS Đà Nẵng</div>
+        <div id="s0-hdiv" class="hdivider"></div>
+        <div id="s0-num">3</div>
+        <div id="s0-unit">PHÂN KHU ĐÚNG HẸN</div>
+        <div id="s0-sub">
+          Symphony 1, 2, 3. Liên tiếp.<br />Trong BĐS Việt Nam —
+          <strong>hiếm lắm.</strong>
+        </div>
+        <div id="s0-tag">VietnamNet · Diễn Đàn DN</div>
+      </div>
+
+      <!-- ══ S1: TRACK RECORD — vnn-2nam.png ══ -->
+      <div
+        id="s1"
+        class="clip scene"
+        data-start="5"
+        data-duration="13"
+        data-track-index="11"
+      >
+        <div id="s1-eyebrow" class="s-eyebrow">VietnamNet</div>
+        <div class="news-card" id="s1-card">
+          <img src="assets/vnn-2nam.png" alt="" />
+          <!-- top % chỉnh sau khi xem ảnh thật -->
+          <div
+            data-hf-studio-original-display=""
+            data-hf-studio-original-box-sizing=""
+            data-hf-studio-original-flex-shrink=""
+            data-hf-studio-original-flex-grow=""
+            data-hf-studio-original-flex-basis=""
+            data-hf-studio-original-max-height=""
+            data-hf-studio-original-max-width=""
+            data-hf-studio-original-min-height=""
+            data-hf-studio-original-min-width=""
+            data-hf-studio-original-height=""
+            data-hf-studio-original-width=""
+            data-hf-studio-box-size="true"
+            data-hf-studio-original-inline-translate="none"
+            data-hf-studio-original-translate=""
+            data-hf-studio-path-offset="true"
+            id="s1-hl"
+            class="news-hl"
+            style="
+              top: 42%;
+              --hf-studio-offset-x: 471px;
+              --hf-studio-offset-y: -101px;
+              translate: var(--hf-studio-offset-x, 0px)
+                var(--hf-studio-offset-y, 0px);
+              --hf-studio-width: 377px;
+              --hf-studio-height: 56px;
+              width: 377px;
+              height: 56px;
+              min-width: 0px;
+              min-height: 0px;
+              max-width: none;
+              max-height: none;
+              box-sizing: border-box;
+              scale: none;
+              transform-origin: 0% 50%;
+            "
+          ></div>
+          <div class="news-src">VietnamNet · 06/2026</div>
+        </div>
+        <div id="s1-stat" class="stat-card">
+          <div class="stat-num">3</div>
+          <div class="stat-lbl">dự án liên tiếp, đúng hẹn cả 3</div>
+        </div>
+      </div>
+
+      <!-- ══ S2: PHÁP LÝ — dddn-phapli.png ══ -->
+      <div
+        id="s2"
+        class="clip scene"
+        data-start="17.5"
+        data-duration="10"
+        data-track-index="12"
+      >
+        <div id="s2-eyebrow" class="s-eyebrow">Diễn Đàn Doanh Nghiệp</div>
+        <div class="news-card" id="s2-card">
+          <img src="assets/dddn-phapli.png" alt="" />
+          <!-- top % chỉnh sau khi xem ảnh thật -->
+          <div
+            data-hf-studio-original-display=""
+            data-hf-studio-original-box-sizing=""
+            data-hf-studio-original-flex-shrink=""
+            data-hf-studio-original-flex-grow=""
+            data-hf-studio-original-flex-basis=""
+            data-hf-studio-original-max-height=""
+            data-hf-studio-original-max-width=""
+            data-hf-studio-original-min-height=""
+            data-hf-studio-original-min-width=""
+            data-hf-studio-original-height=""
+            data-hf-studio-original-width=""
+            data-hf-studio-box-size="true"
+            data-hf-studio-original-inline-translate="none"
+            data-hf-studio-original-translate=""
+            data-hf-studio-path-offset="true"
+            id="s2-hl"
+            class="news-hl"
+            style="
+              top: 50%;
+              --hf-studio-offset-x: 184px;
+              --hf-studio-offset-y: 96px;
+              translate: var(--hf-studio-offset-x, 0px)
+                var(--hf-studio-offset-y, 0px);
+              --hf-studio-width: 398px;
+              --hf-studio-height: 48px;
+              width: 398px;
+              height: 48px;
+              min-width: 0px;
+              min-height: 0px;
+              max-width: none;
+              max-height: none;
+              box-sizing: border-box;
+              scale: none;
+              transform-origin: 0% 50%;
+            "
+          ></div>
+          <div class="news-src">Diễn Đàn Doanh Nghiệp · 06/2026</div>
+        </div>
+        <div id="s2-stat" class="stat-card">
+          <div class="stat-num">6 tháng</div>
+          <div class="stat-lbl">sổ đỏ hoàn tất sau khi nhận nhà</div>
+        </div>
+      </div>
+
+      <!-- ══ S3: CHO THUÊ — vnn-symphony5.png ══ -->
+      <div
+        id="s3"
+        class="clip scene"
+        data-start="27.5"
+        data-duration="10"
+        data-track-index="13"
+      >
+        <div id="s3-eyebrow" class="s-eyebrow">VietnamNet</div>
+        <div
+          data-hf-studio-original-display=""
+          data-hf-studio-original-box-sizing=""
+          data-hf-studio-original-flex-shrink=""
+          data-hf-studio-original-flex-grow=""
+          data-hf-studio-original-flex-basis=""
+          data-hf-studio-original-max-height=""
+          data-hf-studio-original-max-width=""
+          data-hf-studio-original-min-height=""
+          data-hf-studio-original-min-width=""
+          data-hf-studio-original-height=""
+          data-hf-studio-original-width=""
+          data-hf-studio-box-size="true"
+          style="
+            --hf-studio-width: 957px;
+            --hf-studio-height: 376px;
+            width: 957px;
+            height: 376px;
+            min-width: 0px;
+            min-height: 0px;
+            max-width: none;
+            max-height: none;
+            flex-basis: 376px;
+            flex-grow: 0;
+            flex-shrink: 0;
+            box-sizing: border-box;
+          "
+          class="news-card"
+          id="s3-card"
+        >
+          <img src="assets/vnn-symphony5.png" alt="" />
+          <!-- top % chỉnh sau khi xem ảnh thật -->
+          <div
+            data-hf-studio-original-rotation-transform-origin="0% 50%"
+            data-hf-studio-original-inline-rotate="none"
+            data-hf-studio-original-rotate=""
+            data-hf-studio-rotation="true"
+            data-hf-studio-original-display=""
+            data-hf-studio-original-box-sizing=""
+            data-hf-studio-original-flex-shrink=""
+            data-hf-studio-original-flex-grow=""
+            data-hf-studio-original-flex-basis=""
+            data-hf-studio-original-max-height=""
+            data-hf-studio-original-max-width=""
+            data-hf-studio-original-min-height=""
+            data-hf-studio-original-min-width=""
+            data-hf-studio-original-height=""
+            data-hf-studio-original-width=""
+            data-hf-studio-box-size="true"
+            data-hf-studio-original-inline-translate="none"
+            data-hf-studio-original-translate=""
+            data-hf-studio-path-offset="true"
+            id="s3-hl"
+            class="news-hl"
+            style="
+              top: 45%;
+              --hf-studio-offset-x: 529px;
+              --hf-studio-offset-y: 108px;
+              translate: var(--hf-studio-offset-x, 0px)
+                var(--hf-studio-offset-y, 0px);
+              --hf-studio-width: 131px;
+              --hf-studio-height: 1px;
+              width: 131px;
+              height: 1px;
+              min-width: 0px;
+              min-height: 0px;
+              max-width: none;
+              max-height: none;
+              box-sizing: border-box;
+              scale: none;
+              transform-origin: center center;
+              --hf-studio-rotation: 233deg;
+              rotate: var(--hf-studio-rotation, 0deg);
+            "
+          ></div>
+          <div class="news-src">VietnamNet · 06/2026</div>
+        </div>
+        <div id="s3-stat" class="stat-card">
+          <div class="stat-num">8–9%</div>
+          <div class="stat-lbl">tỷ suất cho thuê · ven sông Hàn</div>
+        </div>
+        <!-- unused ring elements below — kept for JS compatibility -->
+        <div id="s3-ring-wrap" style="display: none">
+          <svg viewBox="0 0 200 200">
+            <circle id="s3-ring-bg" cx="100" cy="100" r="85" />
+            <circle
+              id="s3-ring"
+              cx="100"
+              cy="100"
+              r="85"
+              transform="rotate(-90 100 100)"
+            />
+          </svg>
+          <div id="s3-ring-label">
+            <div id="s3-yield">8–9%</div>
+            <div id="s3-yield-lbl">tỷ suất<br />cho thuê</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S4: KẾT LUẬN ══ -->
+      <div
+        id="s4"
+        class="clip scene"
+        data-start="37"
+        data-duration="7.5"
+        data-track-index="14"
+      >
+        <!-- B13 Perspective Grid -->
+        <div id="s4-grid"></div>
+        <div class="story-lines">
+          <div id="s4-l1" class="story-line">Tiến độ <span>thật.</span></div>
+          <div id="s4-l2" class="story-line">Pháp lý <span>sạch.</span></div>
+          <div id="s4-l3" class="story-line">Cho thuê <span>được.</span></div>
+        </div>
+        <div id="s4-note">
+          Ba thứ này cùng một lúc,<br />tại Đà Nẵng — <strong>hiếm lắm.</strong>
+        </div>
+      </div>
+
+      <!-- ══ S5: CTA ══ -->
+      <div
+        id="s5"
+        class="clip scene scene-center"
+        data-start="44"
+        data-duration="6.5"
+        data-track-index="15"
+      >
+        <div class="morph-bg"></div>
+        <div class="cta-inner">
+          <div id="s5-label" class="cta-label">Tổng Kết</div>
+          <div id="s5-title" class="cta-title">
+            Tiến Độ Thật<br /><span>Pháp Lý Sạch</span>
+          </div>
+          <div id="s5-stats" class="cta-stats">
+            <div class="cta-stat">
+              <div class="cs-num">2 năm</div>
+              <div class="cs-lbl">TIẾN ĐỘ</div>
+            </div>
+            <div class="cs-sep"></div>
+            <div class="cta-stat">
+              <div class="cs-num">8–9%</div>
+              <div class="cs-lbl">YIELD</div>
+            </div>
+            <div class="cs-sep"></div>
+            <div class="cta-stat">
+              <div class="cs-num">Sổ đỏ</div>
+              <div class="cs-lbl">PHÁP LÝ</div>
+            </div>
+          </div>
+          <div id="s5-btn" class="cta-btn">Nhắn Bình · Symphony 5</div>
+          <div id="s5-contact" class="cta-contact">
+            <div class="cta-contact-text">
+              <span class="cta-contact-name">Bình Phan IQI</span>
+            </div>
+            <img
+              class="cta-avatar"
+              src="assets/me-outtro.jpg"
+              alt="Bình Phan"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- #root -->
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      // ── SFX — giống hệt video-danang ──
+      // BGM: Stan Town track2, 117.5 BPM, beat[0]=0.952, interval=0.511s
+      var sfxWhoosh = new Audio("assets/sfx_whoosh.mp3");
+      var sfxImpact = new Audio("assets/sfx_impact.mp3");
+      var sfxPop = new Audio("assets/sfx_pop.mp3");
+      sfxWhoosh.volume = 0.45;
+      sfxImpact.volume = 0.65;
+      sfxPop.volume = 0.5;
+      function playWhoosh() {
+        sfxWhoosh.currentTime = 0;
+        sfxWhoosh.play().catch(function () {});
+      }
+      function playImpact() {
+        sfxImpact.currentTime = 0;
+        sfxImpact.play().catch(function () {});
+      }
+      function playPop() {
+        var s = sfxPop.cloneNode();
+        s.volume = 0.45;
+        s.play().catch(function () {});
+      }
+      function W(t) {
+        tl.call(playWhoosh, [], t);
+      }
+      function I(t) {
+        tl.call(playImpact, [], t);
+      }
+
+      // ── Progress bar ──
+      tl.to(
+        "#progress-fill",
+        { scaleX: 1, duration: 50, ease: "none", transformOrigin: "left" },
+        0,
+      );
+
+      // ── Clip crossfades (F=0.5s overlap) ──
+      var F = 0.5;
+      var CLIPS = [
+        ["c01", 0.0, 5.5],
+        ["c02", 4.5, 18.3],
+        ["c03", 17.3, 27.7],
+        ["c04", 27.0, 37.6],
+        ["c05", 36.6, 44.4],
+        ["c06", 43.9, null],
+      ];
+      CLIPS.forEach(function (c) {
+        tl.fromTo(
+          "#" + c[0],
+          { opacity: 0 },
+          { opacity: 1, duration: F, ease: "power2.inOut" },
+          c[1],
+        );
+        if (c[2])
+          tl.to(
+            "#" + c[0],
+            { opacity: 0, duration: F, ease: "power2.inOut" },
+            c[2] - F,
+          );
+      });
+
+      // ── Neon border draw ──
+      tl.to(
+        "#neon-path",
+        { strokeDashoffset: 0, duration: 2.5, ease: "power2.inOut" },
+        0.3,
+      );
+      tl.to("#neon-path", { opacity: 0, duration: 0.5 }, 4.621); // beat[7]
+
+      // ══ S0: HOOK — COMBO 0 (chuẩn video-danang) ══
+      // beat[0]=0.952, beat[1]=1.463, beat[2]=1.997, beat[3]=2.508, beat[4]=3.042, beat[5]=3.553
+      tl.from(
+        "#s0",
+        {
+          opacity: 0,
+          scale: 0.94,
+          filter: "blur(16px)",
+          duration: 0.7,
+          ease: "power2.out",
+        },
+        0,
+      );
+      W(0.952); // beat[0]
+      tl.from("#s0-eye", { y: -28, opacity: 0, duration: 0.4 }, 0.952); // beat[0]
+      tl.from(
+        "#s0-hdiv",
+        { scaleX: 0, opacity: 0, duration: 0.45, transformOrigin: "center" },
+        1.176,
+      );
+      I(1.463); // beat[1] — số đập vào
+      tl.from(
+        "#s0-num",
+        { scale: 0.65, opacity: 0, duration: 0.7, ease: "back.out(1.7)" },
+        1.463,
+      ); // beat[1]
+      tl.from(
+        "#s0-unit",
+        { y: 24, opacity: 0, duration: 0.4, ease: "expo.out" },
+        1.997,
+      ); // beat[2]
+      tl.from("#s0-sub", { y: 28, opacity: 0, duration: 0.45 }, 2.508); // beat[3]
+      tl.from(
+        "#s0-tag",
+        { scale: 0.8, opacity: 0, duration: 0.4, ease: "back.out(1.7)" },
+        3.042,
+      ); // beat[4]
+      tl.to(
+        "#s0-num",
+        {
+          textShadow:
+            "0 0 70px rgba(255,209,102,0.85), 4px 7px 0 rgba(139,98,0,0.85)",
+          duration: 1.2,
+          yoyo: true,
+          repeat: 2,
+          ease: "sine.inOut",
+        },
+        3.553,
+      ); // beat[5] glow pulse
+
+      // ══ S1: TRACK RECORD — B09+B01+B05+B03 ══
+      // beat[8]=5.132, beat[9]=5.642, beat[10]=6.177, beat[24]=13.607, beat[31]=17.252
+      W(5.132); // beat[8]
+      tl.from(
+        "#s1",
+        {
+          opacity: 0,
+          scale: 1.04,
+          filter: "blur(12px)",
+          duration: 0.6,
+          ease: "power3.out",
+        },
+        5.0,
+      ); // B09 Depth Blur
+      tl.fromTo(
+        "#s1-eyebrow",
+        { x: -28, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.38, ease: "power3.out" },
+        5.642,
+      ); // beat[9]
+      tl.fromTo(
+        "#s1-card", // B01 Mask Wipe
+        { clipPath: "inset(0% 0 100% 0)" },
+        { clipPath: "inset(0% 0 0% 0)", duration: 0.6, ease: "power2.inOut" },
+        5.0,
+      );
+      I(6.177); // beat[10]
+      tl.to(
+        "#s1-stat",
+        { x: 0, opacity: 1, duration: 0.62, ease: "back.out(1.4)" },
+        6.177,
+      ); // B05 Glassmorphism
+      tl.to(
+        "#s1-card img",
+        { scale: 1.08, duration: 3.0, ease: "power1.out" },
+        5.8,
+      ); // B03 Camera Push-In
+      tl.fromTo(
+        "#s1-hl",
+        { scaleX: 0 },
+        {
+          scaleX: 1,
+          duration: 0.72,
+          ease: "power2.inOut",
+          transformOrigin: "left",
+        },
+        13.607,
+      ); // beat[24] — VO "đúng hẹn cả ba"
+      tl.fromTo(
+        "#s1-card",
+        { clipPath: "inset(0 0 0 0%)" },
+        { clipPath: "inset(0 0 0 100%)", duration: 0.5, ease: "power2.in" },
+        17.252,
+      ); // beat[31]
+
+      // ══ S2: PHÁP LÝ — B09+B01+B10+B03 ══
+      // beat[32]=17.786, beat[33]=18.297, beat[34]=18.831, beat[39]=21.432, beat[49]=26.657
+      W(17.786); // beat[32]
+      tl.from(
+        "#s2",
+        {
+          opacity: 0,
+          scale: 1.04,
+          filter: "blur(12px)",
+          duration: 0.6,
+          ease: "power3.out",
+        },
+        17.5,
+      ); // B09
+      tl.fromTo(
+        "#s2-eyebrow",
+        { x: -28, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.38, ease: "power3.out" },
+        18.297,
+      ); // beat[33]
+      tl.fromTo(
+        "#s2-card", // B01 Mask Wipe
+        { clipPath: "inset(0% 0 100% 0)" },
+        { clipPath: "inset(0% 0 0% 0)", duration: 0.6, ease: "power2.inOut" },
+        17.5,
+      );
+      I(18.831); // beat[34]
+      tl.to(
+        "#s2-stat",
+        { x: 0, opacity: 1, duration: 0.55, ease: "back.out(2.0)" },
+        18.831,
+      ); // B10 Wipe+Overshoot
+      tl.to(
+        "#s2-card img",
+        { scale: 1.08, duration: 3.0, ease: "power1.out" },
+        18.0,
+      ); // B03 Camera Push-In
+      tl.fromTo(
+        "#s2-hl",
+        { scaleX: 0 },
+        {
+          scaleX: 1,
+          duration: 0.72,
+          ease: "power2.inOut",
+          transformOrigin: "left",
+        },
+        21.432,
+      ); // beat[39] — VO "sổ đỏ"
+      tl.fromTo(
+        "#s2-card",
+        { clipPath: "inset(0 0 0 0%)" },
+        { clipPath: "inset(0 0 0 100%)", duration: 0.5, ease: "power2.in" },
+        26.657,
+      ); // beat[49]
+
+      // ══ S3: CHO THUÊ — Screenshot vnn-symphony5.png (B09+B01+B10+B03) ══
+      // beat[51]=27.678, beat[52]=28.212, beat[53]=28.723, beat[63]=33.948
+      W(27.678); // beat[51]
+      tl.from(
+        "#s3",
+        {
+          opacity: 0,
+          scale: 1.04,
+          filter: "blur(12px)",
+          duration: 0.6,
+          ease: "power3.out",
+        },
+        27.5,
+      ); // B09 Depth Blur
+      tl.fromTo(
+        "#s3-eyebrow",
+        { x: -28, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.38, ease: "power3.out" },
+        28.212,
+      ); // beat[52]
+      tl.fromTo(
+        "#s3-card",
+        { clipPath: "inset(0% 0 100% 0)" },
+        { clipPath: "inset(0% 0 0% 0)", duration: 0.6, ease: "power2.inOut" },
+        27.5,
+      ); // B01 Mask Wipe
+      I(28.723); // beat[53]
+      tl.to(
+        "#s3-stat",
+        { x: 0, opacity: 1, duration: 0.55, ease: "back.out(2.0)" },
+        28.723,
+      ); // B10 Wipe+Overshoot
+      tl.to(
+        "#s3-card img",
+        { scale: 1.08, duration: 3.0, ease: "power1.out" },
+        28.0,
+      ); // B03 Camera Push-In
+      // Highlight sweep — khi VO nói "tám đến chín phần trăm" (~t=33.9s)
+      tl.fromTo(
+        "#s3-hl",
+        { scaleX: 0 },
+        {
+          scaleX: 1,
+          duration: 0.72,
+          ease: "power2.inOut",
+          transformOrigin: "left",
+        },
+        33.948,
+      ); // beat[63]
+      tl.fromTo(
+        "#s3-card",
+        { clipPath: "inset(0 0 0 0%)" },
+        { clipPath: "inset(0 0 0 100%)", duration: 0.5, ease: "power2.in" },
+        36.5,
+      );
+
+      // ══ S4: KẾT LUẬN — B13+B02+B07+B10 ══
+      // beat[69]=37.082, beat[71]=38.127, beat[72]=38.661, beat[74]=39.683, beat[77]=41.262
+      W(37.082); // beat[69]
+      tl.from(
+        "#s4",
+        { opacity: 0, scale: 0.97, filter: "blur(8px)", duration: 0.52 },
+        37.0,
+      );
+      tl.to("#s4-grid", { opacity: 1, duration: 0.5 }, 37.082); // B13 Perspective Grid
+      tl.fromTo(
+        "#s4-l1",
+        { y: 32, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, ease: "expo.out" },
+        38.127,
+      ); // beat[71] — B02 Split Text
+      tl.fromTo(
+        "#s4-l2",
+        { y: 32, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, ease: "expo.out" },
+        38.661,
+      ); // beat[72]
+      tl.fromTo(
+        "#s4-l3",
+        { y: 32, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, ease: "expo.out" },
+        39.683,
+      ); // beat[74]
+      tl.to(
+        "#s4-l3",
+        {
+          textShadow: "0 0 28px rgba(255,220,80,0.65)",
+          duration: 0.6,
+          yoyo: true,
+          repeat: 2,
+        },
+        40.217,
+      ); // B07 Glow
+      tl.fromTo(
+        "#s4-note", // B10 Wipe+Overshoot note
+        { x: 40, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.5, ease: "back.out(1.8)" },
+        41.262,
+      ); // beat[77]
+
+      // ══ S5: CTA — chuẩn video-danang ══
+      // beat[82]=43.886, beat[83]=44.397, beat[85]=45.441, beat[87]=46.486, beat[89]=47.531, beat[91]=48.553
+      W(43.886); // beat[82]
+      tl.from(
+        "#s5",
+        { opacity: 0, scale: 0.94, filter: "blur(12px)", duration: 0.65 },
+        44.0,
+      );
+      tl.fromTo(
+        "#s5-label",
+        { y: -22, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.4 },
+        44.397,
+      ); // beat[83]
+      I(45.441); // beat[85]
+      tl.fromTo(
+        "#s5-title",
+        { y: 40, opacity: 0, scale: 0.91 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.65, ease: "expo.out" },
+        45.441,
+      ); // beat[85]
+      tl.fromTo(
+        "#s5-stats",
+        { y: 22, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.4, ease: "back.out(1.5)" },
+        46.486,
+      ); // beat[87]
+      tl.fromTo(
+        "#s5-btn",
+        { scale: 0.78, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(1.7)" },
+        47.531,
+      ); // beat[89]
+      tl.fromTo(
+        "#s5-contact",
+        { y: 14, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.35 },
+        48.553,
+      ); // beat[91]
+      tl.to(
+        ".cta-contact-name",
+        {
+          textShadow: "0 0 30px rgba(255,209,102,0.80)",
+          duration: 0.8,
+          yoyo: true,
+          repeat: 2,
+        },
+        49.0,
+      ); // B07 Glow
+
+      window.__timelines["video-symphony5-bao-lon"] = tl;
+
+      // Boost VO via Web Audio GainNode (+30%)
+      (function () {
+        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+        var gain = ctx.createGain();
+        gain.gain.value = 1.3;
+        gain.connect(ctx.destination);
+        ["vo0", "vo1", "vo2", "vo3", "vo4", "vo5"].forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el) ctx.createMediaElementSource(el).connect(gain);
+        });
+        document.addEventListener(
+          "click",
+          function () {
+            ctx.resume();
+          },
+          { once: true },
+        );
+      })();
+    </script>
+  </body>
+</html>

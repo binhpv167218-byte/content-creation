@@ -1,0 +1,2207 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Be Vietnam Pro";
+        font-weight: 300;
+        src:
+          url("../_shared/fonts/BeVietnamPro-Light-vietnamese.woff2")
+            format("woff2"),
+          url("../_shared/fonts/BeVietnamPro-Light-latin.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Be Vietnam Pro";
+        font-weight: 400;
+        src:
+          url("../_shared/fonts/BeVietnamPro-Regular-vietnamese.woff2")
+            format("woff2"),
+          url("../_shared/fonts/BeVietnamPro-Regular-latin.woff2")
+            format("woff2");
+      }
+      @font-face {
+        font-family: "Be Vietnam Pro";
+        font-weight: 600;
+        src:
+          url("../_shared/fonts/BeVietnamPro-SemiBold-vietnamese.woff2")
+            format("woff2"),
+          url("../_shared/fonts/BeVietnamPro-SemiBold-latin.woff2")
+            format("woff2");
+      }
+      @font-face {
+        font-family: "Be Vietnam Pro";
+        font-weight: 900;
+        src:
+          url("../_shared/fonts/BeVietnamPro-Black-vietnamese.woff2")
+            format("woff2"),
+          url("../_shared/fonts/BeVietnamPro-Black-latin.woff2") format("woff2");
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #020c18;
+        font-family: "Be Vietnam Pro", system-ui, sans-serif;
+        cursor: none;
+      }
+
+      /* ── Video clip backgrounds ── */
+      .bg-vid {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        opacity: 0;
+      }
+      /* ── Static image backgrounds (inside scenes) ── */
+      .bg-img {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transform-origin: center;
+      }
+      .bg-overlay-grad {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        background: linear-gradient(
+          to bottom,
+          rgba(2, 12, 24, 0.35) 0%,
+          rgba(2, 12, 24, 0.55) 60%,
+          rgba(2, 12, 24, 0.75) 100%
+        );
+      }
+      #bg-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        background: linear-gradient(
+          to top,
+          rgba(2, 12, 24, 0.82) 0%,
+          rgba(2, 12, 24, 0.28) 60%,
+          transparent 100%
+        );
+      }
+
+      /* ── Neon border ── */
+      #neon-svg {
+        position: absolute;
+        inset: 0;
+        width: 1080px;
+        height: 1920px;
+        z-index: 5;
+        pointer-events: none;
+      }
+      #neon-path {
+        fill: none;
+        stroke: #ffd166;
+        stroke-width: 4;
+        filter: drop-shadow(0 0 8px #ffd166) drop-shadow(0 0 18px #ffc300);
+        stroke-dasharray: 5900;
+        stroke-dashoffset: 5900;
+      }
+
+      /* ── Progress bar ── */
+      #progress-fill {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(90deg, #ffd166, #06d6a0);
+        transform-origin: left;
+        transform: scaleX(0);
+        z-index: 100;
+      }
+
+      /* ── Scene base ── */
+      .scene {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 200px 64px 400px;
+        overflow: hidden;
+        opacity: 0;
+      }
+      .scene-center {
+        align-items: center;
+        text-align: center;
+      }
+
+      /* ══ S0 HOOK — COMBO Q ══ */
+      .eyebrow {
+        font-size: 22px;
+        font-weight: 600;
+        color: rgba(255, 209, 102, 0.75);
+        letter-spacing: 1px;
+        margin-bottom: 20px;
+      }
+      .hdivider {
+        width: 80px;
+        height: 3px;
+        background: linear-gradient(90deg, #ffd166, #06d6a0);
+        border-radius: 2px;
+        margin: 22px auto 32px;
+      }
+      #s0-q1 {
+        font-size: 96px;
+        font-weight: 900;
+        color: rgba(255, 255, 255, 0.88);
+        line-height: 1;
+        opacity: 0;
+      }
+      #s0-q2 {
+        font-size: 96px;
+        font-weight: 900;
+        color: rgba(255, 255, 255, 0.88);
+        line-height: 1;
+        margin-bottom: 36px;
+        opacity: 0;
+      }
+      #s0-ans {
+        font-size: 200px;
+        font-weight: 900;
+        color: #ffd166;
+        line-height: 0.85;
+        letter-spacing: -6px;
+        text-shadow:
+          0 0 60px rgba(255, 209, 102, 0.7),
+          4px 7px 0 rgba(139, 98, 0, 0.85);
+        opacity: 0;
+      }
+      #s0-sub {
+        font-size: 44px;
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.82);
+        margin-top: 24px;
+      }
+      #s0-tag {
+        margin-top: 44px;
+        display: inline-block;
+        background: rgba(255, 209, 102, 0.1);
+        border: 1px solid rgba(255, 209, 102, 0.4);
+        border-radius: 40px;
+        padding: 14px 48px;
+        font-size: 26px;
+        font-weight: 600;
+        color: #ffd166;
+        letter-spacing: 2px;
+        opacity: 0;
+      }
+
+      /* ══ Body common ══ */
+      .sec-head {
+        font-size: 38px;
+        font-weight: 600;
+        color: rgba(255, 209, 102, 0.85);
+        margin-bottom: 28px;
+        line-height: 1.3;
+        position: relative;
+        z-index: 2;
+        opacity: 0;
+      }
+      .body-card {
+        background: rgba(2, 12, 24, 0.78);
+        border: 1.5px solid rgba(255, 209, 102, 0.28);
+        border-radius: 20px;
+        backdrop-filter: blur(16px);
+        padding: 44px 48px;
+        position: relative;
+        z-index: 2;
+        opacity: 0;
+      }
+      .card-tag {
+        font-size: 22px;
+        font-weight: 600;
+        color: rgba(255, 209, 102, 0.65);
+        letter-spacing: 3px;
+        margin-bottom: 18px;
+      }
+      .card-title {
+        font-size: 52px;
+        font-weight: 900;
+        color: #ffffff;
+        line-height: 1.15;
+        margin-bottom: 18px;
+      }
+      .card-title span {
+        color: #ffd166;
+      }
+      .card-sub {
+        font-size: 30px;
+        font-weight: 400;
+        color: rgba(200, 220, 240, 0.78);
+        line-height: 1.6;
+      }
+      .card-sub strong {
+        color: #ffd166;
+        font-weight: 600;
+      }
+
+      /* ── SVG Icon bullets ── */
+      .bullet-icon {
+        flex-shrink: 0;
+        width: 28px;
+        height: 28px;
+      }
+      .bullet-text {
+        font-size: 36px;
+        font-weight: 400;
+        line-height: 1.3;
+      }
+      .bullet-row {
+        margin-top: 8px;
+      }
+
+      /* ══ S1: Nhầm lẫn lớn ══ */
+      #s1-card {
+        border-left: 5px solid #ffd166;
+      }
+
+      /* ══ S2: Condotel ══ */
+      #s2-card {
+        border-left: 5px solid #ff7b3a;
+      }
+      .bullet-row {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-top: 14px;
+      }
+      .bullet-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #ff7b3a;
+        flex-shrink: 0;
+      }
+      .bullet-text {
+        font-size: 36px;
+        font-weight: 400;
+        color: rgba(200, 220, 240, 0.78);
+      }
+
+      /* ══ S3: Symphony 5 sổ đỏ riêng ══ */
+      #s3-year {
+        font-size: 180px;
+        font-weight: 900;
+        color: #ffd166;
+        line-height: 0.85;
+        letter-spacing: -6px;
+        text-shadow:
+          0 0 60px rgba(255, 209, 102, 0.65),
+          4px 7px 0 rgba(139, 98, 0, 0.8);
+        position: relative;
+        z-index: 2;
+        opacity: 0;
+        margin-bottom: 4px;
+      }
+      #s3-year-lbl {
+        font-size: 36px;
+        font-weight: 600;
+        color: rgba(255, 209, 102, 0.8);
+        letter-spacing: 2px;
+        position: relative;
+        z-index: 2;
+        margin-bottom: 32px;
+      }
+      #s3-card {
+        border-left: 5px solid #06d6a0;
+      }
+      #s3-badge {
+        margin-top: 24px;
+        background: rgba(6, 214, 160, 0.1);
+        border: 2px solid rgba(6, 214, 160, 0.5);
+        border-radius: 16px;
+        padding: 20px 36px;
+        position: relative;
+        z-index: 2;
+        opacity: 0;
+        clip-path: inset(0 100% 0 0);
+      }
+      #s3-badge-text {
+        font-size: 38px;
+        font-weight: 600;
+        color: #06d6a0;
+      }
+
+      /* ══ S4: Cho thuê ngắn ngày ══ */
+      #s4-card {
+        border-left: 5px solid #ffd166;
+      }
+      #s4-restrict {
+        margin-top: 28px;
+        background: rgba(255, 123, 58, 0.1);
+        border: 1.5px solid rgba(255, 123, 58, 0.4);
+        border-radius: 16px;
+        padding: 22px 36px;
+        position: relative;
+        z-index: 2;
+      }
+      #s4-restrict-text {
+        font-size: 34px;
+        font-weight: 400;
+        color: rgba(200, 220, 240, 0.78);
+        line-height: 1.5;
+      }
+      #s4-restrict-text strong {
+        color: #ff7b3a;
+        font-weight: 600;
+      }
+
+      /* ══ S5: So sánh S1-S3 vs S5 ══ */
+      .compare-row {
+        display: flex;
+        gap: 24px;
+        width: 100%;
+        position: relative;
+        z-index: 2;
+        margin-bottom: 32px;
+      }
+      .cmp-card {
+        flex: 1;
+        background: rgba(2, 12, 24, 0.78);
+        border: 1.5px solid rgba(255, 209, 102, 0.25);
+        border-radius: 20px;
+        backdrop-filter: blur(16px);
+        padding: 44px 32px;
+        text-align: center;
+        opacity: 0;
+      }
+      .cmp-card.active {
+        border-color: rgba(255, 209, 102, 0.6);
+      }
+      .cmp-label {
+        font-size: 26px;
+        font-weight: 600;
+        color: rgba(255, 209, 102, 0.65);
+        letter-spacing: 2px;
+        margin-bottom: 16px;
+      }
+      .cmp-num {
+        font-size: 72px;
+        font-weight: 900;
+        color: #ffe566;
+        line-height: 0.88;
+        text-shadow: 0 0 30px rgba(255, 220, 80, 0.45);
+      }
+      .cmp-type {
+        font-size: 26px;
+        font-weight: 600;
+        color: rgba(200, 220, 240, 0.82);
+        margin-top: 10px;
+      }
+      #s5-note {
+        font-size: 40px;
+        font-weight: 400;
+        color: rgba(200, 220, 240, 0.78);
+        line-height: 1.55;
+        position: relative;
+        z-index: 2;
+        font-style: italic;
+      }
+      #s5-note strong {
+        color: #ffd166;
+        font-weight: 600;
+      }
+
+      /* ══ S6: Câu hỏi đúng ══ */
+      #s6-grid {
+        position: absolute;
+        inset: -20%;
+        z-index: 0;
+        background-image:
+          linear-gradient(rgba(255, 209, 102, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 209, 102, 0.03) 1px, transparent 1px);
+        background-size: 64px 64px;
+        transform: perspective(900px) rotateX(18deg);
+        opacity: 0;
+      }
+      .story-lines {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        position: relative;
+        z-index: 2;
+        margin-bottom: 44px;
+      }
+      .story-line {
+        font-size: 72px;
+        font-weight: 900;
+        color: #ffffff;
+        line-height: 1.05;
+        opacity: 0;
+      }
+      .story-line span {
+        color: #ffe566;
+      }
+      #s6-card {
+        background: rgba(2, 12, 24, 0.82);
+        border: 1.5px solid rgba(6, 214, 160, 0.35);
+        border-left: 5px solid #06d6a0;
+        border-radius: 20px;
+        backdrop-filter: blur(16px);
+        padding: 32px 40px;
+        position: relative;
+        z-index: 2;
+        opacity: 0;
+      }
+      .q-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 14px;
+      }
+      .q-row:last-child {
+        margin-bottom: 0;
+      }
+      .q-bullet {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #06d6a0;
+        flex-shrink: 0;
+      }
+      .q-text {
+        font-size: 32px;
+        font-weight: 400;
+        color: rgba(200, 220, 240, 0.85);
+      }
+      .q-text strong {
+        color: #06d6a0;
+        font-weight: 600;
+      }
+
+      /* ══ S7 CTA ══ */
+      .morph-bg {
+        position: absolute;
+        width: 720px;
+        height: 720px;
+        border-radius: 60% 40% 30% 70%/60% 30% 70% 40%;
+        background: radial-gradient(
+          circle,
+          rgba(255, 209, 102, 0.1) 0%,
+          transparent 70%
+        );
+        z-index: 0;
+        animation: morphBg 7s ease-in-out infinite;
+      }
+      @keyframes morphBg {
+        0%,
+        100% {
+          border-radius: 60% 40% 30% 70%/60% 30% 70% 40%;
+        }
+        33% {
+          border-radius: 30% 70% 70% 30%/30% 40% 60% 70%;
+        }
+        66% {
+          border-radius: 50% 50% 30% 70%/40% 60% 40% 60%;
+        }
+      }
+      .cta-inner {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+        width: 100%;
+      }
+      .cta-label {
+        font-size: 24px;
+        font-weight: 600;
+        color: rgba(6, 214, 160, 0.8);
+        letter-spacing: 1px;
+        margin-bottom: 22px;
+        opacity: 0;
+      }
+      .cta-title {
+        font-size: 78px;
+        font-weight: 900;
+        color: #efefef;
+        line-height: 1.1;
+        margin-bottom: 44px;
+        text-align: center;
+        text-shadow: 3px 5px 0 rgba(0, 0, 0, 0.5);
+        opacity: 0;
+      }
+      .cta-title span {
+        color: #ffd166;
+      }
+      .cta-btn {
+        display: inline-block;
+        background: rgba(255, 209, 102, 0.08);
+        border: 1.5px solid rgba(255, 209, 102, 0.5);
+        color: #ffd166;
+        font-size: 32px;
+        font-weight: 600;
+        padding: 22px 72px;
+        border-radius: 20px;
+        box-shadow: 0 0 20px rgba(255, 209, 102, 0.12);
+        animation: hapticPulse 3.5s ease-in-out infinite;
+        opacity: 0;
+      }
+      @keyframes hapticPulse {
+        0%,
+        100% {
+          transform: scale(1);
+          box-shadow: 0 0 20px rgba(255, 209, 102, 0.12);
+        }
+        50% {
+          transform: scale(1.02);
+          box-shadow: 0 0 36px rgba(255, 209, 102, 0.28);
+        }
+      }
+      .cta-contact {
+        margin-top: 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+        opacity: 0;
+      }
+      .cta-contact-name {
+        font-size: 34px;
+        font-weight: 600;
+        color: #efefef;
+      }
+      .cta-avatar {
+        width: 336px;
+        height: 336px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid rgba(255, 209, 102, 0.6);
+        box-shadow: 0 0 40px rgba(255, 209, 102, 0.3);
+      }
+
+      /* ══ Enhanced body rules ══ */
+      .bullet-row-bad .bullet-dot {
+        background: #ff7b3a;
+      }
+      .bullet-row-bad .bullet-text {
+        color: rgba(255, 123, 58, 0.9);
+      }
+      .bullet-row-good .bullet-dot {
+        background: #06d6a0;
+      }
+      .bullet-row-good .bullet-text {
+        color: rgba(6, 214, 160, 0.9);
+      }
+
+      .num-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 14px;
+      }
+      .num-row:last-child {
+        margin-bottom: 0;
+      }
+      .num-badge {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        background: rgba(255, 209, 102, 0.12);
+        border: 1px solid rgba(255, 209, 102, 0.45);
+        color: #ffd166;
+        font-size: 17px;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .num-text {
+        font-size: 28px;
+        font-weight: 400;
+        color: rgba(200, 220, 240, 0.85);
+        line-height: 1.4;
+      }
+      .num-text strong {
+        color: #ffd166;
+        font-weight: 600;
+      }
+
+      .cmp-bad {
+        border-color: rgba(255, 123, 58, 0.5) !important;
+      }
+      .cmp-bad .cmp-num {
+        color: #ff7b3a !important;
+        text-shadow: 0 0 28px rgba(255, 123, 58, 0.45) !important;
+      }
+      .cmp-bad .cmp-label {
+        color: rgba(255, 123, 58, 0.65) !important;
+      }
+      .cmp-good {
+        border-color: rgba(6, 214, 160, 0.5) !important;
+      }
+      .cmp-good .cmp-num {
+        color: #06d6a0 !important;
+        text-shadow: 0 0 28px rgba(6, 214, 160, 0.45) !important;
+      }
+      .cmp-good .cmp-label {
+        color: rgba(6, 214, 160, 0.65) !important;
+      }
+      .cmp-sub {
+        font-size: 22px;
+        font-weight: 400;
+        color: rgba(200, 220, 240, 0.7);
+        margin-top: 6px;
+        line-height: 1.5;
+      }
+
+      .source-tag {
+        font-size: 20px;
+        font-weight: 300;
+        color: rgba(200, 220, 240, 0.45);
+        margin-top: 14px;
+        letter-spacing: 0.5px;
+      }
+
+      /* ── Full-width block rows ── */
+      .block-row {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 22px 28px;
+        border-radius: 16px;
+        margin-bottom: 16px;
+        position: relative;
+        z-index: 2;
+        opacity: 0;
+      }
+      .block-row:last-child {
+        margin-bottom: 0;
+      }
+      .block-bad {
+        background: rgba(255, 123, 58, 0.08);
+        border: 1.5px solid rgba(255, 123, 58, 0.35);
+        border-left: 5px solid #ff7b3a;
+      }
+      .block-good {
+        background: rgba(6, 214, 160, 0.08);
+        border: 1.5px solid rgba(6, 214, 160, 0.35);
+        border-left: 5px solid #06d6a0;
+      }
+      .block-text {
+        font-size: 38px;
+        font-weight: 600;
+        color: rgba(220, 235, 250, 0.92);
+        line-height: 1.3;
+      }
+      .block-text span {
+        color: #ffd166;
+      }
+      .block-text em {
+        color: #06d6a0;
+        font-style: normal;
+      }
+      .block-text del {
+        color: #ff7b3a;
+        text-decoration: none;
+      }
+
+      /* ── Big floating number ── */
+      .float-num {
+        font-size: 160px;
+        font-weight: 900;
+        color: #ffd166;
+        line-height: 0.85;
+        letter-spacing: -6px;
+        text-shadow:
+          0 0 60px rgba(255, 209, 102, 0.6),
+          4px 6px 0 rgba(139, 98, 0, 0.8);
+        position: relative;
+        z-index: 2;
+        opacity: 0;
+        text-align: center;
+      }
+      .float-lbl {
+        font-size: 32px;
+        font-weight: 600;
+        color: rgba(255, 209, 102, 0.75);
+        letter-spacing: 3px;
+        text-align: center;
+        position: relative;
+        z-index: 2;
+        opacity: 0;
+        margin-bottom: 28px;
+      }
+
+      /* ── Numbered blocks (S4) ── */
+      .num-block {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        padding: 24px 28px;
+        background: rgba(2, 12, 24, 0.65);
+        border: 1.5px solid rgba(255, 209, 102, 0.2);
+        border-left: 5px solid #ffd166;
+        border-radius: 16px;
+        margin-bottom: 16px;
+        position: relative;
+        z-index: 2;
+        opacity: 0;
+      }
+      .num-block:last-child {
+        margin-bottom: 0;
+      }
+      .num-badge-lg {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: rgba(255, 209, 102, 0.12);
+        border: 2px solid rgba(255, 209, 102, 0.5);
+        color: #ffd166;
+        font-size: 26px;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .num-block-text {
+        font-size: 36px;
+        font-weight: 400;
+        color: rgba(220, 235, 250, 0.9);
+        line-height: 1.35;
+      }
+      .num-block-text strong {
+        color: #ffd166;
+        font-weight: 900;
+      }
+
+      /* sec-head bigger */
+      .sec-head {
+        font-size: 40px !important;
+        margin-bottom: 28px !important;
+      }
+
+      /* SUBTITLE — V02 standard */
+      .sub-bar {
+        position: absolute;
+        bottom: 420px;
+        left: 64px;
+        right: 64px;
+        z-index: 50;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .sub-phrase {
+        display: none;
+        flex-wrap: nowrap;
+        white-space: nowrap;
+        gap: 8px;
+        align-items: baseline;
+      }
+      .sub-w {
+        font-size: 44px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
+        text-shadow:
+          0 1px 12px rgba(0, 0, 0, 0.95),
+          0 0 24px rgba(0, 0, 0, 0.8);
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="video-symphony5-phap-ly"
+      data-start="0"
+      data-duration="68"
+      data-width="1080"
+      data-height="1920"
+    >
+      <div id="progress-fill"></div>
+
+      <svg id="neon-svg" viewBox="0 0 1080 1920">
+        <rect id="neon-path" x="64" y="200" width="952" height="1320" rx="22" />
+      </svg>
+
+      <!-- ── c01: interior living room — hook 0-6s ── -->
+      <video
+        id="c01"
+        class="clip bg-vid"
+        src="assets/c01.mp4?v=2"
+        muted
+        preload="auto"
+        playsinline
+        data-start="0"
+        data-duration="6"
+        data-track-index="1"
+        data-volume="0"
+      ></video>
+
+      <!-- ── c02: night skyline — CTA 61.5-68s ── -->
+      <video
+        id="c02"
+        class="clip bg-vid"
+        src="assets/c02.mp4?v=2"
+        muted
+        preload="auto"
+        playsinline
+        data-start="61.5"
+        data-duration="6.5"
+        data-track-index="2"
+        data-volume="0"
+      ></video>
+
+      <div id="bg-overlay"></div>
+
+      <!-- BGM track1 — 97.5 BPM, beat[0]=0.476, vol=0.276 -->
+      <audio
+        id="bgm"
+        class="clip"
+        src="assets/bgm.mp3"
+        preload="auto"
+        data-start="0"
+        data-duration="68"
+        data-track-index="0"
+        data-volume="0.276"
+      ></audio>
+
+      <!-- VO segments -->
+      <audio
+        id="vo0"
+        class="clip"
+        src="assets/vo_s0.mp3"
+        preload="auto"
+        data-start="0.3"
+        data-duration="5.0"
+        data-track-index="20"
+        data-volume="1"
+      ></audio>
+      <audio
+        id="vo1"
+        class="clip"
+        src="assets/vo_s1.mp3"
+        preload="auto"
+        data-start="6.1"
+        data-duration="8.0"
+        data-track-index="21"
+        data-volume="1"
+      ></audio>
+      <audio
+        id="vo2"
+        class="clip"
+        src="assets/vo_s2.mp3"
+        preload="auto"
+        data-start="15.3"
+        data-duration="8.0"
+        data-track-index="22"
+        data-volume="1"
+      ></audio>
+      <audio
+        id="vo3"
+        class="clip"
+        src="assets/vo_s3.mp3"
+        preload="auto"
+        data-start="23.8"
+        data-duration="7.5"
+        data-track-index="23"
+        data-volume="1"
+      ></audio>
+      <audio
+        id="vo4"
+        class="clip"
+        src="assets/vo_s4.mp3"
+        preload="auto"
+        data-start="31.8"
+        data-duration="10.0"
+        data-track-index="24"
+        data-volume="1"
+      ></audio>
+      <audio
+        id="vo5"
+        class="clip"
+        src="assets/vo_s5.mp3"
+        preload="auto"
+        data-start="42.8"
+        data-duration="10.0"
+        data-track-index="25"
+        data-volume="1"
+      ></audio>
+      <audio
+        id="vo6"
+        class="clip"
+        src="assets/vo_s6.mp3"
+        preload="auto"
+        data-start="53.8"
+        data-duration="7.5"
+        data-track-index="26"
+        data-volume="1"
+      ></audio>
+      <audio
+        id="vo7"
+        class="clip"
+        src="assets/vo_s7.mp3"
+        preload="auto"
+        data-start="62.3"
+        data-duration="3.5"
+        data-track-index="27"
+        data-volume="1"
+      ></audio>
+
+      <!-- ══ S0: HOOK — COMBO Q ══ -->
+      <div
+        id="s0"
+        class="clip scene scene-center"
+        data-start="0"
+        data-duration="6"
+        data-track-index="10"
+      >
+        <div id="s0-eye" class="eyebrow">Bình Phan · BĐS Đà Nẵng</div>
+        <div id="s0-hdiv" class="hdivider"></div>
+        <div id="s0-q1">"Symphony 5</div>
+        <div id="s0-q2">là Condotel?"</div>
+        <div id="s0-ans">KHÔNG.</div>
+        <div id="s0-sub">Hoàn toàn không.</div>
+        <div id="s0-tag">Pháp Lý S5 · 50 Năm</div>
+      </div>
+
+      <!-- ══ S1: Nhầm lẫn condotel ══ -->
+      <div
+        id="s1"
+        class="clip scene"
+        data-start="5.8"
+        data-duration="9.5"
+        data-track-index="11"
+      >
+        <img class="bg-img" id="s1-img" src="assets/img_s1.jpg?v=3" alt="" />
+        <div class="bg-overlay-grad"></div>
+        <div id="s1-head" class="sec-head">50 Năm Thương Mại Dịch Vụ</div>
+        <div id="s1-b1" class="block-row block-bad">
+          <svg
+            style="flex-shrink: 0; width: 36px; height: 36px"
+            viewBox="0 0 36 36"
+            fill="none"
+          >
+            <circle cx="18" cy="18" r="16" stroke="#ff7b3a" stroke-width="2" />
+            <path
+              d="M12 12l12 12M24 12L12 24"
+              stroke="#ff7b3a"
+              stroke-width="2.5"
+              stroke-linecap="round"
+            />
+          </svg>
+          <div class="block-text">
+            <del>Condotel:</del> sổ chung, phụ thuộc CĐT
+          </div>
+        </div>
+        <div id="s1-b2" class="block-row block-bad">
+          <svg
+            style="flex-shrink: 0; width: 36px; height: 36px"
+            viewBox="0 0 36 36"
+            fill="none"
+          >
+            <circle cx="18" cy="18" r="16" stroke="#ff7b3a" stroke-width="2" />
+            <path
+              d="M12 12l12 12M24 12L12 24"
+              stroke="#ff7b3a"
+              stroke-width="2.5"
+              stroke-linecap="round"
+            />
+          </svg>
+          <div class="block-text">Bị siết 2020, ngân hàng từ chối</div>
+        </div>
+        <div id="s1-b3" class="block-row block-good">
+          <svg
+            style="flex-shrink: 0; width: 36px; height: 36px"
+            viewBox="0 0 36 36"
+            fill="none"
+          >
+            <circle cx="18" cy="18" r="16" stroke="#06d6a0" stroke-width="2" />
+            <path
+              d="M10 18l6 6 10-10"
+              stroke="#06d6a0"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <div class="block-text">TM/DV: loại hình <em>pháp lý riêng</em></div>
+        </div>
+        <div id="s1-b4" class="block-row block-good">
+          <svg
+            style="flex-shrink: 0; width: 36px; height: 36px"
+            viewBox="0 0 36 36"
+            fill="none"
+          >
+            <circle cx="18" cy="18" r="16" stroke="#06d6a0" stroke-width="2" />
+            <path
+              d="M10 18l6 6 10-10"
+              stroke="#06d6a0"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <div class="block-text">Symphony 5 <em>không bị siết</em></div>
+        </div>
+
+        <div id="s1-sub" class="sub-bar">
+          <div id="s1-ph0" class="sub-phrase">
+            <span class="sub-w" id="s1-ph0-w0">50</span>
+            <span class="sub-w" id="s1-ph0-w1">năm</span>
+            <span class="sub-w" id="s1-ph0-w2">thương</span>
+            <span class="sub-w" id="s1-ph0-w3">mại</span>
+            <span class="sub-w" id="s1-ph0-w4">dịch</span>
+            <span class="sub-w" id="s1-ph0-w5">vụ</span>
+            <span class="sub-w" id="s1-ph0-w6">khiến</span>
+            <span class="sub-w" id="s1-ph0-w7">nhiều</span>
+          </div>
+          <div id="s1-ph1" class="sub-phrase">
+            <span class="sub-w" id="s1-ph1-w0">người</span>
+            <span class="sub-w" id="s1-ph1-w1">ân</span>
+            <span class="sub-w" id="s1-ph1-w2">ại</span>
+            <span class="sub-w" id="s1-ph1-w3">Họ</span>
+            <span class="sub-w" id="s1-ph1-w4">liên</span>
+            <span class="sub-w" id="s1-ph1-w5">tưởng</span>
+            <span class="sub-w" id="s1-ph1-w6">đến</span>
+            <span class="sub-w" id="s1-ph1-w7">con</span>
+          </div>
+          <div id="s1-ph2" class="sub-phrase">
+            <span class="sub-w" id="s1-ph2-w0">đô</span>
+            <span class="sub-w" id="s1-ph2-w1">teo</span>
+            <span class="sub-w" id="s1-ph2-w2">loại</span>
+            <span class="sub-w" id="s1-ph2-w3">hình</span>
+            <span class="sub-w" id="s1-ph2-w4">bị</span>
+            <span class="sub-w" id="s1-ph2-w5">sít</span>
+            <span class="sub-w" id="s1-ph2-w6">chặt</span>
+            <span class="sub-w" id="s1-ph2-w7">pháp</span>
+          </div>
+          <div id="s1-ph3" class="sub-phrase">
+            <span class="sub-w" id="s1-ph3-w0">lý</span>
+            <span class="sub-w" id="s1-ph3-w1">mập</span>
+            <span class="sub-w" id="s1-ph3-w2">mờ</span>
+            <span class="sub-w" id="s1-ph3-w3">Đó</span>
+            <span class="sub-w" id="s1-ph3-w4">là</span>
+            <span class="sub-w" id="s1-ph3-w5">nhầm</span>
+            <span class="sub-w" id="s1-ph3-w6">lẫn</span>
+            <span class="sub-w" id="s1-ph3-w7">lớn</span>
+          </div>
+          <div id="s1-ph4" class="sub-phrase">
+            <span class="sub-w" id="s1-ph4-w0">nhất</span>
+            <span class="sub-w" id="s1-ph4-w1">khi</span>
+            <span class="sub-w" id="s1-ph4-w2">nhìn</span>
+            <span class="sub-w" id="s1-ph4-w3">vào</span>
+            <span class="sub-w" id="s1-ph4-w4">sinh</span>
+            <span class="sub-w" id="s1-ph4-w5">phô</span>
+            <span class="sub-w" id="s1-ph4-w6">ni</span>
+            <span class="sub-w" id="s1-ph4-w7">năm</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S2: Condotel thực ra ══ -->
+      <div
+        id="s2"
+        class="clip scene"
+        data-start="15"
+        data-duration="9"
+        data-track-index="12"
+      >
+        <img class="bg-img" id="s2-img" src="assets/img_s2.jpg?v=3" alt="" />
+        <div class="bg-overlay-grad"></div>
+        <div id="s2-head" class="sec-head">Condotel Không Có Sổ Đỏ Riêng</div>
+        <div id="s2-b1" class="block-row block-bad">
+          <svg
+            style="flex-shrink: 0; width: 36px; height: 36px"
+            viewBox="0 0 36 36"
+            fill="none"
+          >
+            <circle cx="18" cy="18" r="16" stroke="#ff7b3a" stroke-width="2" />
+            <path
+              d="M12 12l12 12M24 12L12 24"
+              stroke="#ff7b3a"
+              stroke-width="2.5"
+              stroke-linecap="round"
+            />
+          </svg>
+          <div class="block-text">Ngân hàng từ chối thế chấp</div>
+        </div>
+        <div id="s2-b2" class="block-row block-bad">
+          <svg
+            style="flex-shrink: 0; width: 36px; height: 36px"
+            viewBox="0 0 36 36"
+            fill="none"
+          >
+            <circle cx="18" cy="18" r="16" stroke="#ff7b3a" stroke-width="2" />
+            <path
+              d="M12 12l12 12M24 12L12 24"
+              stroke="#ff7b3a"
+              stroke-width="2.5"
+              stroke-linecap="round"
+            />
+          </svg>
+          <div class="block-text">Bán khó, thanh khoản thấp</div>
+        </div>
+        <div id="s2-b3" class="block-row block-bad">
+          <svg
+            style="flex-shrink: 0; width: 36px; height: 36px"
+            viewBox="0 0 36 36"
+            fill="none"
+          >
+            <circle cx="18" cy="18" r="16" stroke="#ff7b3a" stroke-width="2" />
+            <path
+              d="M12 12l12 12M24 12L12 24"
+              stroke="#ff7b3a"
+              stroke-width="2.5"
+              stroke-linecap="round"
+            />
+          </svg>
+          <div class="block-text">Pháp lý phụ thuộc chủ đầu tư</div>
+        </div>
+        <div id="s2-b4" class="block-row block-bad">
+          <svg
+            style="flex-shrink: 0; width: 36px; height: 36px"
+            viewBox="0 0 36 36"
+            fill="none"
+          >
+            <circle cx="18" cy="18" r="16" stroke="#ff7b3a" stroke-width="2" />
+            <path
+              d="M12 12l12 12M24 12L12 24"
+              stroke="#ff7b3a"
+              stroke-width="2.5"
+              stroke-linecap="round"
+            />
+          </svg>
+          <div class="block-text">Tranh chấp pháp lý tràn lan</div>
+        </div>
+
+        <div id="s2-sub" class="sub-bar">
+          <div id="s2-ph0" class="sub-phrase">
+            <span class="sub-w" id="s2-ph0-w0">Condotel</span>
+            <span class="sub-w" id="s2-ph0-w1">thường</span>
+            <span class="sub-w" id="s2-ph0-w2">không</span>
+            <span class="sub-w" id="s2-ph0-w3">có</span>
+            <span class="sub-w" id="s2-ph0-w4">sổ</span>
+            <span class="sub-w" id="s2-ph0-w5">riêng</span>
+            <span class="sub-w" id="s2-ph0-w6">từng</span>
+            <span class="sub-w" id="s2-ph0-w7">căng</span>
+          </div>
+          <div id="s2-ph1" class="sub-phrase">
+            <span class="sub-w" id="s2-ph1-w0">Bạn</span>
+            <span class="sub-w" id="s2-ph1-w1">mua</span>
+            <span class="sub-w" id="s2-ph1-w2">một</span>
+            <span class="sub-w" id="s2-ph1-w3">phần</span>
+            <span class="sub-w" id="s2-ph1-w4">trong</span>
+            <span class="sub-w" id="s2-ph1-w5">khối</span>
+            <span class="sub-w" id="s2-ph1-w6">sổ</span>
+            <span class="sub-w" id="s2-ph1-w7">chung</span>
+          </div>
+          <div id="s2-ph2" class="sub-phrase">
+            <span class="sub-w" id="s2-ph2-w0">bán</span>
+            <span class="sub-w" id="s2-ph2-w1">khó</span>
+            <span class="sub-w" id="s2-ph2-w2">thể</span>
+            <span class="sub-w" id="s2-ph2-w3">chấp</span>
+            <span class="sub-w" id="s2-ph2-w4">khó</span>
+            <span class="sub-w" id="s2-ph2-w5">pháp</span>
+            <span class="sub-w" id="s2-ph2-w6">lý</span>
+            <span class="sub-w" id="s2-ph2-w7">phụ</span>
+          </div>
+          <div id="s2-ph3" class="sub-phrase">
+            <span class="sub-w" id="s2-ph3-w0">thuộc</span>
+            <span class="sub-w" id="s2-ph3-w1">vào</span>
+            <span class="sub-w" id="s2-ph3-w2">chủ</span>
+            <span class="sub-w" id="s2-ph3-w3">đầu</span>
+            <span class="sub-w" id="s2-ph3-w4">tư</span>
+            <span class="sub-w" id="s2-ph3-w5">quản</span>
+            <span class="sub-w" id="s2-ph3-w6">lý</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S3: Symphony 5 sổ đỏ riêng ══ -->
+      <div
+        id="s3"
+        class="clip scene"
+        data-start="23.5"
+        data-duration="8.5"
+        data-track-index="13"
+      >
+        <img class="bg-img" id="s3-img" src="assets/img_s3.jpg?v=3" alt="" />
+        <div class="bg-overlay-grad"></div>
+        <div id="s3-head" class="sec-head">Symphony 5 Khác Hoàn Toàn</div>
+        <div id="s3-year" class="float-num">50 NĂM</div>
+        <div id="s3-year-lbl" class="float-lbl">
+          THƯƠNG MẠI DỊCH VỤ · SỔ ĐỎ RIÊNG
+        </div>
+        <div id="s3-b1" class="block-row block-good">
+          <svg
+            style="flex-shrink: 0; width: 36px; height: 36px"
+            viewBox="0 0 36 36"
+            fill="none"
+          >
+            <circle cx="18" cy="18" r="16" stroke="#06d6a0" stroke-width="2" />
+            <path
+              d="M10 18l6 6 10-10"
+              stroke="#06d6a0"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <div class="block-text">Mua bán, sang nhượng <em>tự do</em></div>
+        </div>
+        <div id="s3-b2" class="block-row block-good">
+          <svg
+            style="flex-shrink: 0; width: 36px; height: 36px"
+            viewBox="0 0 36 36"
+            fill="none"
+          >
+            <circle cx="18" cy="18" r="16" stroke="#06d6a0" stroke-width="2" />
+            <path
+              d="M10 18l6 6 10-10"
+              stroke="#06d6a0"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <div class="block-text">Thế chấp ngân hàng <em>bình thường</em></div>
+        </div>
+        <div id="s3-b3" class="block-row block-good">
+          <svg
+            style="flex-shrink: 0; width: 36px; height: 36px"
+            viewBox="0 0 36 36"
+            fill="none"
+          >
+            <circle cx="18" cy="18" r="16" stroke="#06d6a0" stroke-width="2" />
+            <path
+              d="M10 18l6 6 10-10"
+              stroke="#06d6a0"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <div class="block-text">Để lại thừa kế <em>hợp pháp</em></div>
+        </div>
+        <div id="s3-b4" class="block-row block-good">
+          <svg
+            style="flex-shrink: 0; width: 36px; height: 36px"
+            viewBox="0 0 36 36"
+            fill="none"
+          >
+            <circle cx="18" cy="18" r="16" stroke="#06d6a0" stroke-width="2" />
+            <path
+              d="M10 18l6 6 10-10"
+              stroke="#06d6a0"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <div class="block-text">S1·S2·S3 ra sổ trong <em>6 tháng</em></div>
+        </div>
+
+        <div id="s3-sub" class="sub-bar">
+          <div id="s3-ph0" class="sub-phrase">
+            <span class="sub-w" id="s3-ph0-w0">Symphony</span>
+            <span class="sub-w" id="s3-ph0-w1">5</span>
+            <span class="sub-w" id="s3-ph0-w2">khác</span>
+            <span class="sub-w" id="s3-ph0-w3">hoàn</span>
+            <span class="sub-w" id="s3-ph0-w4">toàn</span>
+            <span class="sub-w" id="s3-ph0-w5">có</span>
+            <span class="sub-w" id="s3-ph0-w6">sổ</span>
+            <span class="sub-w" id="s3-ph0-w7">đỏ</span>
+          </div>
+          <div id="s3-ph1" class="sub-phrase">
+            <span class="sub-w" id="s3-ph1-w0">riêng</span>
+            <span class="sub-w" id="s3-ph1-w1">từng</span>
+            <span class="sub-w" id="s3-ph1-w2">căng</span>
+            <span class="sub-w" id="s3-ph1-w3">không</span>
+            <span class="sub-w" id="s3-ph1-w4">phải</span>
+            <span class="sub-w" id="s3-ph1-w5">sổ</span>
+            <span class="sub-w" id="s3-ph1-w6">chung</span>
+            <span class="sub-w" id="s3-ph1-w7">của</span>
+          </div>
+          <div id="s3-ph2" class="sub-phrase">
+            <span class="sub-w" id="s3-ph2-w0">toàn</span>
+            <span class="sub-w" id="s3-ph2-w1">nhà</span>
+            <span class="sub-w" id="s3-ph2-w2">Chủ</span>
+            <span class="sub-w" id="s3-ph2-w3">sở</span>
+            <span class="sub-w" id="s3-ph2-w4">hữu</span>
+            <span class="sub-w" id="s3-ph2-w5">toàn</span>
+            <span class="sub-w" id="s3-ph2-w6">quyền</span>
+            <span class="sub-w" id="s3-ph2-w7">mua</span>
+          </div>
+          <div id="s3-ph3" class="sub-phrase">
+            <span class="sub-w" id="s3-ph3-w0">bán</span>
+            <span class="sub-w" id="s3-ph3-w1">thế</span>
+            <span class="sub-w" id="s3-ph3-w2">chấp</span>
+            <span class="sub-w" id="s3-ph3-w3">để</span>
+            <span class="sub-w" id="s3-ph3-w4">lại</span>
+            <span class="sub-w" id="s3-ph3-w5">thừa</span>
+            <span class="sub-w" id="s3-ph3-w6">kế</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S4: Cho thuê ngắn ngày hợp pháp ══ -->
+      <div
+        id="s4"
+        class="clip scene"
+        data-start="31.5"
+        data-duration="11.5"
+        data-track-index="14"
+      >
+        <img class="bg-img" id="s4-img" src="assets/img_s4.jpg?v=3" alt="" />
+        <div class="bg-overlay-grad"></div>
+        <div id="s4-head" class="sec-head">Lợi Thế Chỉ TM/DV Có Được</div>
+        <div id="s4-n1" class="num-block">
+          <div class="num-badge-lg">1</div>
+          <div class="num-block-text">
+            Airbnb, Booking.com <strong>hợp pháp</strong>
+          </div>
+        </div>
+        <div id="s4-n2" class="num-block">
+          <div class="num-badge-lg">2</div>
+          <div class="num-block-text">
+            Mùa DIFF: giá thuê <strong>gấp 3 đêm thường</strong>
+          </div>
+        </div>
+        <div id="s4-n3" class="num-block">
+          <div class="num-badge-lg">3</div>
+          <div class="num-block-text">
+            Quản lý từ xa, <strong>không cần ở Đà Nẵng</strong>
+          </div>
+        </div>
+        <div id="s4-restrict">
+          <div id="s4-restrict-text">
+            Căn hộ nhà ở vĩnh viễn <strong>không được phép làm vậy.</strong>
+          </div>
+        </div>
+
+        <div id="s4-sub" class="sub-bar">
+          <div id="s4-ph0" class="sub-phrase">
+            <span class="sub-w" id="s4-ph0-w0">Pháp</span>
+            <span class="sub-w" id="s4-ph0-w1">lý</span>
+            <span class="sub-w" id="s4-ph0-w2">50</span>
+            <span class="sub-w" id="s4-ph0-w3">năm</span>
+            <span class="sub-w" id="s4-ph0-w4">thương</span>
+            <span class="sub-w" id="s4-ph0-w5">mại</span>
+            <span class="sub-w" id="s4-ph0-w6">dịch</span>
+            <span class="sub-w" id="s4-ph0-w7">vụ</span>
+          </div>
+          <div id="s4-ph1" class="sub-phrase">
+            <span class="sub-w" id="s4-ph1-w0">còn</span>
+            <span class="sub-w" id="s4-ph1-w1">cho</span>
+            <span class="sub-w" id="s4-ph1-w2">phép</span>
+            <span class="sub-w" id="s4-ph1-w3">khai</span>
+            <span class="sub-w" id="s4-ph1-w4">thác</span>
+            <span class="sub-w" id="s4-ph1-w5">cho</span>
+            <span class="sub-w" id="s4-ph1-w6">thuê</span>
+            <span class="sub-w" id="s4-ph1-w7">ngắn</span>
+          </div>
+          <div id="s4-ph2" class="sub-phrase">
+            <span class="sub-w" id="s4-ph2-w0">ngày</span>
+            <span class="sub-w" id="s4-ph2-w1">đúng</span>
+            <span class="sub-w" id="s4-ph2-w2">luật</span>
+            <span class="sub-w" id="s4-ph2-w3">Airbnb</span>
+            <span class="sub-w" id="s4-ph2-w4">cho</span>
+            <span class="sub-w" id="s4-ph2-w5">thuê</span>
+            <span class="sub-w" id="s4-ph2-w6">theo</span>
+            <span class="sub-w" id="s4-ph2-w7">đêm</span>
+          </div>
+          <div id="s4-ph3" class="sub-phrase">
+            <span class="sub-w" id="s4-ph3-w0">đón</span>
+            <span class="sub-w" id="s4-ph3-w1">cách</span>
+            <span class="sub-w" id="s4-ph3-w2">du</span>
+            <span class="sub-w" id="s4-ph3-w3">lịch</span>
+            <span class="sub-w" id="s4-ph3-w4">điều</span>
+            <span class="sub-w" id="s4-ph3-w5">mà</span>
+            <span class="sub-w" id="s4-ph3-w6">căn</span>
+            <span class="sub-w" id="s4-ph3-w7">hộ</span>
+          </div>
+          <div id="s4-ph4" class="sub-phrase">
+            <span class="sub-w" id="s4-ph4-w0">nhà</span>
+            <span class="sub-w" id="s4-ph4-w1">ở</span>
+            <span class="sub-w" id="s4-ph4-w2">vĩnh</span>
+            <span class="sub-w" id="s4-ph4-w3">viễn</span>
+            <span class="sub-w" id="s4-ph4-w4">thông</span>
+            <span class="sub-w" id="s4-ph4-w5">thường</span>
+            <span class="sub-w" id="s4-ph4-w6">không</span>
+            <span class="sub-w" id="s4-ph4-w7">được</span>
+          </div>
+          <div id="s4-ph5" class="sub-phrase">
+            <span class="sub-w" id="s4-ph5-w0">làm</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S5: S1-S2-S3 vs S5 ══ -->
+      <div
+        id="s5"
+        class="clip scene"
+        data-start="42.5"
+        data-duration="11.5"
+        data-track-index="15"
+      >
+        <img class="bg-img" id="s5-img" src="assets/img_s5.jpg?v=3" alt="" />
+        <div class="bg-overlay-grad"></div>
+        <div id="s5-head" class="sec-head">Cùng Tổ Hợp, Hai Mục Tiêu</div>
+        <div class="compare-row">
+          <div id="s5-c1" class="cmp-card cmp-bad">
+            <div class="cmp-label">S1 · S2 · S3</div>
+            <div class="cmp-num" style="font-size: 52px; line-height: 1.1">
+              Nhà ở<br />lâu dài
+            </div>
+            <div class="cmp-sub" style="font-size: 28px; margin-top: 14px">
+              Ở thực · Thừa kế<br />Vĩnh viễn · Không Airbnb
+            </div>
+          </div>
+          <div id="s5-c2" class="cmp-card cmp-good">
+            <div class="cmp-label">S5</div>
+            <div class="cmp-num" style="font-size: 52px; line-height: 1.1">
+              TM/DV<br />50 năm
+            </div>
+            <div class="cmp-sub" style="font-size: 28px; margin-top: 14px">
+              Airbnb hợp pháp<br />Cho thuê ngắn ngày<br />Sổ đỏ riêng
+            </div>
+          </div>
+        </div>
+        <div id="s5-note">
+          Mỗi loại phục vụ một <strong>mục tiêu đầu tư</strong> khác nhau.
+        </div>
+
+        <div id="s5-sub" class="sub-bar">
+          <div id="s5-ph0" class="sub-phrase">
+            <span class="sub-w" id="s5-ph0-w0">S1</span>
+            <span class="sub-w" id="s5-ph0-w1">S2</span>
+            <span class="sub-w" id="s5-ph0-w2">S3</span>
+            <span class="sub-w" id="s5-ph0-w3">trong</span>
+            <span class="sub-w" id="s5-ph0-w4">cùng</span>
+            <span class="sub-w" id="s5-ph0-w5">tổ</span>
+            <span class="sub-w" id="s5-ph0-w6">hợp</span>
+            <span class="sub-w" id="s5-ph0-w7">là</span>
+          </div>
+          <div id="s5-ph1" class="sub-phrase">
+            <span class="sub-w" id="s5-ph1-w0">nhà</span>
+            <span class="sub-w" id="s5-ph1-w1">ở</span>
+            <span class="sub-w" id="s5-ph1-w2">lâu</span>
+            <span class="sub-w" id="s5-ph1-w3">dài</span>
+            <span class="sub-w" id="s5-ph1-w4">S5</span>
+            <span class="sub-w" id="s5-ph1-w5">là</span>
+            <span class="sub-w" id="s5-ph1-w6">thương</span>
+            <span class="sub-w" id="s5-ph1-w7">mại</span>
+          </div>
+          <div id="s5-ph2" class="sub-phrase">
+            <span class="sub-w" id="s5-ph2-w0">dịch</span>
+            <span class="sub-w" id="s5-ph2-w1">vụ</span>
+            <span class="sub-w" id="s5-ph2-w2">Cùng</span>
+            <span class="sub-w" id="s5-ph2-w3">một</span>
+            <span class="sub-w" id="s5-ph2-w4">chủ</span>
+            <span class="sub-w" id="s5-ph2-w5">đầu</span>
+            <span class="sub-w" id="s5-ph2-w6">tư</span>
+            <span class="sub-w" id="s5-ph2-w7">hai</span>
+          </div>
+          <div id="s5-ph3" class="sub-phrase">
+            <span class="sub-w" id="s5-ph3-w0">loại</span>
+            <span class="sub-w" id="s5-ph3-w1">hình</span>
+            <span class="sub-w" id="s5-ph3-w2">phục</span>
+            <span class="sub-w" id="s5-ph3-w3">vụ</span>
+            <span class="sub-w" id="s5-ph3-w4">2</span>
+            <span class="sub-w" id="s5-ph3-w5">mục</span>
+            <span class="sub-w" id="s5-ph3-w6">đích</span>
+            <span class="sub-w" id="s5-ph3-w7">biết</span>
+          </div>
+          <div id="s5-ph4" class="sub-phrase">
+            <span class="sub-w" id="s5-ph4-w0">cái</span>
+            <span class="sub-w" id="s5-ph4-w1">nào</span>
+            <span class="sub-w" id="s5-ph4-w2">phù</span>
+            <span class="sub-w" id="s5-ph4-w3">hợp</span>
+            <span class="sub-w" id="s5-ph4-w4">với</span>
+            <span class="sub-w" id="s5-ph4-w5">mình</span>
+            <span class="sub-w" id="s5-ph4-w6">mới</span>
+            <span class="sub-w" id="s5-ph4-w7">quan</span>
+          </div>
+          <div id="s5-ph5" class="sub-phrase">
+            <span class="sub-w" id="s5-ph5-w0">trọng</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S6: Câu hỏi đúng ══ -->
+      <div
+        id="s6"
+        class="clip scene"
+        data-start="53.5"
+        data-duration="9"
+        data-track-index="16"
+      >
+        <img class="bg-img" id="s6-img" src="assets/img_s6.jpg?v=3" alt="" />
+        <div class="bg-overlay-grad"></div>
+        <div id="s6-grid"></div>
+        <div class="story-lines">
+          <div id="s6-l1" class="story-line">Câu hỏi đúng</div>
+          <div id="s6-l2" class="story-line">
+            không phải <span>50 năm</span>
+          </div>
+          <div id="s6-l3" class="story-line">hay <span>vĩnh viễn.</span></div>
+        </div>
+        <div id="s6-card">
+          <div class="num-row">
+            <div class="num-badge">1</div>
+            <div class="num-text">Pháp lý có <strong>sạch</strong> không?</div>
+          </div>
+          <div class="num-row">
+            <div class="num-badge">2</div>
+            <div class="num-text">Sổ có <strong>ra đúng hạn?</strong></div>
+          </div>
+          <div class="num-row">
+            <div class="num-badge">3</div>
+            <div class="num-text">
+              Mua để <strong>ở</strong> hay <strong>cho thuê?</strong>
+            </div>
+          </div>
+          <div class="num-row">
+            <div class="num-badge">4</div>
+            <div class="num-text">
+              Dòng tiền cho thuê <strong>phù hợp?</strong>
+            </div>
+          </div>
+        </div>
+
+        <div id="s6-sub" class="sub-bar">
+          <div id="s6-ph0" class="sub-phrase">
+            <span class="sub-w" id="s6-ph0-w0">Câu</span>
+            <span class="sub-w" id="s6-ph0-w1">hỏi</span>
+            <span class="sub-w" id="s6-ph0-w2">đúng</span>
+            <span class="sub-w" id="s6-ph0-w3">không</span>
+            <span class="sub-w" id="s6-ph0-w4">phải</span>
+            <span class="sub-w" id="s6-ph0-w5">là</span>
+            <span class="sub-w" id="s6-ph0-w6">50</span>
+            <span class="sub-w" id="s6-ph0-w7">năm</span>
+          </div>
+          <div id="s6-ph1" class="sub-phrase">
+            <span class="sub-w" id="s6-ph1-w0">hay</span>
+            <span class="sub-w" id="s6-ph1-w1">vĩnh</span>
+            <span class="sub-w" id="s6-ph1-w2">biển</span>
+            <span class="sub-w" id="s6-ph1-w3">Câu</span>
+            <span class="sub-w" id="s6-ph1-w4">hỏi</span>
+            <span class="sub-w" id="s6-ph1-w5">đúng</span>
+            <span class="sub-w" id="s6-ph1-w6">là</span>
+            <span class="sub-w" id="s6-ph1-w7">pháp</span>
+          </div>
+          <div id="s6-ph2" class="sub-phrase">
+            <span class="sub-w" id="s6-ph2-w0">lý</span>
+            <span class="sub-w" id="s6-ph2-w1">có</span>
+            <span class="sub-w" id="s6-ph2-w2">sạch</span>
+            <span class="sub-w" id="s6-ph2-w3">không</span>
+            <span class="sub-w" id="s6-ph2-w4">Sổ</span>
+            <span class="sub-w" id="s6-ph2-w5">có</span>
+            <span class="sub-w" id="s6-ph2-w6">ra</span>
+            <span class="sub-w" id="s6-ph2-w7">không</span>
+          </div>
+          <div id="s6-ph3" class="sub-phrase">
+            <span class="sub-w" id="s6-ph3-w0">Và</span>
+            <span class="sub-w" id="s6-ph3-w1">mình</span>
+            <span class="sub-w" id="s6-ph3-w2">dùng</span>
+            <span class="sub-w" id="s6-ph3-w3">căn</span>
+            <span class="sub-w" id="s6-ph3-w4">hộ</span>
+            <span class="sub-w" id="s6-ph3-w5">để</span>
+            <span class="sub-w" id="s6-ph3-w6">làm</span>
+            <span class="sub-w" id="s6-ph3-w7">gì</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S7: CTA ══ -->
+      <div
+        id="s7"
+        class="clip scene scene-center"
+        data-start="62"
+        data-duration="6"
+        data-track-index="17"
+      >
+        <div class="morph-bg"></div>
+        <div class="cta-inner">
+          <div id="s7-label" class="cta-label">Pháp Lý Minh Bạch</div>
+          <div id="s7-title" class="cta-title">
+            Symphony 5<br /><span>Sổ Đỏ Riêng</span>
+          </div>
+          <div id="s7-btn" class="cta-btn">Nhắn Bình · Tư Vấn Pháp Lý</div>
+          <div id="s7-contact" class="cta-contact">
+            <div class="cta-contact-name">
+              Bình Phan <span style="color: #ffd966">IQI</span>
+            </div>
+            <img
+              class="cta-avatar"
+              src="assets/me-outtro.jpg"
+              alt="Bình Phan"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- #root -->
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      // BGM track1: 97.5 BPM, beat[0]=0.476, interval=0.615s
+      // beat[n] = 0.476 + n * 0.615
+
+      // ── SFX ──
+      var sfxWhoosh = new Audio("assets/sfx_whoosh.mp3");
+      sfxWhoosh.volume = 0.45;
+      var sfxImpact = new Audio("assets/sfx_impact.mp3");
+      sfxImpact.volume = 0.65;
+      var sfxPop = new Audio("assets/sfx_pop.mp3");
+      sfxPop.volume = 0.5;
+      var sfxSwooshLight = new Audio("assets/sfx_swoosh_light.mp3");
+      sfxSwooshLight.volume = 0.3;
+
+      function playWhoosh() {
+        sfxWhoosh.currentTime = 0;
+        sfxWhoosh.play().catch(function () {});
+      }
+      function playImpact() {
+        sfxImpact.currentTime = 0;
+        sfxImpact.play().catch(function () {});
+      }
+      function playPop() {
+        var s = sfxPop.cloneNode();
+        s.volume = 0.45;
+        s.play().catch(function () {});
+      }
+      function playSL() {
+        var s = sfxSwooshLight.cloneNode();
+        s.volume = 0.3;
+        s.play().catch(function () {});
+      }
+
+      function W(t) {
+        tl.call(playWhoosh, [], t);
+      }
+      function I(t) {
+        tl.call(playImpact, [], t);
+      }
+      function P(t) {
+        tl.call(playPop, [], t);
+      }
+      function SL(t) {
+        tl.call(playSL, [], t);
+      }
+
+      // ── Progress bar ──
+      tl.to(
+        "#progress-fill",
+        { scaleX: 1, duration: 68, ease: "none", transformOrigin: "left" },
+        0,
+      );
+
+      // ── Clip crossfades ──
+      var F = 0.5;
+      var CLIPS = [
+        ["c01", 0.0, 6.0],
+        ["c02", 61.5, null],
+      ];
+      CLIPS.forEach(function (c) {
+        tl.fromTo(
+          "#" + c[0],
+          { opacity: 0 },
+          { opacity: 1, duration: F, ease: "power2.inOut" },
+          c[1],
+        );
+        if (c[2])
+          tl.to(
+            "#" + c[0],
+            { opacity: 0, duration: F, ease: "power2.inOut" },
+            c[2] - F,
+          );
+      });
+
+      // ── Neon border ──
+      tl.to(
+        "#neon-path",
+        { strokeDashoffset: 0, duration: 2.5, ease: "power2.inOut" },
+        0.3,
+      );
+      tl.to("#neon-path", { opacity: 0, duration: 0.5 }, 5.4); // beat[8]=5.396
+
+      // ══ S0: HOOK — COMBO Q ══
+      // beat[0]=0.476 beat[1]=1.091 beat[2]=1.706 beat[3]=2.321 beat[4]=2.936 beat[5]=3.551
+      W(0.0);
+      tl.fromTo(
+        "#s0",
+        { opacity: 0, filter: "blur(12px)" },
+        { opacity: 1, filter: "blur(0px)", duration: 0.4, ease: "power2.out" },
+        0.0,
+      );
+      SL(0.2);
+      tl.from("#s0-eye", { y: -24, opacity: 0, duration: 0.4 }, 0.476); // beat[0]
+      tl.from(
+        "#s0-hdiv",
+        { scaleX: 0, opacity: 0, duration: 0.4, transformOrigin: "center" },
+        0.8,
+      );
+      // B02 Split Text — question lines slide up
+      SL(1.091);
+      tl.fromTo(
+        "#s0-q1",
+        { y: 40, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, ease: "expo.out" },
+        1.091,
+      ); // beat[1]
+      tl.fromTo(
+        "#s0-q2",
+        { y: 40, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, ease: "expo.out" },
+        1.706,
+      ); // beat[2]
+      // "KHÔNG." — big drop with back.out bounce
+      I(2.936); // beat[4]
+      tl.fromTo(
+        "#s0-ans",
+        { y: -60, opacity: 0, scale: 1.15 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: "back.out(2.5)" },
+        2.936,
+      );
+      // B07 Glow pulse on KHÔNG
+      tl.to(
+        "#s0-ans",
+        {
+          textShadow:
+            "0 0 80px rgba(255,209,102,0.95), 4px 7px 0 rgba(139,98,0,0.85)",
+          duration: 0.8,
+          yoyo: true,
+          repeat: 2,
+          ease: "sine.inOut",
+        },
+        3.5,
+      );
+      tl.fromTo(
+        "#s0-sub",
+        { y: 24, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.4, ease: "expo.out" },
+        3.551,
+      ); // beat[5]
+      P(4.166); // beat[6]
+      tl.fromTo(
+        "#s0-tag",
+        { scale: 0.8, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.7)" },
+        4.166,
+      );
+
+      // ══ S1: Nhầm lẫn lớn — B03 Camera Push-In + B05 Glassmorphism ══
+      // beat[8]=5.396 beat[11]=7.241 — crossfade overlap 0.3s
+      tl.to("#s0", { opacity: 0, duration: 0.5, ease: "power2.in" }, 5.3);
+      tl.set("#s0", { opacity: 0 }, 5.8);
+      W(5.396); // beat[8]
+      tl.fromTo(
+        "#s1",
+        { opacity: 0, scale: 0.85, filter: "blur(10px)" },
+        {
+          opacity: 1,
+          scale: 1,
+          filter: "blur(0px)",
+          duration: 0.7,
+          ease: "power3.out",
+        },
+        5.6,
+      ); // B03 — starts 0.3s before s0 fully gone
+      tl.fromTo(
+        "#s1-img",
+        { scale: 1.0 },
+        { scale: 1.06, duration: 9.8, ease: "none" },
+        5.6,
+      );
+      SL(6.8);
+      tl.fromTo(
+        "#s1-head",
+        { x: -40, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.4, ease: "power2.out" },
+        6.8,
+      );
+      I(7.241); // beat[11]
+      tl.fromTo(
+        ["#s1-b1", "#s1-b2", "#s1-b3", "#s1-b4"],
+        { x: -48, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.42, stagger: 0.18, ease: "power2.out" },
+        7.241,
+      );
+
+      // ══ S2: Condotel — B01 Mask Wipe + bullets ══
+      // beat[24]=15.236 beat[26]=16.466 beat[27]=17.081
+      tl.to("#s1", { opacity: 0, duration: 0.5, ease: "power2.in" }, 14.5);
+      tl.set("#s1", { opacity: 0 }, 15.0);
+      W(15.236); // beat[24]
+      tl.fromTo(
+        "#s2",
+        { opacity: 0, clipPath: "inset(0 100% 0 0)" },
+        {
+          opacity: 1,
+          clipPath: "inset(0 0% 0 0)",
+          duration: 0.7,
+          ease: "power3.out",
+        },
+        15.0,
+      ); // B01 Mask Wipe
+      tl.fromTo(
+        "#s2-img",
+        { scale: 1.0 },
+        { scale: 1.06, duration: 9.4, ease: "none" },
+        14.8,
+      );
+      SL(15.8);
+      tl.fromTo(
+        "#s2-head",
+        { x: -40, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.4, ease: "power2.out" },
+        15.8,
+      );
+      I(16.466); // beat[26]
+      tl.fromTo(
+        ["#s2-b1", "#s2-b2", "#s2-b3", "#s2-b4"],
+        { x: -48, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.38, stagger: 0.16, ease: "power2.out" },
+        16.466,
+      );
+
+      // ══ S3: Symphony 5 sổ đỏ riêng — B02 Split + counter + badge ══
+      // beat[38]=23.846 beat[39]=24.461 beat[40]=25.076 beat[42]=26.306
+      tl.to("#s2", { opacity: 0, duration: 0.5, ease: "power2.in" }, 23.0);
+      tl.set("#s2", { opacity: 0 }, 23.5);
+      W(23.846); // beat[38]
+      tl.fromTo(
+        "#s3",
+        { opacity: 0, scale: 0.97, filter: "blur(8px)" },
+        {
+          opacity: 1,
+          scale: 1,
+          filter: "blur(0px)",
+          duration: 0.55,
+          ease: "power3.out",
+        },
+        23.5,
+      );
+      tl.fromTo(
+        "#s3-img",
+        { scale: 1.0 },
+        { scale: 1.06, duration: 9.0, ease: "none" },
+        23.3,
+      );
+      SL(24.1);
+      tl.fromTo(
+        "#s3-head",
+        { x: -40, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.4, ease: "power2.out" },
+        24.1,
+      );
+      I(24.461); // beat[39]
+      tl.fromTo(
+        "#s3-year",
+        { y: -50, opacity: 0, scale: 1.12 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.65, ease: "back.out(2.0)" },
+        24.461,
+      ); // B02
+      tl.to(
+        "#s3-year",
+        {
+          textShadow:
+            "0 0 80px rgba(255,209,102,0.95), 4px 7px 0 rgba(139,98,0,0.85)",
+          duration: 0.9,
+          yoyo: true,
+          repeat: 2,
+          ease: "sine.inOut",
+        },
+        25.0,
+      ); // B07
+      tl.fromTo(
+        "#s3-year-lbl",
+        { y: 20, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.4, ease: "expo.out" },
+        25.076,
+      ); // beat[40]
+      P(25.691); // beat[41]
+      tl.fromTo(
+        ["#s3-b1", "#s3-b2", "#s3-b3", "#s3-b4"],
+        { x: -48, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.38, stagger: 0.16, ease: "power2.out" },
+        25.691,
+      );
+
+      // ══ S4: Cho thuê ngắn ngày — B03 Camera Push-In + B10 restrict card ══
+      // beat[51]=31.841 beat[53]=33.071 beat[56]=34.916
+      tl.to("#s3", { opacity: 0, duration: 0.5, ease: "power2.in" }, 31.0);
+      tl.set("#s3", { opacity: 0 }, 31.5);
+      W(31.841); // beat[51]
+      tl.fromTo(
+        "#s4",
+        { opacity: 0, scale: 0.83, filter: "blur(12px)" },
+        {
+          opacity: 1,
+          scale: 1,
+          filter: "blur(0px)",
+          duration: 0.65,
+          ease: "power3.out",
+        },
+        31.3,
+      ); // B03
+      tl.fromTo(
+        "#s4-img",
+        { scale: 1.0 },
+        { scale: 1.06, duration: 11.9, ease: "none" },
+        31.3,
+      );
+      SL(32.5);
+      tl.fromTo(
+        "#s4-head",
+        { x: -40, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.4, ease: "power2.out" },
+        32.5,
+      );
+      I(33.071); // beat[53]
+      tl.fromTo(
+        ["#s4-n1", "#s4-n2", "#s4-n3"],
+        { x: -48, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.42, stagger: 0.22, ease: "power2.out" },
+        33.071,
+      );
+      // restrict box wipe in
+      I(34.916); // beat[56]
+      tl.fromTo(
+        "#s4-restrict",
+        { x: 60, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.55, ease: "back.out(1.5)" },
+        34.916,
+      );
+
+      // ══ S5: S1-S2-S3 vs S5 — B09 Depth Blur + B14 Stack Reorder ══
+      // beat[69]=42.911 beat[70]=43.526 beat[71]=44.141
+      tl.to("#s4", { opacity: 0, duration: 0.5, ease: "power2.in" }, 42.0);
+      tl.set("#s4", { opacity: 0 }, 42.5);
+      W(42.911); // beat[69]
+      tl.fromTo(
+        "#s5",
+        { opacity: 0, scale: 1.04, filter: "blur(12px)" },
+        {
+          opacity: 1,
+          scale: 1,
+          filter: "blur(0px)",
+          duration: 0.6,
+          ease: "power3.out",
+        },
+        42.3,
+      ); // B09
+      tl.fromTo(
+        "#s5-img",
+        { scale: 1.0 },
+        { scale: 1.06, duration: 11.9, ease: "none" },
+        42.3,
+      );
+      SL(43.2);
+      tl.fromTo(
+        "#s5-head",
+        { x: -40, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.4, ease: "power2.out" },
+        43.2,
+      );
+      I(43.526); // beat[70]
+      tl.to(
+        "#s5-c1",
+        { opacity: 1, duration: 0.5, ease: "back.out(1.5)" },
+        43.526,
+      ); // B14
+      tl.to(
+        "#s5-c2",
+        { opacity: 1, duration: 0.5, ease: "back.out(1.5)" },
+        43.526,
+      );
+      I(44.141); // beat[71]
+      tl.to(
+        ["#s5-c1", "#s5-c2"],
+        {
+          scale: 1.04,
+          duration: 0.12,
+          yoyo: true,
+          repeat: 1,
+          ease: "power2.inOut",
+          stagger: 0.04,
+        },
+        44.141,
+      ); // B15 Sync Beat
+      tl.to(
+        "#s5-c2",
+        {
+          boxShadow: "0 0 40px rgba(255,220,80,0.3)",
+          duration: 0.9,
+          yoyo: true,
+          repeat: 2,
+        },
+        44.5,
+      ); // B07 Glow on S5 card
+      tl.fromTo(
+        "#s5-note",
+        { y: 24, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.4, ease: "expo.out" },
+        45.371,
+      ); // beat[73]
+
+      // ══ S6: Câu hỏi đúng — B13 Persp Grid + B02 Split Text ══
+      // beat[86]=53.366 beat[87]=53.981 beat[88]=54.596 beat[90]=55.826 beat[93]=57.671
+      tl.to("#s5", { opacity: 0, duration: 0.5, ease: "power2.in" }, 53.0);
+      tl.set("#s5", { opacity: 0 }, 53.5);
+      W(53.366); // beat[86]
+      tl.fromTo(
+        "#s6",
+        { opacity: 0, scale: 0.97, filter: "blur(8px)" },
+        { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.55 },
+        53.3,
+      );
+      tl.fromTo(
+        "#s6-img",
+        { scale: 1.0 },
+        { scale: 1.04, duration: 9.0, ease: "none" },
+        53.3,
+      );
+      tl.to("#s6-grid", { opacity: 1, duration: 0.5 }, 53.5); // B13 Perspective Grid
+      // B02 Split Text — story lines
+      SL(53.981);
+      tl.fromTo(
+        "#s6-l1",
+        { y: 30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, ease: "expo.out" },
+        53.981,
+      ); // beat[87]
+      tl.fromTo(
+        "#s6-l2",
+        { y: 30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, ease: "expo.out" },
+        54.596,
+      ); // beat[88]
+      tl.fromTo(
+        "#s6-l3",
+        { y: 30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, ease: "expo.out" },
+        55.211,
+      ); // beat[89]
+      tl.to(
+        "#s6-l3",
+        {
+          textShadow: "0 0 28px rgba(255,220,80,0.65)",
+          duration: 0.6,
+          yoyo: true,
+          repeat: 2,
+        },
+        55.826,
+      ); // beat[90] B07
+      P(57.056); // beat[92]
+      tl.fromTo(
+        "#s6-card",
+        { y: 40, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, ease: "back.out(1.5)" },
+        57.056,
+      );
+      tl.from(
+        ".q-row",
+        {
+          x: 30,
+          opacity: 0,
+          duration: 0.35,
+          stagger: 0.12,
+          ease: "power2.out",
+        },
+        57.4,
+      );
+
+      // ══ S7: CTA ══
+      // beat[101]=62.591 beat[102]=63.206 beat[104]=64.436 beat[106]=65.666
+      tl.to("#s6", { opacity: 0, duration: 0.5, ease: "power2.in" }, 61.5);
+      tl.set("#s6", { opacity: 0 }, 62.0);
+      W(62.591); // beat[101]
+      tl.fromTo(
+        "#s7",
+        { opacity: 0, scale: 0.94, filter: "blur(12px)" },
+        { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.65 },
+        61.8,
+      );
+      tl.fromTo(
+        "#s7-label",
+        { y: -22, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.4 },
+        63.206,
+      ); // beat[102]
+      I(64.436); // beat[104]
+      tl.fromTo(
+        "#s7-title",
+        { y: 40, opacity: 0, scale: 0.91 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.65, ease: "expo.out" },
+        64.436,
+      );
+      tl.fromTo(
+        "#s7-btn",
+        { scale: 0.78, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(1.7)" },
+        65.051,
+      ); // beat[105]
+      tl.fromTo(
+        "#s7-contact",
+        { y: 14, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.35 },
+        65.666,
+      ); // beat[106]
+      tl.to(
+        ".cta-contact-name",
+        {
+          textShadow: "0 0 30px rgba(255,209,102,0.80)",
+          duration: 0.8,
+          yoyo: true,
+          repeat: 2,
+        },
+        66.2,
+      ); // B07 Glow
+
+      window.__timelines["video-symphony5-phap-ly"] = tl;
+
+      // Boost VO via Web Audio GainNode (+30%)
+      (function () {
+        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+        var gain = ctx.createGain();
+        gain.gain.value = 1.3;
+        gain.connect(ctx.destination);
+        ["vo0", "vo1", "vo2", "vo3", "vo4", "vo5", "vo6", "vo7"].forEach(
+          function (id) {
+            var el = document.getElementById(id);
+            if (el) ctx.createMediaElementSource(el).connect(gain);
+          },
+        );
+        document.addEventListener(
+          "click",
+          function () {
+            ctx.resume();
+          },
+          { once: true },
+        );
+      })();
+    </script>
+  </body>
+</html>

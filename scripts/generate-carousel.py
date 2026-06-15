@@ -38,7 +38,7 @@ WHITE         = (255, 255, 255)
 OFF_WHITE     = (240, 240, 240)   # body text
 DIM_WHITE     = (210, 210, 210)   # secondary body
 GRAY          = (160, 160, 160)   # brand full tag
-HEADING_COLOR = (245, 160, 80)    # pastel orange — headings, highlights, takeaway
+HEADING_COLOR = (255, 220, 80)    # pastel yellow — headings, highlights, takeaway
 
 W, H = 1080, 1620   # 2:3 ratio — matches q1-q6 reference proportions
 

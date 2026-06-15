@@ -1,4 +1,4 @@
-_Cập nhật: 2026-05-09 13:32 — Model: sonar-pro_
+_Cập nhật: 2026-06-06 — Bổ sung từ Bình Phan trực tiếp_
 
 ## Tổng Quan Dự Án
 
@@ -21,17 +21,21 @@ _Cập nhật: 2026-05-09 13:32 — Model: sonar-pro_
 
 ## Tình Trạng Pháp Lý
 
-- Không có thông tin cụ thể về loại sổ, giấy phép xây dựng hoặc đủ điều kiện mở bán (dự án mới ra mắt từ Sun Group, chủ đầu tư uy tín)
+- Loại hình: **Thương mại dịch vụ 50 năm** — có sổ đỏ riêng từng căn
+- Pháp lý hoàn thiện: đang ở giai đoạn đặt cọc + ký hợp đồng mua bán ngay, không cần chờ
+- Được phép khai thác cho thuê theo ngày (Airbnb) đúng pháp luật — khác với căn hộ nhà ở thông thường
+- **Đối chiếu S1-2-3:** Symphony 1-2-3 là nhà ở lâu dài (sổ đỏ vĩnh viễn) — Sun Group vừa tổ chức sự kiện bàn giao sổ đỏ lâu dài cho cư dân đầu tiên ngày 06/06/2026
 
 ## Tiến Độ Xây Dựng
 
-- Tiến độ hiện tại: Chưa khởi công (mới giới thiệu tháng 5/2026)
+- Khởi công: tháng 5/2026 — công trình đang nhộn nhịp, nhiều máy móc (cập nhật 06/06/2026)
 - Mốc bàn giao: Dự kiến 08/2028
+- Uy tín tiến độ: Symphony 1-2-3 bàn giao tháng 3–5/2026 đúng hạn
 
 ## Ngày Mở Bán & Booking
 
-- Nhận booking: Đang nhận 50 triệu/căn (từ video YouTube, tháng 5/2026)
-- Mở bán chính thức: Ra mắt tháng 5/2026 (Sun Property)
+- Đã mở bán chính thức — đang trong giai đoạn đặt cọc + ký HĐMB
+- Giá: Có trong giỏ hàng Airtable (cập nhật liên tục)
 
 ## Giá Bán Chính Thức (Sơ Cấp)
 
@@ -50,7 +54,39 @@ _Cập nhật: 2026-05-09 13:32 — Model: sonar-pro_
 
 ## Chính Sách Bán Hàng
 
-- Không có thông tin cụ thể về phương thức thanh toán, % vốn tự có, lãi suất, ân hạn, chiết khấu
+_CSBH 01/S5/SPG/05-2026 — Chính thức, áp dụng từ 26/05/2026_
+
+**Sun Early Key:** Đóng đủ 70% → nhận nhà & khai thác ngay từ 30/06/2028, phần còn lại tiếp tục đóng.
+
+**PT1 — Không Vay (CK 10%):**
+
+- Ký HĐTHNV: 100 triệu ngay khi ký
+- Lần 2: Đủ 15% (ngày 15)
+- Lần 3–7: 10%/đợt (ngày 135, 255, 375, 495, 615)
+- Nhận nhà (Sun Early Key): Đủ 70% → 30/06/2028
+- Lần 9–13: 5%/đợt (ngày 855 → 1335)
+- Lần 14: 5% KPBT + 5% ký quỹ (15 ngày từ TB bàn giao)
+- Lần 15: Nhận lại 5% ký quỹ khi ra sổ hồng
+- _CĐT trả lãi 8%/năm cho khoản ký quỹ sổ hồng_
+
+**PT2 — Có Vay HTLS (CK 5%):**
+
+- Ký HĐTHNV: 100 triệu ngay khi ký → NH giải ngân tối đa 70%
+- Nhận nhà: Đủ 70% → 30/06/2028
+- _HTLS tối đa 30 tháng, không muộn hơn 31/03/2029. Miễn phí trả nợ trước hạn trong HTLS_
+
+**Thanh toán sớm trước 25/06/2026:**
+
+- TT sớm 95%: CK thêm +13%
+- TT sớm 70%: CK thêm +5.5% → Tổng 15.5%
+- _Không áp dụng đồng thời với gói vay HTLS_
+
+**Quyền lợi kèm theo:**
+
+- Miễn phí quản lý vận hành 1 năm từ ngày bàn giao (không gồm điện, nước, trông xe)
+- Khách hàng thân thiết Sun Group: CK thêm 1% từ BĐS thứ 2 trở lên
+
+**Tài liệu gửi khách:** `outputs/CSBH01-Symphony5-Report.html`
 
 ## Bàn Giao
 
@@ -59,11 +95,20 @@ _Cập nhật: 2026-05-09 13:32 — Model: sonar-pro_
 - Chi phí nội thất cần tính thêm vào bài toán tổng đầu tư (ước tính 200-500 triệu tùy chuẩn)
 - Thực tế dọn vào ở: sau bàn giao 08/2028 cần thêm 2-4 tháng thi công nội thất → Q4/2028 sớm nhất
 
+## Góc Content Quan Trọng — 50 Năm Thành Lợi Thế
+
+"Điểm yếu" 50 năm thương mại DV so với S1-2-3 lâu dài → có thể khai thác thành góc content riêng biệt:
+
+- S1-2-3 = nhà ở lâu dài → mua để ở, để lại cho con cháu
+- S5 = thương mại DV 50 năm → **được phép Airbnb hợp pháp** → dòng tiền khai thác tốt hơn
+- Khách thuê theo ngày (du lịch, chuyên gia nước ngoài, sự kiện DIFF) = yield cao hơn cho thuê dài hạn thông thường
+- Sự kiện hôm nay (06/06/2026): Sun Group bàn giao sổ đỏ lâu dài S1-2-3 → minh chứng uy tín CĐT, S5 sẽ có sổ đúng hạn → dùng để xây niềm tin
+
 ## Thông Tin Khác Đáng Chú Ý
 
-- Ra mắt tháng 5/2026 bởi Sun Property (Sun Group), hoàn thiện tổ hợp Sun Symphony Residence với >1.200 căn hộ mới bên sông Hàn (nguồn: sungroup.com.vn, 05/2026)
-- Điểm mạnh: Vị trí kim cương ven sông hiếm có, view pháo hoa, tiềm năng cho thuê cao cấp (khách quốc tế, chuyên gia); các tháp trước (S1-S3) bàn giao đúng hạn tháng 5/2026
-- Rủi ro: Quỹ đất trung tâm khan hiếm, giá có thể tăng nhanh sau mở bán
+- Điểm mạnh: Vị trí kim cương ven sông, view pháo hoa DIFF, Airbnb hợp pháp, ký HĐMB ngay
+- Uy tín CĐT: S1-2-3 bàn giao đúng hạn + bàn giao sổ đỏ 06/06/2026
+- Rủi ro cần nói thật: 50 năm (không lâu dài), bàn giao thô (cần thêm 200-500tr nội thất)
 
 ## Nguồn
 

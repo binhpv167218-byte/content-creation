@@ -21,3 +21,22 @@ outputs/
 
 # Plans — kế hoạch cụ thể (optional, bỏ comment nếu muốn track)
 # plans/
+
+# Node
+node_modules/
+package-lock.json
+skills-lock.json
+
+# Tool-generated / IDE
+.vscode/
+.codegraph/
+.understand-anything/
+.claude/worktrees/
+
+# Video projects — large assets (MP4, WAV, MP3)
+studio/*/assets/
+studio/*/renders/
+studio/_shared/
+
+# Claude agent state
+.agents/

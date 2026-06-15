@@ -12,7 +12,7 @@ const fileManager = new GoogleAIFileManager(API_KEY);
 const videoModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 // Việc lặt vặt: đặt tên file, extract metadata, classify — 1500 RPD free
-const liteModel = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
+const liteModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 function isYouTubeUrl(input) {
   return /^https?:\/\/(www\.)?(youtube\.com|youtu\.be)/.test(input);

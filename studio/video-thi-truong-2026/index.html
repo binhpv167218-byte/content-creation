@@ -1,0 +1,2473 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Be Vietnam Pro";
+        font-weight: 300;
+        src:
+          url("../_shared/fonts/BeVietnamPro-Light-vietnamese.woff2")
+            format("woff2"),
+          url("../_shared/fonts/BeVietnamPro-Light-latin.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Be Vietnam Pro";
+        font-weight: 400;
+        src:
+          url("../_shared/fonts/BeVietnamPro-Regular-vietnamese.woff2")
+            format("woff2"),
+          url("../_shared/fonts/BeVietnamPro-Regular-latin.woff2")
+            format("woff2");
+      }
+      @font-face {
+        font-family: "Be Vietnam Pro";
+        font-weight: 600;
+        src:
+          url("../_shared/fonts/BeVietnamPro-SemiBold-vietnamese.woff2")
+            format("woff2"),
+          url("../_shared/fonts/BeVietnamPro-SemiBold-latin.woff2")
+            format("woff2");
+      }
+      @font-face {
+        font-family: "Be Vietnam Pro";
+        font-weight: 900;
+        src:
+          url("../_shared/fonts/BeVietnamPro-Black-vietnamese.woff2")
+            format("woff2"),
+          url("../_shared/fonts/BeVietnamPro-Black-latin.woff2") format("woff2");
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #020c18;
+        font-family: "Be Vietnam Pro", system-ui, sans-serif;
+        cursor: none;
+      }
+      .bg-vid {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        opacity: 0;
+      }
+      .bg-img {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transform-origin: center;
+      }
+      .bg-overlay-grad {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        background: linear-gradient(
+          to bottom,
+          rgba(2, 12, 24, 0.35) 0%,
+          rgba(2, 12, 24, 0.55) 60%,
+          rgba(2, 12, 24, 0.75) 100%
+        );
+      }
+      #bg-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        background: linear-gradient(
+          to top,
+          rgba(2, 12, 24, 0.82) 0%,
+          rgba(2, 12, 24, 0.28) 60%,
+          transparent 100%
+        );
+      }
+      #neon-svg {
+        position: absolute;
+        inset: 0;
+        width: 1080px;
+        height: 1920px;
+        z-index: 5;
+        pointer-events: none;
+      }
+      #neon-path {
+        fill: none;
+        stroke: #ffd166;
+        stroke-width: 4;
+        filter: drop-shadow(0 0 8px #ffd166) drop-shadow(0 0 18px #ffc300);
+        stroke-dasharray: 5900;
+        stroke-dashoffset: 5900;
+      }
+      #progress-fill {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(90deg, #ffd166, #06d6a0);
+        transform-origin: left;
+        transform: scaleX(0);
+        z-index: 100;
+      }
+      .scene {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 200px 64px 400px;
+        overflow: hidden;
+        opacity: 0;
+      }
+      .scene-center {
+        align-items: center;
+        text-align: center;
+      }
+      /* HOOK */
+      .eyebrow {
+        font-size: 22px;
+        font-weight: 600;
+        color: rgba(255, 209, 102, 0.75);
+        letter-spacing: 1px;
+        margin-bottom: 20px;
+      }
+      .hdivider {
+        width: 80px;
+        height: 3px;
+        background: linear-gradient(90deg, #ffd166, #06d6a0);
+        border-radius: 2px;
+        margin: 22px auto 32px;
+      }
+      .hook-q {
+        font-size: 96px;
+        font-weight: 900;
+        color: rgba(255, 255, 255, 0.88);
+        line-height: 1.05;
+        opacity: 0;
+      }
+      #s0-q2 {
+        margin-bottom: 36px;
+      }
+      .hook-ans {
+        font-size: 200px;
+        font-weight: 900;
+        color: #ffd166;
+        line-height: 0.85;
+        letter-spacing: -6px;
+        text-shadow:
+          0 0 60px rgba(255, 209, 102, 0.7),
+          4px 7px 0 rgba(139, 98, 0, 0.85);
+        opacity: 0;
+      }
+      #s0-sub {
+        font-size: 44px;
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.82);
+        margin-top: 24px;
+      }
+      #s0-tag {
+        margin-top: 44px;
+        display: inline-block;
+        background: rgba(255, 209, 102, 0.1);
+        border: 1px solid rgba(255, 209, 102, 0.4);
+        border-radius: 40px;
+        padding: 14px 48px;
+        font-size: 26px;
+        font-weight: 600;
+        color: #ffd166;
+        letter-spacing: 2px;
+        opacity: 0;
+      }
+      /* BODY COMMON */
+      .sec-head {
+        font-size: 40px;
+        font-weight: 600;
+        color: rgba(255, 209, 102, 0.85);
+        margin-bottom: 28px;
+        line-height: 1.3;
+        position: relative;
+        z-index: 2;
+        opacity: 0;
+      }
+      .source-tag {
+        font-size: 20px;
+        font-weight: 300;
+        color: rgba(200, 220, 240, 0.45);
+        margin-top: 14px;
+        letter-spacing: 0.5px;
+        position: relative;
+        z-index: 2;
+        opacity: 0;
+      }
+      /* BLOCK ROWS */
+      .block-row {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 22px 28px;
+        border-radius: 16px;
+        margin-bottom: 16px;
+        position: relative;
+        z-index: 2;
+        opacity: 0;
+      }
+      .block-row:last-of-type {
+        margin-bottom: 0;
+      }
+      .block-bad {
+        background: rgba(255, 123, 58, 0.08);
+        border: 1.5px solid rgba(255, 123, 58, 0.35);
+        border-left: 5px solid #ff7b3a;
+      }
+      .block-good {
+        background: rgba(6, 214, 160, 0.08);
+        border: 1.5px solid rgba(6, 214, 160, 0.35);
+        border-left: 5px solid #06d6a0;
+      }
+      .block-text {
+        font-size: 38px;
+        font-weight: 600;
+        color: rgba(220, 235, 250, 0.92);
+        line-height: 1.3;
+      }
+      .block-text em {
+        color: #06d6a0;
+        font-style: normal;
+      }
+      .block-text del {
+        color: #ff7b3a;
+        text-decoration: none;
+      }
+      /* COMPARE CARDS */
+      .compare-row {
+        display: flex;
+        gap: 24px;
+        width: 100%;
+        position: relative;
+        z-index: 2;
+        margin-bottom: 20px;
+      }
+      .cmp-card {
+        flex: 1;
+        background: rgba(2, 12, 24, 0.78);
+        border: 1.5px solid rgba(255, 209, 102, 0.25);
+        border-radius: 20px;
+        backdrop-filter: blur(16px);
+        padding: 44px 32px;
+        text-align: center;
+        opacity: 0;
+      }
+      .cmp-card.cmp-good {
+        border-color: rgba(6, 214, 160, 0.5);
+      }
+      .cmp-card.cmp-neu {
+        border-color: rgba(255, 209, 102, 0.4);
+      }
+      .cmp-label {
+        font-size: 22px;
+        font-weight: 600;
+        color: rgba(255, 209, 102, 0.65);
+        letter-spacing: 2px;
+        margin-bottom: 16px;
+      }
+      .cmp-card.cmp-good .cmp-label {
+        color: rgba(6, 214, 160, 0.65);
+      }
+      .cmp-num {
+        font-size: 68px;
+        font-weight: 900;
+        color: #ffe566;
+        line-height: 0.9;
+        text-shadow: 0 0 30px rgba(255, 220, 80, 0.45);
+      }
+      .cmp-card.cmp-good .cmp-num {
+        color: #06d6a0;
+        text-shadow: 0 0 28px rgba(6, 214, 160, 0.45);
+      }
+      .cmp-unit {
+        font-size: 22px;
+        font-weight: 400;
+        color: rgba(200, 220, 240, 0.55);
+        margin-top: 6px;
+      }
+      .cmp-sub {
+        font-size: 26px;
+        font-weight: 400;
+        color: rgba(200, 220, 240, 0.7);
+        margin-top: 10px;
+        line-height: 1.5;
+      }
+      /* FLOAT NUM */
+      .float-num {
+        font-size: 160px;
+        font-weight: 900;
+        color: #ffd166;
+        line-height: 0.85;
+        letter-spacing: -6px;
+        text-shadow:
+          0 0 60px rgba(255, 209, 102, 0.6),
+          4px 6px 0 rgba(139, 98, 0, 0.8);
+        position: relative;
+        z-index: 2;
+        opacity: 0;
+        text-align: center;
+      }
+      .float-lbl {
+        font-size: 32px;
+        font-weight: 600;
+        color: rgba(255, 209, 102, 0.75);
+        letter-spacing: 3px;
+        text-align: center;
+        position: relative;
+        z-index: 2;
+        opacity: 0;
+        margin-bottom: 24px;
+      }
+      /* NUM BLOCKS */
+      .num-block {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        padding: 24px 28px;
+        background: rgba(2, 12, 24, 0.65);
+        border: 1.5px solid rgba(255, 209, 102, 0.2);
+        border-left: 5px solid #ffd166;
+        border-radius: 16px;
+        margin-bottom: 16px;
+        position: relative;
+        z-index: 2;
+        opacity: 0;
+      }
+      .num-block:last-of-type {
+        margin-bottom: 0;
+      }
+      .num-badge-lg {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: rgba(255, 209, 102, 0.12);
+        border: 2px solid rgba(255, 209, 102, 0.5);
+        color: #ffd166;
+        font-size: 26px;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .num-block-text {
+        font-size: 36px;
+        font-weight: 400;
+        color: rgba(220, 235, 250, 0.9);
+        line-height: 1.35;
+      }
+      .num-block-text strong {
+        color: #ffd166;
+        font-weight: 900;
+      }
+      /* RESTRICT BOX */
+      #s4-restrict {
+        margin-top: 24px;
+        background: rgba(255, 123, 58, 0.1);
+        border: 1.5px solid rgba(255, 123, 58, 0.4);
+        border-radius: 16px;
+        padding: 22px 36px;
+        position: relative;
+        z-index: 2;
+        opacity: 0;
+      }
+      #s4-restrict-text {
+        font-size: 34px;
+        font-weight: 400;
+        color: rgba(200, 220, 240, 0.78);
+        line-height: 1.5;
+      }
+      #s4-restrict-text strong {
+        color: #ff7b3a;
+        font-weight: 600;
+      }
+      /* SCENE NOTE */
+      .scene-note {
+        font-size: 40px;
+        font-weight: 400;
+        color: rgba(200, 220, 240, 0.78);
+        line-height: 1.55;
+        position: relative;
+        z-index: 2;
+        font-style: italic;
+        margin-top: 24px;
+        opacity: 0;
+      }
+      .scene-note strong {
+        color: #ffd166;
+        font-weight: 600;
+        font-style: normal;
+      }
+      /* S5 SIGNAL CARDS */
+      .signal-row {
+        display: flex;
+        gap: 24px;
+        width: 100%;
+        position: relative;
+        z-index: 2;
+        margin-bottom: 24px;
+      }
+      .signal-card {
+        flex: 1;
+        background: rgba(2, 12, 24, 0.78);
+        border: 1.5px solid rgba(255, 209, 102, 0.25);
+        border-radius: 20px;
+        backdrop-filter: blur(16px);
+        padding: 36px 24px;
+        text-align: center;
+        opacity: 0;
+      }
+      .sig-icon {
+        font-size: 52px;
+        line-height: 1;
+        margin-bottom: 14px;
+      }
+      .sig-val {
+        font-size: 48px;
+        font-weight: 900;
+        color: #ffd166;
+        line-height: 1;
+        margin-bottom: 8px;
+        letter-spacing: -1px;
+      }
+      .sig-lbl {
+        font-size: 30px;
+        font-weight: 400;
+        color: rgba(200, 220, 240, 0.78);
+        line-height: 1.35;
+      }
+      /* S6 CHOICE GRID */
+      .choice-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        width: 100%;
+        position: relative;
+        z-index: 2;
+      }
+      .choice-card {
+        background: rgba(2, 12, 24, 0.78);
+        border: 1.5px solid rgba(255, 209, 102, 0.25);
+        border-radius: 20px;
+        backdrop-filter: blur(16px);
+        padding: 32px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        text-align: center;
+        opacity: 0;
+      }
+      .ch-icon {
+        font-size: 48px;
+        line-height: 1;
+      }
+      .ch-label {
+        font-size: 28px;
+        font-weight: 900;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: rgba(220, 235, 250, 0.88);
+        line-height: 1.25;
+      }
+      .ch-action {
+        font-size: 32px;
+        font-weight: 600;
+        color: #ffd166;
+      }
+      /* SUBTITLE */
+      .sub-bar {
+        position: absolute;
+        bottom: 420px;
+        left: 64px;
+        right: 64px;
+        z-index: 50;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .sub-phrase {
+        display: none;
+        flex-wrap: nowrap;
+        white-space: nowrap;
+        gap: 8px;
+        align-items: baseline;
+      }
+      .sub-w {
+        font-size: 44px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
+        text-shadow:
+          0 1px 12px rgba(0, 0, 0, 0.95),
+          0 0 24px rgba(0, 0, 0, 0.8);
+      }
+      /* CTA */
+      .morph-bg {
+        position: absolute;
+        width: 720px;
+        height: 720px;
+        border-radius: 60% 40% 30% 70%/60% 30% 70% 40%;
+        background: radial-gradient(
+          circle,
+          rgba(255, 209, 102, 0.1) 0%,
+          transparent 70%
+        );
+        z-index: 0;
+        animation: morphBg 7s ease-in-out infinite;
+      }
+      @keyframes morphBg {
+        0%,
+        100% {
+          border-radius: 60% 40% 30% 70%/60% 30% 70% 40%;
+        }
+        33% {
+          border-radius: 30% 70% 70% 30%/30% 40% 60% 70%;
+        }
+        66% {
+          border-radius: 50% 50% 30% 70%/40% 60% 40% 60%;
+        }
+      }
+      .cta-inner {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+        width: 100%;
+      }
+      .cta-label {
+        font-size: 24px;
+        font-weight: 600;
+        color: rgba(6, 214, 160, 0.8);
+        letter-spacing: 1px;
+        margin-bottom: 22px;
+        opacity: 0;
+      }
+      .cta-title {
+        font-size: 78px;
+        font-weight: 900;
+        color: #efefef;
+        line-height: 1.1;
+        margin-bottom: 44px;
+        text-align: center;
+        text-shadow: 3px 5px 0 rgba(0, 0, 0, 0.5);
+        opacity: 0;
+      }
+      .cta-title span {
+        color: #ffd166;
+      }
+      .cta-btn {
+        display: inline-block;
+        background: rgba(255, 209, 102, 0.08);
+        border: 1.5px solid rgba(255, 209, 102, 0.5);
+        color: #ffd166;
+        font-size: 32px;
+        font-weight: 600;
+        padding: 22px 72px;
+        border-radius: 20px;
+        box-shadow: 0 0 20px rgba(255, 209, 102, 0.12);
+        animation: hapticPulse 3.5s ease-in-out infinite;
+        opacity: 0;
+      }
+      @keyframes hapticPulse {
+        0%,
+        100% {
+          transform: scale(1);
+          box-shadow: 0 0 20px rgba(255, 209, 102, 0.12);
+        }
+        50% {
+          transform: scale(1.02);
+          box-shadow: 0 0 36px rgba(255, 209, 102, 0.28);
+        }
+      }
+      .cta-contact {
+        margin-top: 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+        opacity: 0;
+      }
+      .cta-contact-name {
+        font-size: 34px;
+        font-weight: 600;
+        color: #efefef;
+      }
+      .cta-avatar {
+        width: 336px;
+        height: 336px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid rgba(255, 209, 102, 0.6);
+        box-shadow: 0 0 40px rgba(255, 209, 102, 0.3);
+      }
+      #s6-grid {
+        position: absolute;
+        inset: -20%;
+        z-index: 0;
+        background-image:
+          linear-gradient(rgba(255, 209, 102, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 209, 102, 0.03) 1px, transparent 1px);
+        background-size: 64px 64px;
+        transform: perspective(900px) rotateX(18deg);
+        opacity: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      data-hf-id="hf-4426"
+      id="root"
+      data-composition-id="video-thi-truong-2026"
+      data-start="0"
+      data-duration="65"
+      data-width="1080"
+      data-height="1920"
+    >
+      <div data-hf-id="hf-c4bu" id="progress-fill"></div>
+      <svg data-hf-id="hf-p7fz" id="neon-svg" viewBox="0 0 1080 1920">
+        <rect
+          data-hf-id="hf-zjmv"
+          id="neon-path"
+          x="64"
+          y="200"
+          width="952"
+          height="1320"
+          rx="22"
+        />
+      </svg>
+
+      <video
+        data-hf-id="hf-2fv7"
+        id="c01"
+        class="clip bg-vid"
+        src="assets/c01.mp4"
+        muted
+        preload="auto"
+        playsinline
+        data-start="0"
+        data-duration="7"
+        data-track-index="1"
+        data-volume="0"
+      ></video>
+      <video
+        data-hf-id="hf-04na"
+        id="c02"
+        class="clip bg-vid"
+        src="assets/c02.mp4"
+        muted
+        preload="auto"
+        playsinline
+        data-start="59.3"
+        data-duration="5.7"
+        data-track-index="2"
+        data-volume="0"
+      ></video>
+      <div data-hf-id="hf-bh47" id="bg-overlay"></div>
+      <audio
+        data-hf-id="hf-k6ha"
+        id="bgm"
+        class="clip"
+        src="assets/bgm.mp3"
+        preload="auto"
+        data-start="0"
+        data-duration="65"
+        data-track-index="0"
+        data-volume="0.2"
+      ></audio>
+      <audio
+        data-hf-id="hf-7tjn"
+        id="vo0"
+        class="clip"
+        src="assets/vo_s0.mp3"
+        preload="auto"
+        data-start="0.3"
+        data-duration="5.7"
+        data-track-index="20"
+        data-volume="1"
+      ></audio>
+      <audio
+        data-hf-id="hf-wqu8"
+        id="vo1"
+        class="clip"
+        src="assets/vo_s1.mp3?v=2"
+        preload="auto"
+        data-start="6.4"
+        data-duration="8.92"
+        data-track-index="21"
+        data-volume="1"
+      ></audio>
+      <audio
+        data-hf-id="hf-f2i9"
+        id="vo2"
+        class="clip"
+        src="assets/vo_s2.mp3"
+        preload="auto"
+        data-start="17.0"
+        data-duration="8.67"
+        data-track-index="22"
+        data-volume="1"
+      ></audio>
+      <audio
+        data-hf-id="hf-k8t0"
+        id="vo3"
+        class="clip"
+        src="assets/vo_s3.mp3?v=3"
+        preload="auto"
+        data-start="26.1"
+        data-duration="9.79"
+        data-track-index="23"
+        data-volume="1"
+      ></audio>
+      <audio
+        data-hf-id="hf-ffl4"
+        id="vo4"
+        class="clip"
+        src="assets/vo_s4.mp3"
+        preload="auto"
+        data-start="36.1"
+        data-duration="7.58"
+        data-track-index="24"
+        data-volume="1"
+      ></audio>
+      <audio
+        data-hf-id="hf-hk1g"
+        id="vo5"
+        class="clip"
+        src="assets/vo_s5.mp3"
+        preload="auto"
+        data-start="44.1"
+        data-duration="7.27"
+        data-track-index="25"
+        data-volume="1"
+      ></audio>
+      <audio
+        data-hf-id="hf-snfd"
+        id="vo6"
+        class="clip"
+        src="assets/vo_s6.mp3"
+        preload="auto"
+        data-start="51.7"
+        data-duration="7.27"
+        data-track-index="26"
+        data-volume="1"
+      ></audio>
+      <audio
+        data-hf-id="hf-0kfg"
+        id="vo7"
+        class="clip"
+        src="assets/vo_s7.mp3"
+        preload="auto"
+        data-start="59.5"
+        data-duration="2.33"
+        data-track-index="27"
+        data-volume="1"
+      ></audio>
+
+      <!-- S0 HOOK -->
+      <div
+        data-hf-id="hf-l1sy"
+        id="s0"
+        class="clip scene scene-center"
+        data-start="0"
+        data-duration="6"
+        data-track-index="10"
+      >
+        <div data-hf-id="hf-qqzx" id="s0-eye" class="eyebrow">
+          Bình Phan · BĐS Đà Nẵng
+        </div>
+        <div data-hf-id="hf-n51g" id="s0-hdiv" class="hdivider"></div>
+        <div data-hf-id="hf-al0z" id="s0-q1" class="hook-q">"Đà Nẵng 2026</div>
+        <div data-hf-id="hf-a728" id="s0-q2" class="hook-q">nên mua chưa?"</div>
+        <div data-hf-id="hf-iak5" id="s0-ans" class="hook-ans">Sai câu.</div>
+        <div data-hf-id="hf-e1xn" id="s0-sub">Câu đúng: mua để làm gì?</div>
+        <div data-hf-id="hf-h10n" id="s0-tag">Phân Tích Thị Trường · 2026</div>
+      </div>
+
+      <!-- S1 Giá thị trường -->
+      <div
+        data-hf-id="hf-fmo1"
+        id="s1"
+        class="clip scene"
+        data-start="6"
+        data-duration="11.18"
+        data-track-index="11"
+      >
+        <img
+          data-hf-id="hf-8c4v"
+          class="bg-img"
+          id="s1-img"
+          src="assets/img_s1.jpg"
+          alt=""
+        />
+        <div data-hf-id="hf-txij" class="bg-overlay-grad"></div>
+        <div data-hf-id="hf-pfk8" id="s1-head" class="sec-head">
+          Mặt Bằng Giá 2026
+        </div>
+        <div data-hf-id="hf-nlkm" class="compare-row">
+          <div data-hf-id="hf-5qta" id="s1-c1" class="cmp-card cmp-good">
+            <div data-hf-id="hf-yx7c" class="cmp-label">VEN BIỂN · MỸ KHÊ</div>
+            <div data-hf-id="hf-9og7" class="cmp-num">100–200</div>
+            <div data-hf-id="hf-glmh" class="cmp-unit">tr/m²</div>
+            <div data-hf-id="hf-0scc" class="cmp-sub">
+              Căn hộ cao cấp view biển
+            </div>
+          </div>
+          <div data-hf-id="hf-eu94" id="s1-c2" class="cmp-card cmp-neu">
+            <div data-hf-id="hf-cnfq" class="cmp-label">KHU MỚI · HÒA XUÂN</div>
+            <div data-hf-id="hf-27gv" class="cmp-num">45–60</div>
+            <div data-hf-id="hf-gqj1" class="cmp-unit">tr/m²</div>
+            <div data-hf-id="hf-boz4" class="cmp-sub">
+              Căn hộ ở thực, ổn định
+            </div>
+          </div>
+        </div>
+        <div
+          data-hf-id="hf-pr9j"
+          id="s1-src"
+          class="source-tag"
+          style="position: relative; z-index: 2"
+        >
+          Tổng hợp · batdongsan.com.vn · 2026
+        </div>
+        <div data-hf-id="hf-9yrh" id="s1-sub" class="sub-bar">
+          <div data-hf-id="hf-tkx5" id="s1-ph0" class="sub-phrase">
+            <span data-hf-id="hf-mw2b" class="sub-w" id="s1-ph0-w0">Giá</span>
+            <span data-hf-id="hf-icit" class="sub-w" id="s1-ph0-w1">đã</span>
+            <span data-hf-id="hf-ansi" class="sub-w" id="s1-ph0-w2">thoát</span>
+            <span data-hf-id="hf-5g60" class="sub-w" id="s1-ph0-w3">đáy</span>
+            <span data-hf-id="hf-tj42" class="sub-w" id="s1-ph0-w4">so</span>
+            <span data-hf-id="hf-xuap" class="sub-w" id="s1-ph0-w5">với</span>
+          </div>
+          <div data-hf-id="hf-st9c" id="s1-ph1" class="sub-phrase">
+            <span data-hf-id="hf-lslt" class="sub-w" id="s1-ph1-w0">giai</span>
+            <span data-hf-id="hf-yptp" class="sub-w" id="s1-ph1-w1">đoạn</span>
+            <span data-hf-id="hf-10hc" class="sub-w" id="s1-ph1-w2">2023</span>
+            <span data-hf-id="hf-dfse" class="sub-w" id="s1-ph1-w3">đến</span>
+            <span data-hf-id="hf-i0oz" class="sub-w" id="s1-ph1-w4">2024</span>
+          </div>
+          <div data-hf-id="hf-1h57" id="s1-ph2" class="sub-phrase">
+            <span data-hf-id="hf-njgm" class="sub-w" id="s1-ph2-w0">căn</span>
+            <span data-hf-id="hf-p29g" class="sub-w" id="s1-ph2-w1">hộ</span>
+            <span data-hf-id="hf-sxet" class="sub-w" id="s1-ph2-w2">ven</span>
+            <span data-hf-id="hf-yye1" class="sub-w" id="s1-ph2-w3">biển</span>
+            <span data-hf-id="hf-fjwk" class="sub-w" id="s1-ph2-w4">Mỹ</span>
+            <span data-hf-id="hf-qwza" class="sub-w" id="s1-ph2-w5">Khê</span>
+            <span data-hf-id="hf-rmj9" class="sub-w" id="s1-ph2-w6">từ</span>
+          </div>
+          <div data-hf-id="hf-xj16" id="s1-ph3" class="sub-phrase">
+            <span data-hf-id="hf-bgt0" class="sub-w" id="s1-ph3-w0">100</span>
+            <span data-hf-id="hf-foca" class="sub-w" id="s1-ph3-w1">đến</span>
+            <span data-hf-id="hf-dtz3" class="sub-w" id="s1-ph3-w2">200</span>
+            <span data-hf-id="hf-ry3j" class="sub-w" id="s1-ph3-w3">triệu</span>
+            <span data-hf-id="hf-bw0o" class="sub-w" id="s1-ph3-w4">mỗi</span>
+            <span data-hf-id="hf-02wa" class="sub-w" id="s1-ph3-w5">mét</span>
+            <span data-hf-id="hf-o559" class="sub-w" id="s1-ph3-w6">vuông</span>
+          </div>
+          <div data-hf-id="hf-erbh" id="s1-ph4" class="sub-phrase">
+            <span data-hf-id="hf-hr5u" class="sub-w" id="s1-ph4-w0">khu</span>
+            <span data-hf-id="hf-vdr0" class="sub-w" id="s1-ph4-w1">mới</span>
+            <span data-hf-id="hf-gyyn" class="sub-w" id="s1-ph4-w2">Hòa</span>
+            <span data-hf-id="hf-020c" class="sub-w" id="s1-ph4-w3">Xuân</span>
+            <span data-hf-id="hf-04ah" class="sub-w" id="s1-ph4-w4">từ</span>
+            <span data-hf-id="hf-zzci" class="sub-w" id="s1-ph4-w5">45</span>
+            <span data-hf-id="hf-ihdc" class="sub-w" id="s1-ph4-w6">đến</span>
+            <span data-hf-id="hf-yogp" class="sub-w" id="s1-ph4-w7">60</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- S2 Mua ở thực -->
+      <div
+        data-hf-id="hf-paye"
+        id="s2"
+        class="clip scene"
+        data-start="16.02"
+        data-duration="9.88"
+        data-track-index="12"
+      >
+        <img
+          data-hf-id="hf-3hwz"
+          class="bg-img"
+          id="s2-img"
+          src="assets/img_s2.jpg"
+          alt=""
+        />
+        <div data-hf-id="hf-qle3" class="bg-overlay-grad"></div>
+        <div data-hf-id="hf-kyss" id="s2-head" class="sec-head">
+          Mua Ở Thực: Thời Điểm Ổn
+        </div>
+        <div data-hf-id="hf-5e24" id="s2-b1" class="block-row block-good">
+          <svg
+            data-hf-id="hf-tbij"
+            style="flex-shrink: 0; width: 36px; height: 36px"
+            viewBox="0 0 36 36"
+            fill="none"
+          >
+            <circle
+              data-hf-id="hf-vv6c"
+              cx="18"
+              cy="18"
+              r="16"
+              stroke="#06d6a0"
+              stroke-width="2"
+            />
+            <path
+              data-hf-id="hf-dw52"
+              d="M10 18l6 6 10-10"
+              stroke="#06d6a0"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <div data-hf-id="hf-oejc" class="block-text">
+            Hàng dưới <em data-hf-id="hf-fxj9">3 tỷ</em> đang có trên thị trường
+          </div>
+        </div>
+        <div data-hf-id="hf-e1xz" id="s2-b2" class="block-row block-good">
+          <svg
+            data-hf-id="hf-9o17"
+            style="flex-shrink: 0; width: 36px; height: 36px"
+            viewBox="0 0 36 36"
+            fill="none"
+          >
+            <circle
+              data-hf-id="hf-3ycs"
+              cx="18"
+              cy="18"
+              r="16"
+              stroke="#06d6a0"
+              stroke-width="2"
+            />
+            <path
+              data-hf-id="hf-574q"
+              d="M10 18l6 6 10-10"
+              stroke="#06d6a0"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <div data-hf-id="hf-tmmf" class="block-text">
+            Pháp lý <em data-hf-id="hf-7sfj">sổ đỏ rõ ràng</em>, thế chấp được
+          </div>
+        </div>
+        <div data-hf-id="hf-a3ty" id="s2-b3" class="block-row block-good">
+          <svg
+            data-hf-id="hf-99q6"
+            style="flex-shrink: 0; width: 36px; height: 36px"
+            viewBox="0 0 36 36"
+            fill="none"
+          >
+            <circle
+              data-hf-id="hf-2rfp"
+              cx="18"
+              cy="18"
+              r="16"
+              stroke="#06d6a0"
+              stroke-width="2"
+            />
+            <path
+              data-hf-id="hf-5lfr"
+              d="M10 18l6 6 10-10"
+              stroke="#06d6a0"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <div data-hf-id="hf-54ai" class="block-text">
+            Khu dân cư ổn định, tiện ích đầy đủ
+          </div>
+        </div>
+        <div data-hf-id="hf-a2il" id="s2-note" class="scene-note">
+          Phù hợp nhất nếu bạn mua để
+          <strong data-hf-id="hf-guc0">ở thật sự</strong>. Không đầu cơ.
+        </div>
+        <div data-hf-id="hf-ykjy" id="s2-sub" class="sub-bar">
+          <div data-hf-id="hf-zvt6" id="s2-ph0" class="sub-phrase">
+            <span data-hf-id="hf-1dtm" class="sub-w" id="s2-ph0-w0">Mua</span>
+            <span data-hf-id="hf-bzu9" class="sub-w" id="s2-ph0-w1">ở</span>
+            <span data-hf-id="hf-8uiv" class="sub-w" id="s2-ph0-w2">thực</span>
+            <span data-hf-id="hf-s8qj" class="sub-w" id="s2-ph0-w3">thị</span>
+            <span data-hf-id="hf-v3w7" class="sub-w" id="s2-ph0-w4"
+              >trường</span
+            >
+            <span data-hf-id="hf-8egt" class="sub-w" id="s2-ph0-w5">đang</span>
+            <span data-hf-id="hf-7g2p" class="sub-w" id="s2-ph0-w6">có</span>
+            <span data-hf-id="hf-lbmx" class="sub-w" id="s2-ph0-w7">hàng</span>
+          </div>
+          <div data-hf-id="hf-3tx7" id="s2-ph1" class="sub-phrase">
+            <span data-hf-id="hf-f1ba" class="sub-w" id="s2-ph1-w0">Sản</span>
+            <span data-hf-id="hf-acod" class="sub-w" id="s2-ph1-w1">phẩm</span>
+            <span data-hf-id="hf-dq0o" class="sub-w" id="s2-ph1-w2">dưới</span>
+            <span data-hf-id="hf-omoa" class="sub-w" id="s2-ph1-w3">3</span>
+            <span data-hf-id="hf-4x3r" class="sub-w" id="s2-ph1-w4">tỷ</span>
+            <span data-hf-id="hf-01x6" class="sub-w" id="s2-ph1-w5">pháp</span>
+            <span data-hf-id="hf-7kmj" class="sub-w" id="s2-ph1-w6">lý</span>
+            <span data-hf-id="hf-weq4" class="sub-w" id="s2-ph1-w7">rõ</span>
+          </div>
+          <div data-hf-id="hf-v61c" id="s2-ph2" class="sub-phrase">
+            <span data-hf-id="hf-js87" class="sub-w" id="s2-ph2-w0">Khu</span>
+            <span data-hf-id="hf-8ole" class="sub-w" id="s2-ph2-w1">dân</span>
+            <span data-hf-id="hf-ho62" class="sub-w" id="s2-ph2-w2">cư</span>
+            <span data-hf-id="hf-46lf" class="sub-w" id="s2-ph2-w3">ổn</span>
+            <span data-hf-id="hf-lzr1" class="sub-w" id="s2-ph2-w4">định</span>
+          </div>
+          <div data-hf-id="hf-vxp5" id="s2-ph3" class="sub-phrase">
+            <span data-hf-id="hf-kem1" class="sub-w" id="s2-ph3-w0">Đây</span>
+            <span data-hf-id="hf-xkfd" class="sub-w" id="s2-ph3-w1">là</span>
+            <span data-hf-id="hf-5hcc" class="sub-w" id="s2-ph3-w2">thời</span>
+            <span data-hf-id="hf-3ajt" class="sub-w" id="s2-ph3-w3">điểm</span>
+            <span data-hf-id="hf-mg43" class="sub-w" id="s2-ph3-w4">ổn</span>
+            <span data-hf-id="hf-wlgx" class="sub-w" id="s2-ph3-w5">để</span>
+            <span data-hf-id="hf-660p" class="sub-w" id="s2-ph3-w6">vào</span>
+          </div>
+          <div data-hf-id="hf-l27i" id="s2-ph4" class="sub-phrase">
+            <span data-hf-id="hf-tn2x" class="sub-w" id="s2-ph4-w0">nếu</span>
+            <span data-hf-id="hf-8z21" class="sub-w" id="s2-ph4-w1">bạn</span>
+            <span data-hf-id="hf-szp0" class="sub-w" id="s2-ph4-w2">mua</span>
+            <span data-hf-id="hf-lazi" class="sub-w" id="s2-ph4-w3">để</span>
+            <span data-hf-id="hf-usgu" class="sub-w" id="s2-ph4-w4">ở</span>
+            <span data-hf-id="hf-akxl" class="sub-w" id="s2-ph4-w5">thật</span>
+            <span data-hf-id="hf-1krr" class="sub-w" id="s2-ph4-w6">sự</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- S3 Cho thuê dài hạn -->
+      <div
+        data-hf-id="hf-pz7y"
+        id="s3"
+        class="clip scene"
+        data-start="25.9"
+        data-duration="10.5"
+        data-track-index="13"
+      >
+        <img
+          data-hf-id="hf-xab7"
+          class="bg-img"
+          id="s3-img"
+          src="assets/img_s3.jpg"
+          alt=""
+        />
+        <div data-hf-id="hf-q732" class="bg-overlay-grad"></div>
+        <div data-hf-id="hf-862a" id="s3-head" class="sec-head">
+          Cho Thuê Dài Hạn
+        </div>
+        <div data-hf-id="hf-u42e" id="s3-num" class="float-num">7–9%</div>
+        <div data-hf-id="hf-70zl" id="s3-lbl" class="float-lbl">
+          TỶ SUẤT SAU CHI PHÍ · VEN SÔNG &amp; BIỂN
+        </div>
+        <div data-hf-id="hf-s8ry" id="s3-b1" class="num-block">
+          <div data-hf-id="hf-3c2b" class="num-badge-lg">1</div>
+          <div data-hf-id="hf-nipe" class="num-block-text">
+            Ven sông Hàn &amp; Mỹ Khê:
+            <strong data-hf-id="hf-z06t">7–9%/năm sau chi phí</strong>
+          </div>
+        </div>
+        <div data-hf-id="hf-oanx" id="s3-b2" class="num-block">
+          <div data-hf-id="hf-2xra" class="num-badge-lg">2</div>
+          <div data-hf-id="hf-n6nt" class="num-block-text">
+            Du lịch Đà Nẵng tăng <strong data-hf-id="hf-3gbe">21%</strong>. Nền
+            tảng cho thuê mạnh
+          </div>
+        </div>
+        <div
+          data-hf-id="hf-pqqz"
+          id="s3-src"
+          class="source-tag"
+          style="position: relative; z-index: 2"
+        >
+          Nguồn: Bộ VHTTDL · market-pulse 2026
+        </div>
+        <div data-hf-id="hf-d3nz" id="s3-sub" class="sub-bar">
+          <div data-hf-id="hf-2d8n" id="s3-ph0" class="sub-phrase">
+            <span data-hf-id="hf-ef2b" class="sub-w" id="s3-ph0-w0">Mua</span>
+            <span data-hf-id="hf-hgw7" class="sub-w" id="s3-ph0-w1">để</span>
+            <span data-hf-id="hf-lj3o" class="sub-w" id="s3-ph0-w2">cho</span>
+            <span data-hf-id="hf-vfl2" class="sub-w" id="s3-ph0-w3">thuê</span>
+            <span data-hf-id="hf-7wzt" class="sub-w" id="s3-ph0-w4">dài</span>
+            <span data-hf-id="hf-o3o6" class="sub-w" id="s3-ph0-w5">hạn</span>
+          </div>
+          <div data-hf-id="hf-yf4m" id="s3-ph1" class="sub-phrase">
+            <span data-hf-id="hf-bfyo" class="sub-w" id="s3-ph1-w0">tỷ</span>
+            <span data-hf-id="hf-ck9h" class="sub-w" id="s3-ph1-w1">suất</span>
+            <span data-hf-id="hf-7lmy" class="sub-w" id="s3-ph1-w2">đang</span>
+            <span data-hf-id="hf-0kqj" class="sub-w" id="s3-ph1-w3">hấp</span>
+            <span data-hf-id="hf-wn6y" class="sub-w" id="s3-ph1-w4">dẫn</span>
+          </div>
+          <div data-hf-id="hf-uh0l" id="s3-ph2" class="sub-phrase">
+            <span data-hf-id="hf-7228" class="sub-w" id="s3-ph2-w0">Căn</span>
+            <span data-hf-id="hf-qpda" class="sub-w" id="s3-ph2-w1">hộ</span>
+            <span data-hf-id="hf-zrsn" class="sub-w" id="s3-ph2-w2">ven</span>
+            <span data-hf-id="hf-ilgb" class="sub-w" id="s3-ph2-w3">sông</span>
+            <span data-hf-id="hf-dj5i" class="sub-w" id="s3-ph2-w4">Hàn</span>
+            <span data-hf-id="hf-5xs3" class="sub-w" id="s3-ph2-w5">và</span>
+            <span data-hf-id="hf-1fy8" class="sub-w" id="s3-ph2-w6">Mỹ</span>
+            <span data-hf-id="hf-bqbm" class="sub-w" id="s3-ph2-w7">Khê</span>
+          </div>
+          <div data-hf-id="hf-tpcs" id="s3-ph3" class="sub-phrase">
+            <span data-hf-id="hf-h1gp" class="sub-w" id="s3-ph3-w0">cho</span>
+            <span data-hf-id="hf-qled" class="sub-w" id="s3-ph3-w1">thuê</span>
+            <span data-hf-id="hf-i5l4" class="sub-w" id="s3-ph3-w2">từ</span>
+            <span data-hf-id="hf-8yap" class="sub-w" id="s3-ph3-w3">7</span>
+            <span data-hf-id="hf-2hdb" class="sub-w" id="s3-ph3-w4">đến</span>
+            <span data-hf-id="hf-05d8" class="sub-w" id="s3-ph3-w5">9%</span>
+            <span data-hf-id="hf-a7gw" class="sub-w" id="s3-ph3-w6">sau</span>
+            <span data-hf-id="hf-t39y" class="sub-w" id="s3-ph3-w7">chi</span>
+          </div>
+          <div data-hf-id="hf-h6ub" id="s3-ph4" class="sub-phrase">
+            <span data-hf-id="hf-l2fd" class="sub-w" id="s3-ph4-w0">Du</span>
+            <span data-hf-id="hf-g83h" class="sub-w" id="s3-ph4-w1">lịch</span>
+            <span data-hf-id="hf-wrwe" class="sub-w" id="s3-ph4-w2">tăng</span>
+            <span data-hf-id="hf-x4xn" class="sub-w" id="s3-ph4-w3">21%</span>
+            <span data-hf-id="hf-reeb" class="sub-w" id="s3-ph4-w4">nền</span>
+            <span data-hf-id="hf-z3u1" class="sub-w" id="s3-ph4-w5">tảng</span>
+            <span data-hf-id="hf-r6l8" class="sub-w" id="s3-ph4-w6">cho</span>
+            <span data-hf-id="hf-uh9a" class="sub-w" id="s3-ph4-w7">thuê</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- S4 Lướt sóng -->
+      <div
+        data-hf-id="hf-ty4n"
+        id="s4"
+        class="clip scene"
+        data-start="36.0"
+        data-duration="7.9"
+        data-track-index="14"
+      >
+        <img
+          data-hf-id="hf-534v"
+          class="bg-img"
+          id="s4-img"
+          src="assets/img_s4.jpg"
+          alt=""
+        />
+        <div data-hf-id="hf-pss1" class="bg-overlay-grad"></div>
+        <div data-hf-id="hf-uixn" id="s4-head" class="sec-head">
+          Lướt Sóng Ngắn: Chưa Phải Lúc
+        </div>
+        <div data-hf-id="hf-lxe4" id="s4-b1" class="block-row block-bad">
+          <svg
+            data-hf-id="hf-8vf5"
+            style="flex-shrink: 0; width: 36px; height: 36px"
+            viewBox="0 0 36 36"
+            fill="none"
+          >
+            <circle
+              data-hf-id="hf-s4vk"
+              cx="18"
+              cy="18"
+              r="16"
+              stroke="#ff7b3a"
+              stroke-width="2"
+            />
+            <path
+              data-hf-id="hf-y662"
+              d="M12 12l12 12M24 12L12 24"
+              stroke="#ff7b3a"
+              stroke-width="2.5"
+              stroke-linecap="round"
+            />
+          </svg>
+          <div data-hf-id="hf-a2bd" class="block-text">
+            <del data-hf-id="hf-w7tn">Thanh khoản thứ cấp vẫn thấp</del>
+          </div>
+        </div>
+        <div data-hf-id="hf-wsvr" id="s4-b2" class="block-row block-bad">
+          <svg
+            data-hf-id="hf-8h44"
+            style="flex-shrink: 0; width: 36px; height: 36px"
+            viewBox="0 0 36 36"
+            fill="none"
+          >
+            <circle
+              data-hf-id="hf-9xmw"
+              cx="18"
+              cy="18"
+              r="16"
+              stroke="#ff7b3a"
+              stroke-width="2"
+            />
+            <path
+              data-hf-id="hf-5ise"
+              d="M12 12l12 12M24 12L12 24"
+              stroke="#ff7b3a"
+              stroke-width="2.5"
+              stroke-linecap="round"
+            />
+          </svg>
+          <div data-hf-id="hf-jfnx" class="block-text">
+            <del data-hf-id="hf-h7eh">Thời gian thoát hàng chưa nhanh</del>
+          </div>
+        </div>
+        <div data-hf-id="hf-hzrh" id="s4-restrict">
+          <div data-hf-id="hf-xkl8" id="s4-restrict-text">
+            Cần tiền trong <strong data-hf-id="hf-ncbz">12–18 tháng</strong>?
+            Thị trường này chưa phù hợp lúc này.
+          </div>
+        </div>
+        <div data-hf-id="hf-00xc" id="s4-sub" class="sub-bar">
+          <div data-hf-id="hf-yzyw" id="s4-ph0" class="sub-phrase">
+            <span data-hf-id="hf-33m0" class="sub-w" id="s4-ph0-w0">Lướt</span>
+            <span data-hf-id="hf-3c3j" class="sub-w" id="s4-ph0-w1">sóng</span>
+            <span data-hf-id="hf-1b5b" class="sub-w" id="s4-ph0-w2">ngắn</span>
+            <span data-hf-id="hf-kx9l" class="sub-w" id="s4-ph0-w3">thanh</span>
+            <span data-hf-id="hf-ej68" class="sub-w" id="s4-ph0-w4">khoản</span>
+            <span data-hf-id="hf-nn5t" class="sub-w" id="s4-ph0-w5">thứ</span>
+            <span data-hf-id="hf-0t1j" class="sub-w" id="s4-ph0-w6">cấp</span>
+            <span data-hf-id="hf-fdyt" class="sub-w" id="s4-ph0-w7">thấp</span>
+          </div>
+          <div data-hf-id="hf-1z8h" id="s4-ph1" class="sub-phrase">
+            <span data-hf-id="hf-uogi" class="sub-w" id="s4-ph1-w0">Thời</span>
+            <span data-hf-id="hf-qfxy" class="sub-w" id="s4-ph1-w1">gian</span>
+            <span data-hf-id="hf-hfs2" class="sub-w" id="s4-ph1-w2">thoát</span>
+            <span data-hf-id="hf-neng" class="sub-w" id="s4-ph1-w3">hàng</span>
+            <span data-hf-id="hf-3rqw" class="sub-w" id="s4-ph1-w4">chưa</span>
+            <span data-hf-id="hf-qlj8" class="sub-w" id="s4-ph1-w5">nhanh</span>
+          </div>
+          <div data-hf-id="hf-5xci" id="s4-ph2" class="sub-phrase">
+            <span data-hf-id="hf-wwgl" class="sub-w" id="s4-ph2-w0">Nếu</span>
+            <span data-hf-id="hf-xlbp" class="sub-w" id="s4-ph2-w1">bạn</span>
+            <span data-hf-id="hf-n891" class="sub-w" id="s4-ph2-w2">cần</span>
+            <span data-hf-id="hf-zdae" class="sub-w" id="s4-ph2-w3">tiền</span>
+            <span data-hf-id="hf-4ug7" class="sub-w" id="s4-ph2-w4">trong</span>
+            <span data-hf-id="hf-8g5v" class="sub-w" id="s4-ph2-w5">12</span>
+            <span data-hf-id="hf-m25j" class="sub-w" id="s4-ph2-w6">đến</span>
+            <span data-hf-id="hf-dvrv" class="sub-w" id="s4-ph2-w7">18</span>
+          </div>
+          <div data-hf-id="hf-9vgj" id="s4-ph3" class="sub-phrase">
+            <span data-hf-id="hf-ijk6" class="sub-w" id="s4-ph3-w0">tháng</span>
+            <span data-hf-id="hf-ny28" class="sub-w" id="s4-ph3-w1">thị</span>
+            <span data-hf-id="hf-lbpm" class="sub-w" id="s4-ph3-w2"
+              >trường</span
+            >
+            <span data-hf-id="hf-81ue" class="sub-w" id="s4-ph3-w3">này</span>
+            <span data-hf-id="hf-076m" class="sub-w" id="s4-ph3-w4">chưa</span>
+            <span data-hf-id="hf-5e92" class="sub-w" id="s4-ph3-w5">phù</span>
+            <span data-hf-id="hf-0r1v" class="sub-w" id="s4-ph3-w6">hợp</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- S5 Tín hiệu — SIGNAL CARDS -->
+      <div
+        data-hf-id="hf-qshx"
+        id="s5"
+        class="clip scene"
+        data-start="43.9"
+        data-duration="7.6"
+        data-track-index="15"
+      >
+        <img
+          data-hf-id="hf-wyzb"
+          class="bg-img"
+          id="s5-img"
+          src="assets/img_s5.jpg"
+          alt=""
+        />
+        <div data-hf-id="hf-peh0" class="bg-overlay-grad"></div>
+        <div data-hf-id="hf-stwr" id="s5-head" class="sec-head">
+          Tín Hiệu Trung và Dài Hạn
+        </div>
+        <div data-hf-id="hf-y6ib" class="signal-row">
+          <div data-hf-id="hf-ngs6" id="s5-sa" class="signal-card">
+            <div data-hf-id="hf-uevl" class="sig-icon">🏙️</div>
+            <div data-hf-id="hf-m0c4" class="sig-val">HN + SG</div>
+            <div data-hf-id="hf-sb66" class="sig-lbl">
+              Nhà đầu tư đang quay lại Đà Nẵng
+            </div>
+          </div>
+          <div data-hf-id="hf-jio5" id="s5-sb" class="signal-card">
+            <div data-hf-id="hf-pl5a" class="sig-icon">🌏</div>
+            <div data-hf-id="hf-1nrx" class="sig-val">Expat</div>
+            <div data-hf-id="hf-4dqs" class="sig-lbl">
+              Chuyên gia nước ngoài thuê tăng mạnh
+            </div>
+          </div>
+        </div>
+        <div data-hf-id="hf-aoj8" id="s5-note" class="scene-note">
+          Tín hiệu cho <strong data-hf-id="hf-dw7m">trung và dài hạn</strong>.
+          Không phải cho lướt sóng ngắn.
+        </div>
+        <div data-hf-id="hf-5kw9" id="s5-sub" class="sub-bar">
+          <div data-hf-id="hf-g3s5" id="s5-ph0" class="sub-phrase">
+            <span data-hf-id="hf-trga" class="sub-w" id="s5-ph0-w0">Nhà</span>
+            <span data-hf-id="hf-e0gw" class="sub-w" id="s5-ph0-w1">đầu</span>
+            <span data-hf-id="hf-vefa" class="sub-w" id="s5-ph0-w2">tư</span>
+            <span data-hf-id="hf-f1r7" class="sub-w" id="s5-ph0-w3">Hà</span>
+            <span data-hf-id="hf-u8fw" class="sub-w" id="s5-ph0-w4">Nội</span>
+            <span data-hf-id="hf-lm8t" class="sub-w" id="s5-ph0-w5">Sài</span>
+            <span data-hf-id="hf-6snr" class="sub-w" id="s5-ph0-w6">Gòn</span>
+            <span data-hf-id="hf-p5jz" class="sub-w" id="s5-ph0-w7">quay</span>
+          </div>
+          <div data-hf-id="hf-fc4c" id="s5-ph1" class="sub-phrase">
+            <span data-hf-id="hf-9lcz" class="sub-w" id="s5-ph1-w0">lại</span>
+            <span data-hf-id="hf-fkyn" class="sub-w" id="s5-ph1-w1">Khách</span>
+            <span data-hf-id="hf-oooa" class="sub-w" id="s5-ph1-w2">thuê</span>
+            <span data-hf-id="hf-g081" class="sub-w" id="s5-ph1-w3"
+              >chuyên</span
+            >
+            <span data-hf-id="hf-gtma" class="sub-w" id="s5-ph1-w4">gia</span>
+            <span data-hf-id="hf-2a4a" class="sub-w" id="s5-ph1-w5">nước</span>
+            <span data-hf-id="hf-0dtk" class="sub-w" id="s5-ph1-w6">ngoài</span>
+            <span data-hf-id="hf-ny96" class="sub-w" id="s5-ph1-w7">tăng</span>
+          </div>
+          <div data-hf-id="hf-o007" id="s5-ph2" class="sub-phrase">
+            <span data-hf-id="hf-5fqn" class="sub-w" id="s5-ph2-w0">Đây</span>
+            <span data-hf-id="hf-c1if" class="sub-w" id="s5-ph2-w1">là</span>
+            <span data-hf-id="hf-3htr" class="sub-w" id="s5-ph2-w2">tín</span>
+            <span data-hf-id="hf-4gs2" class="sub-w" id="s5-ph2-w3">hiệu</span>
+            <span data-hf-id="hf-gkdk" class="sub-w" id="s5-ph2-w4">trung</span>
+            <span data-hf-id="hf-bezd" class="sub-w" id="s5-ph2-w5">và</span>
+            <span data-hf-id="hf-ti2r" class="sub-w" id="s5-ph2-w6">dài</span>
+            <span data-hf-id="hf-n6dg" class="sub-w" id="s5-ph2-w7">hạn</span>
+          </div>
+          <div data-hf-id="hf-k1w6" id="s5-ph3" class="sub-phrase">
+            <span data-hf-id="hf-k86h" class="sub-w" id="s5-ph3-w0">Không</span>
+            <span data-hf-id="hf-vghc" class="sub-w" id="s5-ph3-w1">phải</span>
+            <span data-hf-id="hf-rmyt" class="sub-w" id="s5-ph3-w2">cho</span>
+            <span data-hf-id="hf-52qp" class="sub-w" id="s5-ph3-w3">lướt</span>
+            <span data-hf-id="hf-6iyo" class="sub-w" id="s5-ph3-w4">sóng</span>
+            <span data-hf-id="hf-h2oe" class="sub-w" id="s5-ph3-w5">ngắn</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- S6 Mục đích — CHOICE GRID -->
+      <div
+        data-hf-id="hf-q2o4"
+        id="s6"
+        class="clip scene"
+        data-start="51.4"
+        data-duration="8.0"
+        data-track-index="16"
+      >
+        <img
+          data-hf-id="hf-qflv"
+          class="bg-img"
+          id="s6-img"
+          src="assets/img_s6.jpg"
+          alt=""
+        />
+        <div data-hf-id="hf-p05z" class="bg-overlay-grad"></div>
+        <div data-hf-id="hf-obkf" id="s6-grid"></div>
+        <div data-hf-id="hf-0j6t" id="s6-head" class="sec-head">
+          Bạn Mua Vì Mục Đích Gì?
+        </div>
+        <div data-hf-id="hf-8dbi" class="choice-grid">
+          <div data-hf-id="hf-l34c" id="s6-ch1" class="choice-card">
+            <div data-hf-id="hf-obl5" class="ch-icon">🏠</div>
+            <div data-hf-id="hf-r7ni" class="ch-label">Ở Thực</div>
+            <div data-hf-id="hf-x6y4" class="ch-action">Vào ngay</div>
+          </div>
+          <div data-hf-id="hf-tr07" id="s6-ch2" class="choice-card">
+            <div data-hf-id="hf-neeo" class="ch-icon">💰</div>
+            <div data-hf-id="hf-hyun" class="ch-label">Cho Thuê</div>
+            <div data-hf-id="hf-0wzo" class="ch-action">Vào ngay</div>
+          </div>
+          <div data-hf-id="hf-psw6" id="s6-ch3" class="choice-card">
+            <div data-hf-id="hf-kdh4" class="ch-icon">📈</div>
+            <div data-hf-id="hf-tqjx" class="ch-label">Tích Lũy 3–5 Năm</div>
+            <div data-hf-id="hf-s5ur" class="ch-action">Cân nhắc</div>
+          </div>
+          <div data-hf-id="hf-0odt" id="s6-ch4" class="choice-card">
+            <div data-hf-id="hf-vgl0" class="ch-icon">⚡</div>
+            <div data-hf-id="hf-eth7" class="ch-label">Cần Tiền Nhanh</div>
+            <div data-hf-id="hf-vjgv" class="ch-action">Chờ thêm</div>
+          </div>
+        </div>
+        <div data-hf-id="hf-fjzu" id="s6-sub" class="sub-bar">
+          <div data-hf-id="hf-hic6" id="s6-ph0" class="sub-phrase">
+            <span data-hf-id="hf-m1cr" class="sub-w" id="s6-ph0-w0">Câu</span>
+            <span data-hf-id="hf-8c18" class="sub-w" id="s6-ph0-w1">hỏi</span>
+            <span data-hf-id="hf-zgwb" class="sub-w" id="s6-ph0-w2">nên</span>
+            <span data-hf-id="hf-wiff" class="sub-w" id="s6-ph0-w3">mua</span>
+            <span data-hf-id="hf-ejoh" class="sub-w" id="s6-ph0-w4">chưa</span>
+            <span data-hf-id="hf-76ab" class="sub-w" id="s6-ph0-w5">phụ</span>
+            <span data-hf-id="hf-jqwm" class="sub-w" id="s6-ph0-w6">thuộc</span>
+            <span data-hf-id="hf-d599" class="sub-w" id="s6-ph0-w7">vào</span>
+          </div>
+          <div data-hf-id="hf-lgg7" id="s6-ph1" class="sub-phrase">
+            <span data-hf-id="hf-tlw1" class="sub-w" id="s6-ph1-w0">Mục</span>
+            <span data-hf-id="hf-8sm2" class="sub-w" id="s6-ph1-w1">đích</span>
+            <span data-hf-id="hf-th89" class="sub-w" id="s6-ph1-w2">của</span>
+            <span data-hf-id="hf-wm1u" class="sub-w" id="s6-ph1-w3">bạn</span>
+          </div>
+          <div data-hf-id="hf-cskc" id="s6-ph2" class="sub-phrase">
+            <span data-hf-id="hf-oylf" class="sub-w" id="s6-ph2-w0">Ở</span>
+            <span data-hf-id="hf-h7pa" class="sub-w" id="s6-ph2-w1">thực</span>
+            <span data-hf-id="hf-tji1" class="sub-w" id="s6-ph2-w2">hay</span>
+            <span data-hf-id="hf-bt6w" class="sub-w" id="s6-ph2-w3">cho</span>
+            <span data-hf-id="hf-qz4s" class="sub-w" id="s6-ph2-w4">thuê</span>
+            <span data-hf-id="hf-59d1" class="sub-w" id="s6-ph2-w5">dài</span>
+            <span data-hf-id="hf-6ps8" class="sub-w" id="s6-ph2-w6">hạn</span>
+          </div>
+          <div data-hf-id="hf-dk85" id="s6-ph3" class="sub-phrase">
+            <span data-hf-id="hf-ndts" class="sub-w" id="s6-ph3-w0">tích</span>
+            <span data-hf-id="hf-ea09" class="sub-w" id="s6-ph3-w1">lũy</span>
+            <span data-hf-id="hf-ojcs" class="sub-w" id="s6-ph3-w2">hay</span>
+            <span data-hf-id="hf-tda9" class="sub-w" id="s6-ph3-w3">cần</span>
+            <span data-hf-id="hf-9b48" class="sub-w" id="s6-ph3-w4">tiền</span>
+            <span data-hf-id="hf-atgo" class="sub-w" id="s6-ph3-w5">nhanh</span>
+          </div>
+          <div data-hf-id="hf-u4c2" id="s6-ph4" class="sub-phrase">
+            <span data-hf-id="hf-81as" class="sub-w" id="s6-ph4-w0">Mỗi</span>
+            <span data-hf-id="hf-n2p7" class="sub-w" id="s6-ph4-w1">mục</span>
+            <span data-hf-id="hf-0rq6" class="sub-w" id="s6-ph4-w2">đích</span>
+            <span data-hf-id="hf-7bu4" class="sub-w" id="s6-ph4-w3">một</span>
+            <span data-hf-id="hf-ft3l" class="sub-w" id="s6-ph4-w4">quyết</span>
+            <span data-hf-id="hf-o05a" class="sub-w" id="s6-ph4-w5">định</span>
+            <span data-hf-id="hf-1zm0" class="sub-w" id="s6-ph4-w6">khác</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- S7 CTA -->
+      <div
+        data-hf-id="hf-48gv"
+        id="s7"
+        class="clip scene scene-center"
+        data-start="59.3"
+        data-duration="5.7"
+        data-track-index="17"
+      >
+        <div data-hf-id="hf-z9ny" class="morph-bg"></div>
+        <div data-hf-id="hf-ylxh" class="cta-inner">
+          <div data-hf-id="hf-whd9" id="s7-label" class="cta-label">
+            Thị Trường Đà Nẵng
+          </div>
+          <div data-hf-id="hf-fvxt" id="s7-title" class="cta-title">
+            Mỗi Tuần<br data-hf-id="hf-x5px" /><span data-hf-id="hf-2m5k"
+              >Một Cập Nhật</span
+            >
+          </div>
+          <div data-hf-id="hf-0ois" id="s7-btn" class="cta-btn">
+            Follow Bình · Cập Nhật Thị Trường
+          </div>
+          <div data-hf-id="hf-2kda" id="s7-contact" class="cta-contact">
+            <div data-hf-id="hf-vs1m" class="cta-contact-name">
+              Bình Phan
+              <span data-hf-id="hf-afqs" style="color: #ffd966">IQI</span>
+            </div>
+            <img
+              data-hf-id="hf-8i07"
+              class="cta-avatar"
+              src="assets/me-outtro.jpg"
+              alt="Bình Phan"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+      // BGM: Stan Town track2, 117.5 BPM, beat[0]=0.952, interval=0.511s
+      var sfxWhoosh = new Audio("assets/sfx_whoosh.mp3");
+      sfxWhoosh.volume = 0.45;
+      var sfxImpact = new Audio("assets/sfx_impact.mp3");
+      sfxImpact.volume = 0.65;
+      var sfxPop = new Audio("assets/sfx_pop.mp3");
+      sfxPop.volume = 0.5;
+      function playWhoosh() {
+        sfxWhoosh.currentTime = 0;
+        sfxWhoosh.play().catch(function () {});
+      }
+      function playImpact() {
+        sfxImpact.currentTime = 0;
+        sfxImpact.play().catch(function () {});
+      }
+      function playPop() {
+        var s = sfxPop.cloneNode();
+        s.volume = 0.45;
+        s.play().catch(function () {});
+      }
+      function W(t) {
+        tl.call(playWhoosh, [], t);
+      }
+      function I(t) {
+        tl.call(playImpact, [], t);
+      }
+      function P(t) {
+        tl.call(playPop, [], t);
+      }
+
+      tl.to(
+        "#progress-fill",
+        { scaleX: 1, duration: 65, ease: "none", transformOrigin: "left" },
+        0,
+      );
+
+      // clips
+      var F = 0.5;
+      [
+        ["c01", 0.0, 7.0],
+        ["c02", 59.3, null],
+      ].forEach(function (c) {
+        tl.fromTo(
+          "#" + c[0],
+          { opacity: 0 },
+          { opacity: 1, duration: F, ease: "power2.inOut" },
+          c[1],
+        );
+        if (c[2])
+          tl.to(
+            "#" + c[0],
+            { opacity: 0, duration: F, ease: "power2.inOut" },
+            c[2] - F,
+          );
+      });
+
+      // neon border
+      tl.to(
+        "#neon-path",
+        { strokeDashoffset: 0, duration: 2.5, ease: "power2.inOut" },
+        0.3,
+      );
+      tl.to("#neon-path", { opacity: 0, duration: 0.5 }, 5.551);
+
+      // S0 HOOK
+      W(0.0);
+      tl.fromTo(
+        "#s0",
+        { opacity: 0, filter: "blur(12px)" },
+        { opacity: 1, filter: "blur(0px)", duration: 0.4, ease: "power2.out" },
+        0.0,
+      );
+      tl.from("#s0-eye", { y: -24, opacity: 0, duration: 0.4 }, 0.952);
+      tl.fromTo(
+        "#s0-hdiv",
+        { scaleX: 0, opacity: 0 },
+        { scaleX: 1, opacity: 1, duration: 0.4, transformOrigin: "center" },
+        1.2,
+      );
+      tl.fromTo(
+        "#s0-q1",
+        { y: 40, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, ease: "expo.out" },
+        1.463,
+      );
+      tl.fromTo(
+        "#s0-q2",
+        { y: 40, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, ease: "expo.out" },
+        1.974,
+      );
+      I(2.996);
+      tl.fromTo(
+        "#s0-ans",
+        { y: -60, opacity: 0, scale: 1.15 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: "back.out(2.5)" },
+        2.996,
+      );
+      tl.to(
+        "#s0-ans",
+        {
+          textShadow:
+            "0 0 80px rgba(255,209,102,0.95),4px 7px 0 rgba(139,98,0,0.85)",
+          duration: 0.8,
+          yoyo: true,
+          repeat: 2,
+        },
+        3.5,
+      );
+      tl.fromTo(
+        "#s0-sub",
+        { y: 24, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.4, ease: "expo.out" },
+        3.507,
+      );
+      P(4.018);
+      tl.fromTo(
+        "#s0-tag",
+        { scale: 0.8, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.7)" },
+        4.018,
+      );
+
+      // S1 beat[10]=6.062 beat[11]=6.573 beat[17]=9.639 beat[24]=13.216
+      tl.to("#s0", { opacity: 0, duration: 0.5, ease: "power2.in" }, 5.551);
+      tl.set("#s0", { opacity: 0 }, 6.0);
+      W(6.062);
+      tl.fromTo(
+        "#s1",
+        { opacity: 0, scale: 0.88, filter: "blur(10px)" },
+        {
+          opacity: 1,
+          scale: 1,
+          filter: "blur(0px)",
+          duration: 0.7,
+          ease: "power3.out",
+        },
+        5.8,
+      );
+      tl.fromTo(
+        "#s1-img",
+        { scale: 1.0 },
+        { scale: 1.06, duration: 9.5, ease: "none" },
+        5.8,
+      );
+      tl.fromTo(
+        "#s1-head",
+        { x: -40, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.4, ease: "power2.out" },
+        6.573,
+      );
+      P(9.639);
+      tl.fromTo(
+        "#s1-c1",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.5, ease: "back.out(1.5)" },
+        9.639,
+      );
+      tl.to(
+        "#s1-c1",
+        { scale: 1.04, duration: 0.12, yoyo: true, repeat: 1 },
+        10.15,
+      );
+      P(13.216);
+      tl.fromTo(
+        "#s1-c2",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.5, ease: "back.out(1.5)" },
+        13.216,
+      );
+      tl.fromTo(
+        "#s1-src",
+        { y: 16, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.3 },
+        14.749,
+      );
+      tl.fromTo("#s1-sub", { opacity: 0 }, { opacity: 1, duration: 0.25 }, 6.4);
+      tl.set("#s1-ph0", { display: "flex" }, 6.4);
+      tl.set("#s1-ph0-w0", { color: "#ffd166" }, 6.4);
+      tl.set("#s1-ph0-w0", { color: "rgba(255,255,255,0.9)" }, 6.76);
+      tl.set("#s1-ph0-w1", { color: "#ffd166" }, 6.76);
+      tl.set("#s1-ph0-w1", { color: "rgba(255,255,255,0.9)" }, 6.88);
+      tl.set("#s1-ph0-w2", { color: "#ffd166" }, 6.88);
+      tl.set("#s1-ph0-w2", { color: "rgba(255,255,255,0.9)" }, 7.08);
+      tl.set("#s1-ph0-w3", { color: "#ffd166" }, 7.08);
+      tl.set("#s1-ph0-w3", { color: "rgba(255,255,255,0.9)" }, 7.32);
+      tl.set("#s1-ph0-w4", { color: "#ffd166" }, 7.32);
+      tl.set("#s1-ph0-w4", { color: "rgba(255,255,255,0.9)" }, 7.4);
+      tl.set("#s1-ph0-w5", { color: "#ffd166" }, 7.4);
+      tl.set("#s1-ph0-w5", { color: "rgba(255,255,255,0.9)" }, 7.62);
+      tl.set("#s1-ph1", { display: "flex" }, 7.6);
+      tl.set("#s1-ph0", { display: "none" }, 7.6);
+      tl.set("#s1-ph1-w0", { color: "#ffd166" }, 7.6);
+      tl.set("#s1-ph1-w0", { color: "rgba(255,255,255,0.9)" }, 7.74);
+      tl.set("#s1-ph1-w1", { color: "#ffd166" }, 7.74);
+      tl.set("#s1-ph1-w1", { color: "rgba(255,255,255,0.9)" }, 7.9);
+      tl.set("#s1-ph1-w2", { color: "#ffd166" }, 7.9);
+      tl.set("#s1-ph1-w2", { color: "rgba(255,255,255,0.9)" }, 8.44);
+      tl.set("#s1-ph1-w3", { color: "#ffd166" }, 8.44);
+      tl.set("#s1-ph1-w3", { color: "rgba(255,255,255,0.9)" }, 8.8);
+      tl.set("#s1-ph1-w4", { color: "#ffd166" }, 8.8);
+      tl.set("#s1-ph1-w4", { color: "rgba(255,255,255,0.9)" }, 9.02);
+      tl.set("#s1-ph2", { display: "flex" }, 9.7);
+      tl.set("#s1-ph1", { display: "none" }, 9.7);
+      tl.set("#s1-ph2-w0", { color: "#ffd166" }, 9.7);
+      tl.set("#s1-ph2-w0", { color: "rgba(255,255,255,0.9)" }, 9.88);
+      tl.set("#s1-ph2-w1", { color: "#ffd166" }, 9.88);
+      tl.set("#s1-ph2-w1", { color: "rgba(255,255,255,0.9)" }, 10.04);
+      tl.set("#s1-ph2-w2", { color: "#ffd166" }, 10.04);
+      tl.set("#s1-ph2-w2", { color: "rgba(255,255,255,0.9)" }, 10.18);
+      tl.set("#s1-ph2-w3", { color: "#ffd166" }, 10.18);
+      tl.set("#s1-ph2-w3", { color: "rgba(255,255,255,0.9)" }, 10.38);
+      tl.set("#s1-ph2-w4", { color: "#ffd166" }, 10.38);
+      tl.set("#s1-ph2-w4", { color: "rgba(255,255,255,0.9)" }, 10.54);
+      tl.set("#s1-ph2-w5", { color: "#ffd166" }, 10.54);
+      tl.set("#s1-ph2-w5", { color: "rgba(255,255,255,0.9)" }, 10.82);
+      tl.set("#s1-ph2-w6", { color: "#ffd166" }, 10.82);
+      tl.set("#s1-ph2-w6", { color: "rgba(255,255,255,0.9)" }, 11.04);
+      tl.set("#s1-ph3", { display: "flex" }, 10.9);
+      tl.set("#s1-ph2", { display: "none" }, 10.9);
+      tl.set("#s1-ph3-w0", { color: "#ffd166" }, 10.9);
+      tl.set("#s1-ph3-w0", { color: "rgba(255,255,255,0.9)" }, 11.24);
+      tl.set("#s1-ph3-w1", { color: "#ffd166" }, 11.24);
+      tl.set("#s1-ph3-w1", { color: "rgba(255,255,255,0.9)" }, 11.62);
+      tl.set("#s1-ph3-w2", { color: "#ffd166" }, 11.62);
+      tl.set("#s1-ph3-w2", { color: "rgba(255,255,255,0.9)" }, 12.02);
+      tl.set("#s1-ph3-w3", { color: "#ffd166" }, 12.02);
+      tl.set("#s1-ph3-w3", { color: "rgba(255,255,255,0.9)" }, 12.3);
+      tl.set("#s1-ph3-w4", { color: "#ffd166" }, 12.3);
+      tl.set("#s1-ph3-w4", { color: "rgba(255,255,255,0.9)" }, 12.48);
+      tl.set("#s1-ph3-w5", { color: "#ffd166" }, 12.48);
+      tl.set("#s1-ph3-w5", { color: "rgba(255,255,255,0.9)" }, 12.6);
+      tl.set("#s1-ph3-w6", { color: "#ffd166" }, 12.6);
+      tl.set("#s1-ph3-w6", { color: "rgba(255,255,255,0.9)" }, 12.82);
+      tl.set("#s1-ph4", { display: "flex" }, 12.88);
+      tl.set("#s1-ph3", { display: "none" }, 12.88);
+      tl.set("#s1-ph4-w0", { color: "#ffd166" }, 12.88);
+      tl.set("#s1-ph4-w0", { color: "rgba(255,255,255,0.9)" }, 13.06);
+      tl.set("#s1-ph4-w1", { color: "#ffd166" }, 13.06);
+      tl.set("#s1-ph4-w1", { color: "rgba(255,255,255,0.9)" }, 13.22);
+      tl.set("#s1-ph4-w2", { color: "#ffd166" }, 13.22);
+      tl.set("#s1-ph4-w2", { color: "rgba(255,255,255,0.9)" }, 13.46);
+      tl.set("#s1-ph4-w3", { color: "#ffd166" }, 13.46);
+      tl.set("#s1-ph4-w3", { color: "rgba(255,255,255,0.9)" }, 13.66);
+      tl.set("#s1-ph4-w4", { color: "#ffd166" }, 13.66);
+      tl.set("#s1-ph4-w4", { color: "rgba(255,255,255,0.9)" }, 13.8);
+      tl.set("#s1-ph4-w5", { color: "#ffd166" }, 13.8);
+      tl.set("#s1-ph4-w5", { color: "rgba(255,255,255,0.9)" }, 14.18);
+      tl.set("#s1-ph4-w6", { color: "#ffd166" }, 14.18);
+      tl.set("#s1-ph4-w6", { color: "rgba(255,255,255,0.9)" }, 14.6);
+      tl.set("#s1-ph4-w7", { color: "#ffd166" }, 14.6);
+      tl.set("#s1-ph4-w7", { color: "rgba(255,255,255,0.9)" }, 14.82);
+
+      // S2 beat[31]=16.793 beat[32]=17.304 beat[36]=19.348 beat[40]=21.392 beat[43]=22.925 beat[46]=24.458
+      tl.to("#s1", { opacity: 0, duration: 0.5, ease: "power2.in" }, 16.3);
+      tl.set("#s1", { opacity: 0 }, 16.8);
+      W(16.793);
+      tl.fromTo(
+        "#s2",
+        { opacity: 0, clipPath: "inset(0 100% 0 0)" },
+        {
+          opacity: 1,
+          clipPath: "inset(0 0% 0 0)",
+          duration: 0.7,
+          ease: "power3.out",
+        },
+        16.6,
+      );
+      tl.fromTo(
+        "#s2-img",
+        { scale: 1.0 },
+        { scale: 1.06, duration: 9.1, ease: "none" },
+        16.6,
+      );
+      tl.fromTo(
+        "#s2-head",
+        { x: -40, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.4, ease: "power2.out" },
+        17.304,
+      );
+      P(19.348);
+      tl.fromTo(
+        "#s2-b1",
+        { x: -48, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.4, ease: "power2.out" },
+        19.348,
+      );
+      tl.fromTo(
+        "#s2-b2",
+        { x: -48, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.4, ease: "power2.out" },
+        21.392,
+      );
+      P(22.925);
+      tl.fromTo(
+        "#s2-b3",
+        { x: -48, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.4, ease: "power2.out" },
+        22.925,
+      );
+      tl.fromTo(
+        "#s2-note",
+        { y: 20, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.4, ease: "expo.out" },
+        24.458,
+      );
+      tl.fromTo(
+        "#s2-sub",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.25 },
+        17.0,
+      );
+      tl.set("#s2-ph0", { display: "flex" }, 17.0);
+      tl.set("#s2-ph0-w0", { color: "#ffd166" }, 17.0);
+      tl.set("#s2-ph0-w0", { color: "rgba(255,255,255,0.9)" }, 17.36);
+      tl.set("#s2-ph0-w1", { color: "#ffd166" }, 17.36);
+      tl.set("#s2-ph0-w1", { color: "rgba(255,255,255,0.9)" }, 17.5);
+      tl.set("#s2-ph0-w2", { color: "#ffd166" }, 17.5);
+      tl.set("#s2-ph0-w2", { color: "rgba(255,255,255,0.9)" }, 17.98);
+      tl.set("#s2-ph0-w3", { color: "#ffd166" }, 17.98);
+      tl.set("#s2-ph0-w3", { color: "rgba(255,255,255,0.9)" }, 18.08);
+      tl.set("#s2-ph0-w4", { color: "#ffd166" }, 18.08);
+      tl.set("#s2-ph0-w4", { color: "rgba(255,255,255,0.9)" }, 18.34);
+      tl.set("#s2-ph0-w5", { color: "#ffd166" }, 18.34);
+      tl.set("#s2-ph0-w5", { color: "rgba(255,255,255,0.9)" }, 18.48);
+      tl.set("#s2-ph0-w6", { color: "#ffd166" }, 18.48);
+      tl.set("#s2-ph0-w6", { color: "rgba(255,255,255,0.9)" }, 18.62);
+      tl.set("#s2-ph0-w7", { color: "#ffd166" }, 18.62);
+      tl.set("#s2-ph0-w7", { color: "rgba(255,255,255,0.9)" }, 18.84);
+      tl.set("#s2-ph1", { display: "flex" }, 18.88);
+      tl.set("#s2-ph0", { display: "none" }, 18.88);
+      tl.set("#s2-ph1-w0", { color: "#ffd166" }, 18.88);
+      tl.set("#s2-ph1-w0", { color: "rgba(255,255,255,0.9)" }, 19.38);
+      tl.set("#s2-ph1-w1", { color: "#ffd166" }, 19.38);
+      tl.set("#s2-ph1-w1", { color: "rgba(255,255,255,0.9)" }, 19.64);
+      tl.set("#s2-ph1-w2", { color: "#ffd166" }, 19.64);
+      tl.set("#s2-ph1-w2", { color: "rgba(255,255,255,0.9)" }, 19.8);
+      tl.set("#s2-ph1-w3", { color: "#ffd166" }, 19.8);
+      tl.set("#s2-ph1-w3", { color: "rgba(255,255,255,0.9)" }, 19.96);
+      tl.set("#s2-ph1-w4", { color: "#ffd166" }, 19.96);
+      tl.set("#s2-ph1-w4", { color: "rgba(255,255,255,0.9)" }, 20.24);
+      tl.set("#s2-ph1-w5", { color: "#ffd166" }, 20.24);
+      tl.set("#s2-ph1-w5", { color: "rgba(255,255,255,0.9)" }, 20.54);
+      tl.set("#s2-ph1-w6", { color: "#ffd166" }, 20.54);
+      tl.set("#s2-ph1-w6", { color: "rgba(255,255,255,0.9)" }, 20.68);
+      tl.set("#s2-ph1-w7", { color: "#ffd166" }, 20.68);
+      tl.set("#s2-ph1-w7", { color: "rgba(255,255,255,0.9)" }, 20.9);
+      tl.set("#s2-ph2", { display: "flex" }, 20.96);
+      tl.set("#s2-ph1", { display: "none" }, 20.96);
+      tl.set("#s2-ph2-w0", { color: "#ffd166" }, 20.96);
+      tl.set("#s2-ph2-w0", { color: "rgba(255,255,255,0.9)" }, 21.26);
+      tl.set("#s2-ph2-w1", { color: "#ffd166" }, 21.26);
+      tl.set("#s2-ph2-w1", { color: "rgba(255,255,255,0.9)" }, 21.42);
+      tl.set("#s2-ph2-w2", { color: "#ffd166" }, 21.42);
+      tl.set("#s2-ph2-w2", { color: "rgba(255,255,255,0.9)" }, 21.56);
+      tl.set("#s2-ph2-w3", { color: "#ffd166" }, 21.56);
+      tl.set("#s2-ph2-w3", { color: "rgba(255,255,255,0.9)" }, 21.76);
+      tl.set("#s2-ph2-w4", { color: "#ffd166" }, 21.76);
+      tl.set("#s2-ph2-w4", { color: "rgba(255,255,255,0.9)" }, 21.98);
+      tl.set("#s2-ph3", { display: "flex" }, 22.28);
+      tl.set("#s2-ph2", { display: "none" }, 22.28);
+      tl.set("#s2-ph3-w0", { color: "#ffd166" }, 22.28);
+      tl.set("#s2-ph3-w0", { color: "rgba(255,255,255,0.9)" }, 22.48);
+      tl.set("#s2-ph3-w1", { color: "#ffd166" }, 22.48);
+      tl.set("#s2-ph3-w1", { color: "rgba(255,255,255,0.9)" }, 22.64);
+      tl.set("#s2-ph3-w2", { color: "#ffd166" }, 22.64);
+      tl.set("#s2-ph3-w2", { color: "rgba(255,255,255,0.9)" }, 22.78);
+      tl.set("#s2-ph3-w3", { color: "#ffd166" }, 22.78);
+      tl.set("#s2-ph3-w3", { color: "rgba(255,255,255,0.9)" }, 23.02);
+      tl.set("#s2-ph3-w4", { color: "#ffd166" }, 23.02);
+      tl.set("#s2-ph3-w4", { color: "rgba(255,255,255,0.9)" }, 23.28);
+      tl.set("#s2-ph3-w5", { color: "#ffd166" }, 23.28);
+      tl.set("#s2-ph3-w5", { color: "rgba(255,255,255,0.9)" }, 23.42);
+      tl.set("#s2-ph3-w6", { color: "#ffd166" }, 23.42);
+      tl.set("#s2-ph3-w6", { color: "rgba(255,255,255,0.9)" }, 23.64);
+      tl.set("#s2-ph4", { display: "flex" }, 23.64);
+      tl.set("#s2-ph3", { display: "none" }, 23.64);
+      tl.set("#s2-ph4-w0", { color: "#ffd166" }, 23.64);
+      tl.set("#s2-ph4-w0", { color: "rgba(255,255,255,0.9)" }, 23.92);
+      tl.set("#s2-ph4-w1", { color: "#ffd166" }, 23.92);
+      tl.set("#s2-ph4-w1", { color: "rgba(255,255,255,0.9)" }, 24.08);
+      tl.set("#s2-ph4-w2", { color: "#ffd166" }, 24.08);
+      tl.set("#s2-ph4-w2", { color: "rgba(255,255,255,0.9)" }, 24.44);
+      tl.set("#s2-ph4-w3", { color: "#ffd166" }, 24.44);
+      tl.set("#s2-ph4-w3", { color: "rgba(255,255,255,0.9)" }, 24.7);
+      tl.set("#s2-ph4-w4", { color: "#ffd166" }, 24.7);
+      tl.set("#s2-ph4-w4", { color: "rgba(255,255,255,0.9)" }, 24.92);
+      tl.set("#s2-ph4-w5", { color: "#ffd166" }, 24.92);
+      tl.set("#s2-ph4-w5", { color: "rgba(255,255,255,0.9)" }, 25.16);
+      tl.set("#s2-ph4-w6", { color: "#ffd166" }, 25.16);
+      tl.set("#s2-ph4-w6", { color: "rgba(255,255,255,0.9)" }, 25.38);
+
+      // S3 beat[49]=25.991 beat[50]=26.502 beat[51]=27.013 beat[55]=29.057 beat[62]=32.634 beat[64]=33.656
+      tl.to("#s2", { opacity: 0, duration: 0.5, ease: "power2.in" }, 25.4);
+      tl.set("#s2", { opacity: 0 }, 25.9);
+      W(25.991);
+      tl.fromTo(
+        "#s3",
+        { opacity: 0, scale: 0.97, filter: "blur(8px)" },
+        {
+          opacity: 1,
+          scale: 1,
+          filter: "blur(0px)",
+          duration: 0.55,
+          ease: "power3.out",
+        },
+        25.7,
+      );
+      tl.fromTo(
+        "#s3-img",
+        { scale: 1.0 },
+        { scale: 1.06, duration: 10.5, ease: "none" },
+        25.7,
+      );
+      tl.fromTo(
+        "#s3-head",
+        { x: -40, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.4, ease: "power2.out" },
+        26.502,
+      );
+      I(27.013);
+      tl.fromTo(
+        "#s3-num",
+        { y: -50, opacity: 0, scale: 1.12 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.65, ease: "back.out(2.0)" },
+        27.013,
+      );
+      tl.to(
+        "#s3-num",
+        {
+          textShadow:
+            "0 0 80px rgba(255,209,102,0.95),4px 7px 0 rgba(139,98,0,0.85)",
+          duration: 0.9,
+          yoyo: true,
+          repeat: 2,
+        },
+        27.5,
+      );
+      tl.fromTo(
+        "#s3-lbl",
+        { y: 20, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.4, ease: "expo.out" },
+        27.524,
+      );
+      P(29.057);
+      tl.fromTo(
+        "#s3-b1",
+        { x: -48, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.42, ease: "power2.out" },
+        29.057,
+      );
+      P(32.634);
+      tl.fromTo(
+        "#s3-b2",
+        { x: -48, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.42, ease: "power2.out" },
+        32.634,
+      );
+      tl.fromTo(
+        "#s3-src",
+        { y: 16, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.3 },
+        33.656,
+      );
+      tl.fromTo(
+        "#s3-sub",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.25 },
+        26.1,
+      );
+      tl.set("#s3-ph0", { display: "flex" }, 26.1);
+      tl.set("#s3-ph0-w0", { color: "#ffd166" }, 26.1);
+      tl.set("#s3-ph0-w0", { color: "rgba(255,255,255,0.9)" }, 26.5);
+      tl.set("#s3-ph0-w1", { color: "#ffd166" }, 26.5);
+      tl.set("#s3-ph0-w1", { color: "rgba(255,255,255,0.9)" }, 26.68);
+      tl.set("#s3-ph0-w2", { color: "#ffd166" }, 26.68);
+      tl.set("#s3-ph0-w2", { color: "rgba(255,255,255,0.9)" }, 26.86);
+      tl.set("#s3-ph0-w3", { color: "#ffd166" }, 26.86);
+      tl.set("#s3-ph0-w3", { color: "rgba(255,255,255,0.9)" }, 27.06);
+      tl.set("#s3-ph0-w4", { color: "#ffd166" }, 27.06);
+      tl.set("#s3-ph0-w4", { color: "rgba(255,255,255,0.9)" }, 27.26);
+      tl.set("#s3-ph0-w5", { color: "#ffd166" }, 27.26);
+      tl.set("#s3-ph0-w5", { color: "rgba(255,255,255,0.9)" }, 27.48);
+      tl.set("#s3-ph1", { display: "flex" }, 27.72);
+      tl.set("#s3-ph0", { display: "none" }, 27.72);
+      tl.set("#s3-ph1-w0", { color: "#ffd166" }, 27.72);
+      tl.set("#s3-ph1-w0", { color: "rgba(255,255,255,0.9)" }, 27.76);
+      tl.set("#s3-ph1-w1", { color: "#ffd166" }, 27.76);
+      tl.set("#s3-ph1-w1", { color: "rgba(255,255,255,0.9)" }, 27.98);
+      tl.set("#s3-ph1-w2", { color: "#ffd166" }, 27.98);
+      tl.set("#s3-ph1-w2", { color: "rgba(255,255,255,0.9)" }, 28.1);
+      tl.set("#s3-ph1-w3", { color: "#ffd166" }, 28.1);
+      tl.set("#s3-ph1-w3", { color: "rgba(255,255,255,0.9)" }, 28.26);
+      tl.set("#s3-ph1-w4", { color: "#ffd166" }, 28.26);
+      tl.set("#s3-ph1-w4", { color: "rgba(255,255,255,0.9)" }, 28.48);
+      tl.set("#s3-ph2", { display: "flex" }, 28.76);
+      tl.set("#s3-ph1", { display: "none" }, 28.76);
+      tl.set("#s3-ph2-w0", { color: "#ffd166" }, 28.76);
+      tl.set("#s3-ph2-w0", { color: "rgba(255,255,255,0.9)" }, 29.0);
+      tl.set("#s3-ph2-w1", { color: "#ffd166" }, 29.0);
+      tl.set("#s3-ph2-w1", { color: "rgba(255,255,255,0.9)" }, 29.18);
+      tl.set("#s3-ph2-w2", { color: "#ffd166" }, 29.18);
+      tl.set("#s3-ph2-w2", { color: "rgba(255,255,255,0.9)" }, 29.32);
+      tl.set("#s3-ph2-w3", { color: "#ffd166" }, 29.32);
+      tl.set("#s3-ph2-w3", { color: "rgba(255,255,255,0.9)" }, 29.5);
+      tl.set("#s3-ph2-w4", { color: "#ffd166" }, 29.5);
+      tl.set("#s3-ph2-w4", { color: "rgba(255,255,255,0.9)" }, 29.84);
+      tl.set("#s3-ph2-w5", { color: "#ffd166" }, 29.84);
+      tl.set("#s3-ph2-w5", { color: "rgba(255,255,255,0.9)" }, 29.98);
+      tl.set("#s3-ph2-w6", { color: "#ffd166" }, 29.98);
+      tl.set("#s3-ph2-w6", { color: "rgba(255,255,255,0.9)" }, 30.22);
+      tl.set("#s3-ph2-w7", { color: "#ffd166" }, 30.22);
+      tl.set("#s3-ph2-w7", { color: "rgba(255,255,255,0.9)" }, 30.44);
+      tl.set("#s3-ph3", { display: "flex" }, 30.62);
+      tl.set("#s3-ph2", { display: "none" }, 30.62);
+      tl.set("#s3-ph3-w0", { color: "#ffd166" }, 30.62);
+      tl.set("#s3-ph3-w0", { color: "rgba(255,255,255,0.9)" }, 30.78);
+      tl.set("#s3-ph3-w1", { color: "#ffd166" }, 30.78);
+      tl.set("#s3-ph3-w1", { color: "rgba(255,255,255,0.9)" }, 31.02);
+      tl.set("#s3-ph3-w2", { color: "#ffd166" }, 31.02);
+      tl.set("#s3-ph3-w2", { color: "rgba(255,255,255,0.9)" }, 31.16);
+      tl.set("#s3-ph3-w3", { color: "#ffd166" }, 31.16);
+      tl.set("#s3-ph3-w3", { color: "rgba(255,255,255,0.9)" }, 31.34);
+      tl.set("#s3-ph3-w4", { color: "#ffd166" }, 31.34);
+      tl.set("#s3-ph3-w4", { color: "rgba(255,255,255,0.9)" }, 31.7);
+      tl.set("#s3-ph3-w5", { color: "#ffd166" }, 31.7);
+      tl.set("#s3-ph3-w5", { color: "rgba(255,255,255,0.9)" }, 32.0);
+      tl.set("#s3-ph3-w6", { color: "#ffd166" }, 32.0);
+      tl.set("#s3-ph3-w6", { color: "rgba(255,255,255,0.9)" }, 32.18);
+      tl.set("#s3-ph3-w7", { color: "#ffd166" }, 32.18);
+      tl.set("#s3-ph3-w7", { color: "rgba(255,255,255,0.9)" }, 32.4);
+      tl.set("#s3-ph4", { display: "flex" }, 32.62);
+      tl.set("#s3-ph3", { display: "none" }, 32.62);
+      tl.set("#s3-ph4-w0", { color: "#ffd166" }, 32.62);
+      tl.set("#s3-ph4-w0", { color: "rgba(255,255,255,0.9)" }, 32.72);
+      tl.set("#s3-ph4-w1", { color: "#ffd166" }, 32.72);
+      tl.set("#s3-ph4-w1", { color: "rgba(255,255,255,0.9)" }, 32.9);
+      tl.set("#s3-ph4-w2", { color: "#ffd166" }, 32.9);
+      tl.set("#s3-ph4-w2", { color: "rgba(255,255,255,0.9)" }, 33.24);
+      tl.set("#s3-ph4-w3", { color: "#ffd166" }, 33.24);
+      tl.set("#s3-ph4-w3", { color: "rgba(255,255,255,0.9)" }, 34.2);
+      tl.set("#s3-ph4-w4", { color: "#ffd166" }, 34.2);
+      tl.set("#s3-ph4-w4", { color: "rgba(255,255,255,0.9)" }, 34.42);
+      tl.set("#s3-ph4-w5", { color: "#ffd166" }, 34.42);
+      tl.set("#s3-ph4-w5", { color: "rgba(255,255,255,0.9)" }, 34.58);
+      tl.set("#s3-ph4-w6", { color: "#ffd166" }, 34.58);
+      tl.set("#s3-ph4-w6", { color: "rgba(255,255,255,0.9)" }, 34.72);
+      tl.set("#s3-ph4-w7", { color: "#ffd166" }, 34.72);
+      tl.set("#s3-ph4-w7", { color: "rgba(255,255,255,0.9)" }, 34.94);
+
+      // S4 beat[68]=35.700 beat[69]=36.211 beat[73]=38.255 beat[76]=39.788 beat[80]=41.832
+      tl.to("#s3", { opacity: 0, duration: 0.5, ease: "power2.in" }, 35.4);
+      tl.set("#s3", { opacity: 0 }, 36.0);
+      W(35.7);
+      tl.fromTo(
+        "#s4",
+        { opacity: 0, scale: 1.04, filter: "blur(12px)" },
+        {
+          opacity: 1,
+          scale: 1,
+          filter: "blur(0px)",
+          duration: 0.6,
+          ease: "power3.out",
+        },
+        35.8,
+      );
+      tl.fromTo(
+        "#s4-img",
+        { scale: 1.0 },
+        { scale: 1.06, duration: 7.9, ease: "none" },
+        35.8,
+      );
+      tl.fromTo(
+        "#s4-head",
+        { x: -40, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.4, ease: "power2.out" },
+        36.211,
+      );
+      P(38.255);
+      tl.fromTo(
+        "#s4-b1",
+        { x: -48, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.4, ease: "power2.out" },
+        38.255,
+      );
+      tl.fromTo(
+        "#s4-b2",
+        { x: -48, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.4, ease: "power2.out" },
+        39.788,
+      );
+      P(41.832);
+      tl.fromTo(
+        "#s4-restrict",
+        { x: 60, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.55, ease: "back.out(1.5)" },
+        41.832,
+      );
+      tl.fromTo(
+        "#s4-sub",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.25 },
+        36.1,
+      );
+      tl.set("#s4-ph0", { display: "flex" }, 36.1);
+      tl.set("#s4-ph0-w0", { color: "#ffd166" }, 36.1);
+      tl.set("#s4-ph0-w0", { color: "rgba(255,255,255,0.9)" }, 36.38);
+      tl.set("#s4-ph0-w1", { color: "#ffd166" }, 36.38);
+      tl.set("#s4-ph0-w1", { color: "rgba(255,255,255,0.9)" }, 36.54);
+      tl.set("#s4-ph0-w2", { color: "#ffd166" }, 36.54);
+      tl.set("#s4-ph0-w2", { color: "rgba(255,255,255,0.9)" }, 37.1);
+      tl.set("#s4-ph0-w3", { color: "#ffd166" }, 37.1);
+      tl.set("#s4-ph0-w3", { color: "rgba(255,255,255,0.9)" }, 37.28);
+      tl.set("#s4-ph0-w4", { color: "#ffd166" }, 37.28);
+      tl.set("#s4-ph0-w4", { color: "rgba(255,255,255,0.9)" }, 37.46);
+      tl.set("#s4-ph0-w5", { color: "#ffd166" }, 37.46);
+      tl.set("#s4-ph0-w5", { color: "rgba(255,255,255,0.9)" }, 37.58);
+      tl.set("#s4-ph0-w6", { color: "#ffd166" }, 37.58);
+      tl.set("#s4-ph0-w6", { color: "rgba(255,255,255,0.9)" }, 37.98);
+      tl.set("#s4-ph0-w7", { color: "#ffd166" }, 37.98);
+      tl.set("#s4-ph0-w7", { color: "rgba(255,255,255,0.9)" }, 38.2);
+      tl.set("#s4-ph1", { display: "flex" }, 38.4);
+      tl.set("#s4-ph0", { display: "none" }, 38.4);
+      tl.set("#s4-ph1-w0", { color: "#ffd166" }, 38.4);
+      tl.set("#s4-ph1-w0", { color: "rgba(255,255,255,0.9)" }, 38.48);
+      tl.set("#s4-ph1-w1", { color: "#ffd166" }, 38.48);
+      tl.set("#s4-ph1-w1", { color: "rgba(255,255,255,0.9)" }, 38.72);
+      tl.set("#s4-ph1-w2", { color: "#ffd166" }, 38.72);
+      tl.set("#s4-ph1-w2", { color: "rgba(255,255,255,0.9)" }, 38.92);
+      tl.set("#s4-ph1-w3", { color: "#ffd166" }, 38.92);
+      tl.set("#s4-ph1-w3", { color: "rgba(255,255,255,0.9)" }, 39.08);
+      tl.set("#s4-ph1-w4", { color: "#ffd166" }, 39.08);
+      tl.set("#s4-ph1-w4", { color: "rgba(255,255,255,0.9)" }, 39.3);
+      tl.set("#s4-ph1-w5", { color: "#ffd166" }, 39.3);
+      tl.set("#s4-ph1-w5", { color: "rgba(255,255,255,0.9)" }, 39.52);
+      tl.set("#s4-ph2", { display: "flex" }, 39.86);
+      tl.set("#s4-ph1", { display: "none" }, 39.86);
+      tl.set("#s4-ph2-w0", { color: "#ffd166" }, 39.86);
+      tl.set("#s4-ph2-w0", { color: "rgba(255,255,255,0.9)" }, 40.0);
+      tl.set("#s4-ph2-w1", { color: "#ffd166" }, 40.0);
+      tl.set("#s4-ph2-w1", { color: "rgba(255,255,255,0.9)" }, 40.14);
+      tl.set("#s4-ph2-w2", { color: "#ffd166" }, 40.14);
+      tl.set("#s4-ph2-w2", { color: "rgba(255,255,255,0.9)" }, 40.32);
+      tl.set("#s4-ph2-w3", { color: "#ffd166" }, 40.32);
+      tl.set("#s4-ph2-w3", { color: "rgba(255,255,255,0.9)" }, 40.58);
+      tl.set("#s4-ph2-w4", { color: "#ffd166" }, 40.58);
+      tl.set("#s4-ph2-w4", { color: "rgba(255,255,255,0.9)" }, 40.72);
+      tl.set("#s4-ph2-w5", { color: "#ffd166" }, 40.72);
+      tl.set("#s4-ph2-w5", { color: "rgba(255,255,255,0.9)" }, 41.02);
+      tl.set("#s4-ph2-w6", { color: "#ffd166" }, 41.02);
+      tl.set("#s4-ph2-w6", { color: "rgba(255,255,255,0.9)" }, 41.3);
+      tl.set("#s4-ph2-w7", { color: "#ffd166" }, 41.3);
+      tl.set("#s4-ph2-w7", { color: "rgba(255,255,255,0.9)" }, 41.52);
+      tl.set("#s4-ph3", { display: "flex" }, 41.54);
+      tl.set("#s4-ph2", { display: "none" }, 41.54);
+      tl.set("#s4-ph3-w0", { color: "#ffd166" }, 41.54);
+      tl.set("#s4-ph3-w0", { color: "rgba(255,255,255,0.9)" }, 42.06);
+      tl.set("#s4-ph3-w1", { color: "#ffd166" }, 42.06);
+      tl.set("#s4-ph3-w1", { color: "rgba(255,255,255,0.9)" }, 42.28);
+      tl.set("#s4-ph3-w2", { color: "#ffd166" }, 42.28);
+      tl.set("#s4-ph3-w2", { color: "rgba(255,255,255,0.9)" }, 42.4);
+      tl.set("#s4-ph3-w3", { color: "#ffd166" }, 42.4);
+      tl.set("#s4-ph3-w3", { color: "rgba(255,255,255,0.9)" }, 42.62);
+      tl.set("#s4-ph3-w4", { color: "#ffd166" }, 42.62);
+      tl.set("#s4-ph3-w4", { color: "rgba(255,255,255,0.9)" }, 42.86);
+      tl.set("#s4-ph3-w5", { color: "#ffd166" }, 42.86);
+      tl.set("#s4-ph3-w5", { color: "rgba(255,255,255,0.9)" }, 43.04);
+      tl.set("#s4-ph3-w6", { color: "#ffd166" }, 43.04);
+      tl.set("#s4-ph3-w6", { color: "rgba(255,255,255,0.9)" }, 43.26);
+
+      // S5 SIGNAL CARDS beat[84]=43.876 beat[85]=44.387 beat[86]=44.898 beat[91]=47.453 beat[96]=50.008
+      tl.to("#s4", { opacity: 0, duration: 0.5, ease: "power2.in" }, 43.4);
+      tl.set("#s4", { opacity: 0 }, 43.9);
+      W(43.876);
+      tl.fromTo(
+        "#s5",
+        { opacity: 0, scale: 0.88, filter: "blur(10px)" },
+        {
+          opacity: 1,
+          scale: 1,
+          filter: "blur(0px)",
+          duration: 0.65,
+          ease: "power3.out",
+        },
+        43.7,
+      );
+      tl.fromTo(
+        "#s5-img",
+        { scale: 1.0 },
+        { scale: 1.06, duration: 7.6, ease: "none" },
+        43.7,
+      );
+      tl.fromTo(
+        "#s5-head",
+        { x: -40, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.4, ease: "power2.out" },
+        44.387,
+      );
+      P(44.898);
+      tl.fromTo(
+        "#s5-sa",
+        { x: -80, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.55, ease: "back.out(1.5)" },
+        44.898,
+      );
+      tl.fromTo(
+        "#s5-sb",
+        { x: 80, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.55, ease: "back.out(1.5)" },
+        47.453,
+      );
+      tl.fromTo(
+        "#s5-note",
+        { y: 20, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.4 },
+        50.008,
+      );
+      tl.fromTo(
+        "#s5-sub",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.25 },
+        44.1,
+      );
+      tl.set("#s5-ph0", { display: "flex" }, 44.1);
+      tl.set("#s5-ph0-w0", { color: "#ffd166" }, 44.1);
+      tl.set("#s5-ph0-w0", { color: "rgba(255,255,255,0.9)" }, 44.4);
+      tl.set("#s5-ph0-w1", { color: "#ffd166" }, 44.4);
+      tl.set("#s5-ph0-w1", { color: "rgba(255,255,255,0.9)" }, 44.5);
+      tl.set("#s5-ph0-w2", { color: "#ffd166" }, 44.5);
+      tl.set("#s5-ph0-w2", { color: "rgba(255,255,255,0.9)" }, 44.78);
+      tl.set("#s5-ph0-w3", { color: "#ffd166" }, 44.78);
+      tl.set("#s5-ph0-w3", { color: "rgba(255,255,255,0.9)" }, 44.92);
+      tl.set("#s5-ph0-w4", { color: "#ffd166" }, 44.92);
+      tl.set("#s5-ph0-w4", { color: "rgba(255,255,255,0.9)" }, 45.24);
+      tl.set("#s5-ph0-w5", { color: "#ffd166" }, 45.24);
+      tl.set("#s5-ph0-w5", { color: "rgba(255,255,255,0.9)" }, 45.4);
+      tl.set("#s5-ph0-w6", { color: "#ffd166" }, 45.4);
+      tl.set("#s5-ph0-w6", { color: "rgba(255,255,255,0.9)" }, 45.76);
+      tl.set("#s5-ph0-w7", { color: "#ffd166" }, 45.76);
+      tl.set("#s5-ph0-w7", { color: "rgba(255,255,255,0.9)" }, 45.98);
+      tl.set("#s5-ph1", { display: "flex" }, 46.14);
+      tl.set("#s5-ph0", { display: "none" }, 46.14);
+      tl.set("#s5-ph1-w0", { color: "#ffd166" }, 46.14);
+      tl.set("#s5-ph1-w0", { color: "rgba(255,255,255,0.9)" }, 46.48);
+      tl.set("#s5-ph1-w1", { color: "#ffd166" }, 46.48);
+      tl.set("#s5-ph1-w1", { color: "rgba(255,255,255,0.9)" }, 46.6);
+      tl.set("#s5-ph1-w2", { color: "#ffd166" }, 46.6);
+      tl.set("#s5-ph1-w2", { color: "rgba(255,255,255,0.9)" }, 46.8);
+      tl.set("#s5-ph1-w3", { color: "#ffd166" }, 46.8);
+      tl.set("#s5-ph1-w3", { color: "rgba(255,255,255,0.9)" }, 47.04);
+      tl.set("#s5-ph1-w4", { color: "#ffd166" }, 47.04);
+      tl.set("#s5-ph1-w4", { color: "rgba(255,255,255,0.9)" }, 47.16);
+      tl.set("#s5-ph1-w5", { color: "#ffd166" }, 47.16);
+      tl.set("#s5-ph1-w5", { color: "rgba(255,255,255,0.9)" }, 47.26);
+      tl.set("#s5-ph1-w6", { color: "#ffd166" }, 47.26);
+      tl.set("#s5-ph1-w6", { color: "rgba(255,255,255,0.9)" }, 47.74);
+      tl.set("#s5-ph1-w7", { color: "#ffd166" }, 47.74);
+      tl.set("#s5-ph1-w7", { color: "rgba(255,255,255,0.9)" }, 47.96);
+      tl.set("#s5-ph2", { display: "flex" }, 48.14);
+      tl.set("#s5-ph1", { display: "none" }, 48.14);
+      tl.set("#s5-ph2-w0", { color: "#ffd166" }, 48.62);
+      tl.set("#s5-ph2-w0", { color: "rgba(255,255,255,0.9)" }, 48.78);
+      tl.set("#s5-ph2-w1", { color: "#ffd166" }, 48.78);
+      tl.set("#s5-ph2-w1", { color: "rgba(255,255,255,0.9)" }, 48.88);
+      tl.set("#s5-ph2-w2", { color: "#ffd166" }, 48.88);
+      tl.set("#s5-ph2-w2", { color: "rgba(255,255,255,0.9)" }, 49.04);
+      tl.set("#s5-ph2-w3", { color: "#ffd166" }, 49.04);
+      tl.set("#s5-ph2-w3", { color: "rgba(255,255,255,0.9)" }, 49.36);
+      tl.set("#s5-ph2-w4", { color: "#ffd166" }, 49.36);
+      tl.set("#s5-ph2-w4", { color: "rgba(255,255,255,0.9)" }, 49.6);
+      tl.set("#s5-ph2-w5", { color: "#ffd166" }, 49.6);
+      tl.set("#s5-ph2-w5", { color: "rgba(255,255,255,0.9)" }, 49.76);
+      tl.set("#s5-ph2-w6", { color: "#ffd166" }, 49.76);
+      tl.set("#s5-ph2-w6", { color: "rgba(255,255,255,0.9)" }, 49.94);
+      tl.set("#s5-ph2-w7", { color: "#ffd166" }, 49.94);
+      tl.set("#s5-ph2-w7", { color: "rgba(255,255,255,0.9)" }, 50.16);
+      tl.set("#s5-ph3", { display: "flex" }, 50.0);
+      tl.set("#s5-ph2", { display: "none" }, 50.0);
+      tl.set("#s5-ph3-w0", { color: "#ffd166" }, 50.0);
+      tl.set("#s5-ph3-w0", { color: "rgba(255,255,255,0.9)" }, 50.2);
+      tl.set("#s5-ph3-w1", { color: "#ffd166" }, 50.2);
+      tl.set("#s5-ph3-w1", { color: "rgba(255,255,255,0.9)" }, 50.4);
+      tl.set("#s5-ph3-w2", { color: "#ffd166" }, 50.4);
+      tl.set("#s5-ph3-w2", { color: "rgba(255,255,255,0.9)" }, 50.56);
+      tl.set("#s5-ph3-w3", { color: "#ffd166" }, 50.56);
+      tl.set("#s5-ph3-w3", { color: "rgba(255,255,255,0.9)" }, 50.72);
+      tl.set("#s5-ph3-w4", { color: "#ffd166" }, 50.72);
+      tl.set("#s5-ph3-w4", { color: "rgba(255,255,255,0.9)" }, 50.9);
+      tl.set("#s5-ph3-w5", { color: "#ffd166" }, 50.9);
+      tl.set("#s5-ph3-w5", { color: "rgba(255,255,255,0.9)" }, 51.12);
+
+      // S6 CHOICE GRID beat[99]=51.541 beat[100]=52.052 beat[101]=52.563 beat[104]=54.096
+      tl.to("#s5", { opacity: 0, duration: 0.5, ease: "power2.in" }, 51.0);
+      tl.set("#s5", { opacity: 0 }, 51.4);
+      W(51.541);
+      tl.fromTo(
+        "#s6",
+        { opacity: 0, scale: 0.97, filter: "blur(8px)" },
+        { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.55 },
+        51.2,
+      );
+      tl.fromTo(
+        "#s6-img",
+        { scale: 1.0 },
+        { scale: 1.06, duration: 8.0, ease: "none" },
+        51.2,
+      );
+      tl.to("#s6-grid", { opacity: 1, duration: 0.5 }, 51.4);
+      tl.fromTo(
+        "#s6-head",
+        { x: -40, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.4, ease: "power2.out" },
+        52.052,
+      );
+      P(52.563);
+      tl.fromTo(
+        ["#s6-ch1", "#s6-ch2"],
+        { y: 60, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.52,
+          ease: "back.out(1.6)",
+          stagger: 0.12,
+        },
+        52.563,
+      );
+      P(54.096);
+      tl.fromTo(
+        ["#s6-ch3", "#s6-ch4"],
+        { y: 60, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.52,
+          ease: "back.out(1.6)",
+          stagger: 0.12,
+        },
+        54.096,
+      );
+      tl.set("#s6", { opacity: 0 }, 59.3);
+      tl.set("#s6", { opacity: 0 }, 59.5);
+      tl.fromTo(
+        "#s6-sub",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.25 },
+        51.7,
+      );
+      tl.set("#s6-ph0", { display: "flex" }, 51.7);
+      tl.set("#s6-ph0-w0", { color: "#ffd166" }, 51.7);
+      tl.set("#s6-ph0-w0", { color: "rgba(255,255,255,0.9)" }, 51.96);
+      tl.set("#s6-ph0-w1", { color: "#ffd166" }, 51.96);
+      tl.set("#s6-ph0-w1", { color: "rgba(255,255,255,0.9)" }, 52.18);
+      tl.set("#s6-ph0-w2", { color: "#ffd166" }, 52.18);
+      tl.set("#s6-ph0-w2", { color: "rgba(255,255,255,0.9)" }, 52.32);
+      tl.set("#s6-ph0-w3", { color: "#ffd166" }, 52.32);
+      tl.set("#s6-ph0-w3", { color: "rgba(255,255,255,0.9)" }, 52.58);
+      tl.set("#s6-ph0-w4", { color: "#ffd166" }, 52.58);
+      tl.set("#s6-ph0-w4", { color: "rgba(255,255,255,0.9)" }, 52.7);
+      tl.set("#s6-ph0-w5", { color: "#ffd166" }, 52.7);
+      tl.set("#s6-ph0-w5", { color: "rgba(255,255,255,0.9)" }, 52.86);
+      tl.set("#s6-ph0-w6", { color: "#ffd166" }, 52.86);
+      tl.set("#s6-ph0-w6", { color: "rgba(255,255,255,0.9)" }, 53.08);
+      tl.set("#s6-ph0-w7", { color: "#ffd166" }, 53.08);
+      tl.set("#s6-ph0-w7", { color: "rgba(255,255,255,0.9)" }, 53.3);
+      tl.set("#s6-ph1", { display: "flex" }, 53.24);
+      tl.set("#s6-ph0", { display: "none" }, 53.24);
+      tl.set("#s6-ph1-w0", { color: "#ffd166" }, 53.24);
+      tl.set("#s6-ph1-w0", { color: "rgba(255,255,255,0.9)" }, 53.42);
+      tl.set("#s6-ph1-w1", { color: "#ffd166" }, 53.42);
+      tl.set("#s6-ph1-w1", { color: "rgba(255,255,255,0.9)" }, 53.56);
+      tl.set("#s6-ph1-w2", { color: "#ffd166" }, 53.56);
+      tl.set("#s6-ph1-w2", { color: "rgba(255,255,255,0.9)" }, 53.68);
+      tl.set("#s6-ph1-w3", { color: "#ffd166" }, 53.68);
+      tl.set("#s6-ph1-w3", { color: "rgba(255,255,255,0.9)" }, 53.9);
+      tl.set("#s6-ph2", { display: "flex" }, 53.88);
+      tl.set("#s6-ph1", { display: "none" }, 53.88);
+      tl.set("#s6-ph2-w0", { color: "#ffd166" }, 53.88);
+      tl.set("#s6-ph2-w0", { color: "rgba(255,255,255,0.9)" }, 54.32);
+      tl.set("#s6-ph2-w1", { color: "#ffd166" }, 54.32);
+      tl.set("#s6-ph2-w1", { color: "rgba(255,255,255,0.9)" }, 54.48);
+      tl.set("#s6-ph2-w2", { color: "#ffd166" }, 54.48);
+      tl.set("#s6-ph2-w2", { color: "rgba(255,255,255,0.9)" }, 54.74);
+      tl.set("#s6-ph2-w3", { color: "#ffd166" }, 54.74);
+      tl.set("#s6-ph2-w3", { color: "rgba(255,255,255,0.9)" }, 54.98);
+      tl.set("#s6-ph2-w4", { color: "#ffd166" }, 54.98);
+      tl.set("#s6-ph2-w4", { color: "rgba(255,255,255,0.9)" }, 55.16);
+      tl.set("#s6-ph2-w5", { color: "#ffd166" }, 55.16);
+      tl.set("#s6-ph2-w5", { color: "rgba(255,255,255,0.9)" }, 55.34);
+      tl.set("#s6-ph2-w6", { color: "#ffd166" }, 55.34);
+      tl.set("#s6-ph2-w6", { color: "rgba(255,255,255,0.9)" }, 55.56);
+      tl.set("#s6-ph3", { display: "flex" }, 55.4);
+      tl.set("#s6-ph2", { display: "none" }, 55.4);
+      tl.set("#s6-ph3-w0", { color: "#ffd166" }, 55.4);
+      tl.set("#s6-ph3-w0", { color: "rgba(255,255,255,0.9)" }, 55.64);
+      tl.set("#s6-ph3-w1", { color: "#ffd166" }, 55.64);
+      tl.set("#s6-ph3-w1", { color: "rgba(255,255,255,0.9)" }, 56.02);
+      tl.set("#s6-ph3-w2", { color: "#ffd166" }, 56.02);
+      tl.set("#s6-ph3-w2", { color: "rgba(255,255,255,0.9)" }, 56.18);
+      tl.set("#s6-ph3-w3", { color: "#ffd166" }, 56.18);
+      tl.set("#s6-ph3-w3", { color: "rgba(255,255,255,0.9)" }, 56.38);
+      tl.set("#s6-ph3-w4", { color: "#ffd166" }, 56.38);
+      tl.set("#s6-ph3-w4", { color: "rgba(255,255,255,0.9)" }, 56.58);
+      tl.set("#s6-ph3-w5", { color: "#ffd166" }, 56.58);
+      tl.set("#s6-ph3-w5", { color: "rgba(255,255,255,0.9)" }, 56.8);
+      tl.set("#s6-ph4", { display: "flex" }, 57.06);
+      tl.set("#s6-ph3", { display: "none" }, 57.06);
+      tl.set("#s6-ph4-w0", { color: "#ffd166" }, 57.06);
+      tl.set("#s6-ph4-w0", { color: "rgba(255,255,255,0.9)" }, 57.22);
+      tl.set("#s6-ph4-w1", { color: "#ffd166" }, 57.22);
+      tl.set("#s6-ph4-w1", { color: "rgba(255,255,255,0.9)" }, 57.36);
+      tl.set("#s6-ph4-w2", { color: "#ffd166" }, 57.36);
+      tl.set("#s6-ph4-w2", { color: "rgba(255,255,255,0.9)" }, 57.88);
+      tl.set("#s6-ph4-w3", { color: "#ffd166" }, 57.88);
+      tl.set("#s6-ph4-w3", { color: "rgba(255,255,255,0.9)" }, 58.0);
+      tl.set("#s6-ph4-w4", { color: "#ffd166" }, 58.0);
+      tl.set("#s6-ph4-w4", { color: "rgba(255,255,255,0.9)" }, 58.16);
+      tl.set("#s6-ph4-w5", { color: "#ffd166" }, 58.16);
+      tl.set("#s6-ph4-w5", { color: "rgba(255,255,255,0.9)" }, 58.32);
+      tl.set("#s6-ph4-w6", { color: "#ffd166" }, 58.32);
+      tl.set("#s6-ph4-w6", { color: "rgba(255,255,255,0.9)" }, 58.54);
+
+      // S7 CTA beat[114]=59.206 beat[115]=59.717 beat[116]=60.228 beat[117]=60.739
+      W(59.206);
+      tl.fromTo(
+        "#s7",
+        { opacity: 0, scale: 0.94, filter: "blur(12px)" },
+        { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.65 },
+        59.1,
+      );
+      tl.fromTo(
+        "#s7-label",
+        { y: -22, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.4 },
+        59.717,
+      );
+      I(60.228);
+      tl.fromTo(
+        "#s7-title",
+        { y: 40, opacity: 0, scale: 0.91 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.65, ease: "expo.out" },
+        60.228,
+      );
+      tl.fromTo(
+        "#s7-btn",
+        { scale: 0.78, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(1.7)" },
+        60.739,
+      );
+      tl.fromTo(
+        "#s7-contact",
+        { y: 14, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.35 },
+        61.25,
+      );
+
+      window.__timelines["video-thi-truong-2026"] = tl;
+      (function () {
+        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+        var gain = ctx.createGain();
+        gain.gain.value = 1.3;
+        gain.connect(ctx.destination);
+        ["vo0", "vo1", "vo2", "vo3", "vo4", "vo5", "vo6", "vo7"].forEach(
+          function (id) {
+            var el = document.getElementById(id);
+            if (el) ctx.createMediaElementSource(el).connect(gain);
+          },
+        );
+        document.addEventListener(
+          "click",
+          function () {
+            ctx.resume();
+          },
+          { once: true },
+        );
+      })();
+      window.addEventListener("load", function () {
+        tl.play();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1620 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Be Vietnam Pro";
+        font-weight: 300;
+        src:
+          url("fonts/BeVietnamPro-Light-vietnamese.woff2") format("woff2"),
+          url("fonts/BeVietnamPro-Light-latin.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Be Vietnam Pro";
+        font-weight: 400;
+        src:
+          url("fonts/BeVietnamPro-Regular-vietnamese.woff2") format("woff2"),
+          url("fonts/BeVietnamPro-Regular-latin.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Be Vietnam Pro";
+        font-weight: 600;
+        src:
+          url("fonts/BeVietnamPro-SemiBold-vietnamese.woff2") format("woff2"),
+          url("fonts/BeVietnamPro-SemiBold-latin.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Be Vietnam Pro";
+        font-weight: 900;
+        src:
+          url("fonts/BeVietnamPro-Black-vietnamese.woff2") format("woff2"),
+          url("fonts/BeVietnamPro-Black-latin.woff2") format("woff2");
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #020c18;
+        font-family: "Be Vietnam Pro", system-ui, sans-serif;
+        cursor: none;
+      }
+
+      /* ── Background ── */
+      .bg-vid {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        opacity: 0;
+      }
+      .bg-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        background: rgba(2, 12, 24, 0.48);
+      }
+
+      /* ── Neon border ── */
+      #neon-svg {
+        position: absolute;
+        inset: 0;
+        width: 1080px;
+        height: 1920px;
+        z-index: 5;
+        pointer-events: none;
+      }
+      #neon-path {
+        fill: none;
+        stroke: #ffd166;
+        stroke-width: 4;
+        filter: drop-shadow(0 0 8px #ffd166) drop-shadow(0 0 18px #ffc300);
+        stroke-dasharray: 5960;
+        stroke-dashoffset: 5960;
+      }
+
+      /* ── Progress ── */
+      #progress-fill {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(90deg, #ffd166, #06d6a0);
+        transform-origin: left;
+        transform: scaleX(0);
+        z-index: 100;
+      }
+
+      /* ── Scenes ── */
+      /* safe zone: top 192px, bottom 384px → usable 1344px, centered at 864px */
+      .scene {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 200px 64px 400px;
+        overflow: hidden;
+      }
+      .scene-center {
+        align-items: center;
+        text-align: center;
+      }
+
+      /* ── Typography ── */
+      .eyebrow {
+        font-size: 22px;
+        font-weight: 600;
+        color: rgba(255, 209, 102, 0.75);
+        letter-spacing: 1px;
+        margin-bottom: 20px;
+      }
+      .hdivider {
+        width: 80px;
+        height: 3px;
+        background: linear-gradient(90deg, #ffd166, #06d6a0);
+        border-radius: 2px;
+        margin: 22px auto 32px;
+      }
+      .sec-head {
+        font-size: 30px;
+        font-weight: 800;
+        color: rgba(255, 209, 102, 0.85);
+        letter-spacing: 0.5px;
+        margin-bottom: 36px;
+        line-height: 1.3;
+      }
+
+      /* ══ S0: Hook ══ */
+      #s0-hook-num {
+        font-size: 200px;
+        font-weight: 900;
+        color: #ffd166;
+        line-height: 0.85;
+        letter-spacing: -8px;
+        text-shadow:
+          0 0 50px rgba(255, 209, 102, 0.55),
+          4px 7px 0 rgba(139, 98, 0, 0.85);
+      }
+      #s0-hook-unit {
+        font-size: 62px;
+        font-weight: 900;
+        color: #ffd166;
+        letter-spacing: -2px;
+        margin-bottom: 36px;
+        text-shadow: 0 0 30px rgba(255, 209, 102, 0.35);
+      }
+      #s0-sub {
+        font-size: 40px;
+        font-weight: 300;
+        color: #8ab0c8;
+        line-height: 1.45;
+        max-width: 780px;
+      }
+      #s0-sub strong {
+        color: #06d6a0;
+        font-weight: 700;
+      }
+      #s0-tag {
+        margin-top: 44px;
+        display: inline-block;
+        background: rgba(6, 214, 160, 0.12);
+        border: 1px solid rgba(6, 214, 160, 0.45);
+        border-radius: 40px;
+        padding: 14px 48px;
+        font-size: 26px;
+        font-weight: 600;
+        color: #06d6a0;
+        letter-spacing: 2px;
+      }
+
+      /* ══ S1: Tourism Cards ══ */
+      #s1 {
+        justify-content: flex-start;
+      }
+      .spot-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: repeat(3, 1fr);
+        gap: 20px;
+        width: 100%;
+        flex: 1;
+      }
+      .spot-card {
+        position: relative;
+        border-radius: 20px;
+        overflow: hidden;
+        background: #0a1828;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        cursor: pointer;
+        will-change: transform;
+        opacity: 0;
+        transition:
+          filter 0.25s,
+          box-shadow 0.25s;
+      }
+      .spot-card:hover {
+        filter: brightness(1.12);
+        box-shadow:
+          0 8px 32px rgba(0, 0, 0, 0.6),
+          0 0 40px rgba(255, 209, 102, 0.28);
+      }
+      .spot-card:hover .spot-img img {
+        transform: rotateX(4deg) rotateY(4deg) scale(1.06);
+      }
+      .spot-img {
+        position: absolute;
+        inset: 0;
+        perspective: 600px;
+      }
+      .spot-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transform-style: preserve-3d;
+        transition:
+          transform 0.35s ease,
+          box-shadow 0.35s ease;
+      }
+      .spot-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          0deg,
+          rgba(2, 12, 24, 0.92) 0%,
+          rgba(2, 12, 24, 0.4) 55%,
+          transparent 100%
+        );
+      }
+      .spot-body {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 22px 24px 28px;
+      }
+      .spot-icon {
+        font-size: 30px;
+        margin-bottom: 8px;
+      }
+      .spot-name {
+        font-size: 32px;
+        font-weight: 900;
+        color: #efefef;
+        line-height: 1.1;
+        margin-bottom: 8px;
+      }
+      .spot-stat {
+        display: inline-block;
+        background: rgba(255, 209, 102, 0.18);
+        border: 1px solid rgba(255, 209, 102, 0.4);
+        border-radius: 8px;
+        padding: 4px 16px;
+        font-size: 22px;
+        font-weight: 700;
+        color: #ffd166;
+      }
+      .spot-stat.teal {
+        background: rgba(6, 214, 160, 0.15);
+        border-color: rgba(6, 214, 160, 0.4);
+        color: #06d6a0;
+      }
+
+      /* ── S1 Stats Bar ── */
+      .s1-stats {
+        position: absolute;
+        inset: 0;
+        z-index: 3;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 200px 56px 400px;
+        gap: 22px;
+        opacity: 0;
+      }
+      .s1-stats-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: rgba(255, 209, 102, 0.65);
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+        opacity: 0;
+      }
+      .s1-sc {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        padding: 28px 34px;
+        background: rgba(2, 12, 24, 0.82);
+        border-radius: 20px;
+        border-left: 5px solid var(--sc-color, #ffd166);
+        backdrop-filter: blur(12px);
+        opacity: 0;
+      }
+      .s1-sc-icon {
+        font-size: 58px;
+        line-height: 1;
+        flex-shrink: 0;
+        width: 74px;
+        text-align: center;
+      }
+      .s1-sc-body {
+        flex: 1;
+      }
+      .s1-sc-num {
+        font-size: 90px;
+        font-weight: 900;
+        color: var(--sc-color, #ffd166);
+        line-height: 0.88;
+        text-shadow: 0 0 36px var(--sc-glow, rgba(255, 209, 102, 0.4));
+      }
+      .s1-sc-lbl {
+        font-size: 25px;
+        font-weight: 500;
+        color: rgba(200, 223, 240, 0.82);
+        margin-top: 10px;
+      }
+
+      /* spotlight overlay for S1 */
+      .glow-overlay {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+        background: radial-gradient(
+          circle at var(--gx, 50%) var(--gy, 50%),
+          rgba(255, 209, 102, 0.1) 0%,
+          transparent 50%
+        );
+      }
+
+      /* ══ S2: Yield Ranking ══ */
+      #s2 {
+        justify-content: center;
+        gap: 0;
+      }
+      .yield-list {
+        display: flex;
+        flex-direction: column;
+        gap: 36px;
+        width: 100%;
+      }
+      .yield-row {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+      .y-city {
+        font-size: 32px;
+        font-weight: 600;
+        color: #c8dff0;
+        min-width: 220px;
+        text-align: right;
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+      }
+      .yield-row.dn .y-city {
+        color: #ffd166;
+        font-weight: 900;
+        font-size: 38px;
+      }
+      .y-bar-wrap {
+        flex: 1;
+        height: 80px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .y-bar {
+        height: 100%;
+        border-radius: 10px;
+        background: rgba(100, 140, 170, 0.3);
+        transform-origin: left;
+        transform: scaleX(0);
+      }
+      .yield-row.dn .y-bar {
+        background: linear-gradient(90deg, #ffd166, #ffc300);
+        box-shadow: 0 0 20px rgba(255, 209, 102, 0.5);
+      }
+      .y-pct {
+        font-size: 32px;
+        font-weight: 700;
+        color: #c8dff0;
+        min-width: 140px;
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+      }
+      .yield-row.dn .y-pct {
+        color: #ffd166;
+        font-size: 42px;
+        font-weight: 900;
+      }
+      .yield-note {
+        margin-top: 38px;
+        font-size: 31px;
+        font-weight: 600;
+        color: #b8d0e6;
+        text-align: center;
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+      }
+      .yield-note strong {
+        color: #ffd166;
+      }
+      #s2-spotlight {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+        background: radial-gradient(
+          ellipse at var(--sx, 50%) var(--sy, 80%),
+          rgba(255, 209, 102, 0.1) 0%,
+          transparent 50%
+        );
+      }
+
+      /* ══ S3: Revenue Models ══ */
+      #s3 {
+        justify-content: center;
+      }
+      .s3-sub {
+        font-size: 31px;
+        font-weight: 400;
+        color: #7a9cb8;
+        margin-bottom: 40px;
+      }
+      .s3-sub strong {
+        color: #8ab0c8;
+        font-weight: 600;
+      }
+      .model-wrap {
+        display: flex;
+        gap: 20px;
+        width: 100%;
+        align-items: stretch;
+      }
+      .mcard {
+        flex: 1;
+        background: rgba(6, 18, 40, 0.88);
+        border: 1px solid rgba(255, 209, 102, 0.14);
+        border-radius: 22px;
+        padding: 38px 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        will-change: transform;
+      }
+      .mcard.airbnb {
+        background: rgba(255, 209, 102, 0.1);
+        border: 2px solid rgba(255, 209, 102, 0.55);
+        box-shadow: 0 0 44px rgba(255, 209, 102, 0.22);
+        flex: 1.3;
+      }
+      .m-icon {
+        font-size: 48px;
+      }
+      .m-type {
+        font-size: 19px;
+        font-weight: 700;
+        color: rgba(255, 209, 102, 0.65);
+        letter-spacing: 0.5px;
+      }
+      .mcard.airbnb .m-type {
+        color: #ffd166;
+      }
+      .m-name {
+        font-size: 30px;
+        font-weight: 900;
+        color: #efefef;
+        line-height: 1.15;
+      }
+      .m-div {
+        width: 100%;
+        height: 1px;
+        background: rgba(255, 209, 102, 0.12);
+      }
+      .m-income {
+        font-size: 54px;
+        font-weight: 900;
+        color: #ffd166;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        text-shadow: 0 0 18px rgba(255, 209, 102, 0.3);
+      }
+      .mcard.airbnb .m-income {
+        font-size: 64px;
+      }
+      .m-period {
+        font-size: 22px;
+        font-weight: 400;
+        color: #7a9cb8;
+      }
+      .m-yield {
+        display: inline-block;
+        padding: 6px 18px;
+        border-radius: 8px;
+        font-size: 22px;
+        font-weight: 700;
+        background: rgba(255, 209, 102, 0.1);
+        border: 1px solid rgba(255, 209, 102, 0.3);
+        color: #ffd166;
+        align-self: flex-start;
+      }
+      .mcard.airbnb .m-yield {
+        font-size: 26px;
+        background: rgba(255, 209, 102, 0.18);
+        border-color: rgba(255, 209, 102, 0.6);
+      }
+      .insight-box {
+        background: rgba(6, 214, 160, 0.1);
+        border: 1px solid rgba(6, 214, 160, 0.3);
+        border-radius: 16px;
+        padding: 26px 32px;
+        margin-top: 20px;
+        font-size: 30px;
+        font-weight: 600;
+        color: #06d6a0;
+        line-height: 1.5;
+        text-align: center;
+      }
+
+      /* ══ S4: CTA ══ */
+      #s4 {
+        padding: 180px 64px 380px;
+      }
+      .morph-bg {
+        position: absolute;
+        width: 720px;
+        height: 720px;
+        border-radius: 60% 40% 30% 70%/60% 30% 70% 40%;
+        background: radial-gradient(
+          circle,
+          rgba(255, 209, 102, 0.1) 0%,
+          transparent 70%
+        );
+        z-index: 0;
+        animation: morphBg 7s ease-in-out infinite;
+      }
+      @keyframes morphBg {
+        0%,
+        100% {
+          border-radius: 60% 40% 30% 70%/60% 30% 70% 40%;
+        }
+        33% {
+          border-radius: 30% 70% 70% 30%/30% 40% 60% 70%;
+        }
+        66% {
+          border-radius: 50% 50% 30% 70%/40% 60% 40% 60%;
+        }
+      }
+      .cta-inner {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .cta-label {
+        font-size: 24px;
+        font-weight: 600;
+        color: rgba(6, 214, 160, 0.8);
+        letter-spacing: 1px;
+        margin-bottom: 22px;
+      }
+      .cta-title {
+        font-size: 78px;
+        font-weight: 900;
+        color: #efefef;
+        line-height: 1.1;
+        margin-bottom: 44px;
+        text-align: center;
+        text-shadow: 3px 5px 0 rgba(0, 0, 0, 0.5);
+      }
+      .cta-title span {
+        color: #ffd166;
+      }
+      .cta-stats {
+        display: flex;
+        gap: 44px;
+        margin-bottom: 64px;
+        align-items: center;
+      }
+      .cs-num {
+        font-size: 64px;
+        font-weight: 900;
+        color: #ffd166;
+        line-height: 1;
+        text-shadow: 0 0 18px rgba(255, 209, 102, 0.45);
+      }
+      .cs-lbl {
+        font-size: 20px;
+        color: #7a9cb8;
+        margin-top: 8px;
+        letter-spacing: 2px;
+      }
+      .cs-sep {
+        width: 1px;
+        height: 90px;
+        background: rgba(255, 209, 102, 0.18);
+      }
+      .cta-btn {
+        display: inline-block;
+        background: rgba(255, 209, 102, 0.08);
+        border: 1.5px solid rgba(255, 209, 102, 0.5);
+        color: #ffd166;
+        font-size: 32px;
+        font-weight: 700;
+        padding: 22px 72px;
+        border-radius: 20px;
+        box-shadow: 0 0 20px rgba(255, 209, 102, 0.12);
+        animation: hapticPulse 3.5s ease-in-out infinite;
+      }
+      @keyframes hapticPulse {
+        0%,
+        100% {
+          transform: scale(1);
+          box-shadow: 0 0 20px rgba(255, 209, 102, 0.12);
+        }
+        50% {
+          transform: scale(1.02);
+          box-shadow: 0 0 36px rgba(255, 209, 102, 0.28);
+        }
+      }
+      .cta-contact {
+        margin-top: 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+      }
+      .cta-avatar {
+        width: 336px;
+        height: 336px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid rgba(255, 209, 102, 0.6);
+        box-shadow: 0 0 40px rgba(255, 209, 102, 0.3);
+      }
+      .cta-contact-text {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      .cta-contact-name {
+        font-size: 34px;
+        font-weight: 700;
+        color: #efefef;
+      }
+      .cta-contact-sub {
+        font-size: 24px;
+        font-weight: 400;
+        color: #7a9cb8;
+        margin-top: 6px;
+      }
+      .cta-contact strong {
+        color: #8ab0c8;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="video-danang"
+      data-start="0"
+      data-duration="57"
+      data-width="1080"
+      data-height="1920"
+    >
+      <div id="progress-fill"></div>
+
+      <!-- Neon border -->
+      <svg id="neon-svg" viewBox="0 0 1080 1920">
+        <rect id="neon-path" x="64" y="200" width="952" height="1320" rx="22" />
+      </svg>
+
+      <!-- ── VIDEO BACKGROUNDS — 6 clips, ≤7 decoder limit ── -->
+      <!-- s0 hook: 0–7s -->
+      <video
+        id="c01"
+        class="clip bg-vid"
+        src="assets/c01.mp4"
+        muted
+        preload="auto"
+        playsinline
+        data-start="0"
+        data-duration="7"
+        data-track-index="1"
+        data-volume="0"
+      ></video>
+      <!-- s1 part A: 6.5–14.5s -->
+      <video
+        id="c02"
+        class="clip bg-vid"
+        src="assets/c02.mp4"
+        muted
+        preload="auto"
+        playsinline
+        data-start="6.5"
+        data-duration="8"
+        data-track-index="2"
+        data-volume="0"
+      ></video>
+      <!-- s1 part B: 14.5–22.5s -->
+      <video
+        id="c03"
+        class="clip bg-vid"
+        src="assets/c03.mp4"
+        muted
+        loop
+        preload="auto"
+        playsinline
+        data-start="14.5"
+        data-duration="8"
+        data-track-index="3"
+        data-volume="0"
+      ></video>
+      <!-- s2 yield chart: 22–33s — canho interior, loop vì clip 7s < 11s slot -->
+      <video
+        id="c04"
+        class="clip bg-vid"
+        src="assets/c04.mp4"
+        muted
+        loop
+        preload="auto"
+        playsinline
+        data-start="22"
+        data-duration="11.3"
+        data-track-index="4"
+        data-volume="0"
+      ></video>
+      <!-- s3 revenue: 33.5–45.8s -->
+      <video
+        id="c05"
+        class="clip bg-vid"
+        src="assets/c05.mp4"
+        muted
+        preload="auto"
+        playsinline
+        data-start="32.93"
+        data-duration="12.94"
+        data-track-index="5"
+        data-volume="0"
+        data-media-start="0"
+      ></video>
+      <!-- s4 CTA: 45.5–57s -->
+      <video
+        id="c07"
+        class="clip bg-vid"
+        src="assets/c07.mp4"
+        muted
+        preload="auto"
+        playsinline
+        data-start="45.5"
+        data-duration="11.5"
+        data-track-index="6"
+        data-volume="0"
+      ></video>
+
+      <div id="bg-overlay" class="bg-overlay"></div>
+      <!-- ── AUDIO       <!-- ── AUDIO ── -->
+      <audio
+        id="bgm"
+        class="clip"
+        src="assets/bgm.mp3"
+        preload="auto"
+        data-start="0"
+        data-duration="57"
+        data-track-index="0"
+        data-volume="0.25"
+      ></audio>
+      <audio
+        id="vo0"
+        class="clip"
+        src="assets/vo_s0.mp3?v=2"
+        preload="auto"
+        data-start="0.5"
+        data-duration="6"
+        data-track-index="20"
+        data-volume="1"
+      ></audio>
+      <audio
+        id="vo1"
+        class="clip"
+        src="assets/vo_s1.mp3?v=2"
+        preload="auto"
+        data-start="7.0"
+        data-duration="15"
+        data-track-index="21"
+        data-volume="1"
+      ></audio>
+      <audio
+        id="vo2"
+        class="clip"
+        src="assets/vo_s2.mp3?v=2"
+        preload="auto"
+        data-start="22.5"
+        data-duration="10"
+        data-track-index="22"
+        data-volume="1"
+      ></audio>
+      <audio
+        id="vo3"
+        class="clip"
+        src="assets/vo_s3.mp3?v=2"
+        preload="auto"
+        data-start="33.0"
+        data-duration="12"
+        data-track-index="23"
+        data-volume="1"
+      ></audio>
+      <audio
+        id="vo4"
+        class="clip"
+        src="assets/vo_s4.mp3?v=3"
+        preload="auto"
+        data-start="45.5"
+        data-duration="8"
+        data-track-index="24"
+        data-volume="1"
+      ></audio>
+
+      <!-- ══ S0: HOOK ══ -->
+      <div
+        id="s0"
+        class="clip scene scene-center"
+        data-start="0"
+        data-duration="6.5"
+        data-track-index="10"
+      >
+        <div id="s0-eye" class="eyebrow">Bình Phan · BĐS Đà Nẵng</div>
+        <div id="s0-hdiv" class="hdivider"></div>
+        <div id="s0-hook-num">17.3</div>
+        <div id="s0-hook-unit">TRIỆU KHÁCH</div>
+        <div id="s0-sub">
+          Du lịch Đà Nẵng <strong>bùng nổ</strong> —<br />tỷ suất cho thuê đang
+          tăng theo
+        </div>
+        <div id="s0-tag">Năm 2025 · Kỷ Lục Mới</div>
+      </div>
+
+      <!-- ══ S1: TOURISM CARDS ══ -->
+      <div
+        id="s1"
+        class="clip scene"
+        data-start="6.5"
+        data-duration="16"
+        data-track-index="11"
+      >
+        <div class="glow-overlay" id="s1-glow"></div>
+        <div id="s1-head" class="sec-head">6 Điểm Du Lịch Nổi Bật</div>
+        <div class="spot-grid">
+          <div id="sp1" class="spot-card">
+            <div class="spot-img"><img src="assets/spot1.jpg" alt="" /></div>
+            <div class="spot-overlay"></div>
+            <div class="spot-body">
+              <div class="spot-icon">🏖️</div>
+              <div class="spot-name">Bãi Biển Mỹ Khê</div>
+              <div class="spot-stat">Top 6 bãi biển đẹp nhất châu Á</div>
+            </div>
+          </div>
+
+          <div id="sp2" class="spot-card">
+            <div class="spot-img">
+              <img src="assets/spot2.jpg?v=3" alt="" />
+            </div>
+            <div class="spot-overlay"></div>
+            <div class="spot-body">
+              <div class="spot-icon">🌉</div>
+              <div class="spot-name">Cầu Vàng Bà Nà</div>
+              <div class="spot-stat">1 triệu lượt/năm</div>
+            </div>
+          </div>
+
+          <div id="sp3" class="spot-card">
+            <div class="spot-img"><img src="assets/spot3.jpg" alt="" /></div>
+            <div class="spot-overlay"></div>
+            <div class="spot-body">
+              <div class="spot-icon">🐉</div>
+              <div class="spot-name">Cầu Rồng</div>
+              <div class="spot-stat teal">Biểu tượng Đà Nẵng</div>
+            </div>
+          </div>
+
+          <div id="sp4" class="spot-card">
+            <div class="spot-img"><img src="assets/spot4.jpg" alt="" /></div>
+            <div class="spot-overlay"></div>
+            <div class="spot-body">
+              <div class="spot-icon">🌃</div>
+              <div class="spot-name">Đà Nẵng Về Đêm</div>
+              <div class="spot-stat">Skyline ấn tượng nhất miền Trung</div>
+            </div>
+          </div>
+
+          <div id="sp5" class="spot-card">
+            <div class="spot-img"><img src="assets/spot5.jpg" alt="" /></div>
+            <div class="spot-overlay"></div>
+            <div class="spot-body">
+              <div class="spot-icon">🌿</div>
+              <div class="spot-name">Bán Đảo Sơn Trà</div>
+              <div class="spot-stat teal">Rừng nguyên sinh ven biển</div>
+            </div>
+          </div>
+
+          <div id="sp6" class="spot-card">
+            <div class="spot-img"><img src="assets/spot6.jpg" alt="" /></div>
+            <div class="spot-overlay"></div>
+            <div class="spot-body">
+              <div class="spot-icon">🏮</div>
+              <div class="spot-name">Hội An · DIFF</div>
+              <div class="spot-stat">1.46 triệu khách lễ 30/4</div>
+            </div>
+          </div>
+        </div>
+        <!-- Stats bar — xuất hiện ~t=14s khi VO nói số liệu -->
+        <div id="s1-stats" class="s1-stats">
+          <div class="s1-stats-title">Kết Quả Năm 2025</div>
+          <div
+            id="s1-sc1"
+            class="s1-sc"
+            style="--sc-color: #ffd166; --sc-glow: rgba(255, 209, 102, 0.4)"
+          >
+            <div class="s1-sc-icon">🌍</div>
+            <div class="s1-sc-body">
+              <div class="s1-sc-num">7.6M</div>
+              <div class="s1-sc-lbl">Khách quốc tế đến Đà Nẵng</div>
+            </div>
+          </div>
+          <div
+            id="s1-sc2"
+            class="s1-sc"
+            style="--sc-color: #06d6a0; --sc-glow: rgba(6, 214, 160, 0.4)"
+          >
+            <div class="s1-sc-icon">📈</div>
+            <div class="s1-sc-body">
+              <div class="s1-sc-num">+25%</div>
+              <div class="s1-sc-lbl">Tăng trưởng so với năm trước</div>
+            </div>
+          </div>
+          <div
+            id="s1-sc3"
+            class="s1-sc"
+            style="--sc-color: #4fa8e8; --sc-glow: rgba(79, 168, 232, 0.4)"
+          >
+            <div class="s1-sc-icon">🏨</div>
+            <div class="s1-sc-body">
+              <div class="s1-sc-num">95–97%</div>
+              <div class="s1-sc-lbl">Lấp phòng cuối tuần</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S2: YIELD RANKING ══ -->
+      <div
+        id="s2"
+        class="clip scene"
+        data-start="22.5"
+        data-duration="10.5"
+        data-track-index="12"
+      >
+        <div id="s2-spotlight"></div>
+        <div id="s2-head" class="sec-head">Tỷ Suất Cho Thuê — 7 Thành Phố</div>
+        <div class="yield-list">
+          <div class="yield-row" id="yr0">
+            <div class="y-city">Hà Nội</div>
+            <div class="y-bar-wrap">
+              <div class="y-bar" style="width: 33%"></div>
+            </div>
+            <div class="y-pct">2–4%</div>
+          </div>
+          <div class="yield-row" id="yr1">
+            <div class="y-city">TP.HCM</div>
+            <div class="y-bar-wrap">
+              <div class="y-bar" style="width: 42%"></div>
+            </div>
+            <div class="y-pct">3–5%</div>
+          </div>
+          <div class="yield-row" id="yr2">
+            <div class="y-city">Hải Phòng</div>
+            <div class="y-bar-wrap">
+              <div class="y-bar" style="width: 50%"></div>
+            </div>
+            <div class="y-pct">5–6%</div>
+          </div>
+          <div class="yield-row" id="yr3">
+            <div class="y-city">Bình Dương</div>
+            <div class="y-bar-wrap">
+              <div class="y-bar" style="width: 58%"></div>
+            </div>
+            <div class="y-pct">5–7%</div>
+          </div>
+          <div class="yield-row" id="yr4">
+            <div class="y-city">Nha Trang</div>
+            <div class="y-bar-wrap">
+              <div class="y-bar" style="width: 67%"></div>
+            </div>
+            <div class="y-pct">6–8%</div>
+          </div>
+          <div class="yield-row" id="yr5">
+            <div class="y-city">Phú Quốc</div>
+            <div class="y-bar-wrap">
+              <div class="y-bar" style="width: 83%"></div>
+            </div>
+            <div class="y-pct">7–10%</div>
+          </div>
+          <div class="yield-row dn" id="yr6">
+            <div class="y-city">Đà Nẵng 👑</div>
+            <div class="y-bar-wrap">
+              <div class="y-bar" style="width: 100%"></div>
+            </div>
+            <div class="y-pct">8–12%</div>
+          </div>
+        </div>
+        <div id="yield-note" class="yield-note">
+          Chênh <strong>3–4 lần</strong> so với Hà Nội — cùng số vốn đầu tư
+        </div>
+      </div>
+
+      <!-- ══ S3: REVENUE MODELS ══ -->
+      <div
+        id="s3"
+        class="clip scene"
+        data-start="33.53"
+        data-duration="12.25"
+        data-track-index="30"
+      >
+        <div id="s3-head" class="sec-head">3 Kịch Bản · 1 Căn Hộ 2.5 Tỷ</div>
+        <div class="s3-sub">
+          Cùng tài sản — khác cách vận hành →
+          <strong>lợi nhuận lệch 2 lần</strong>
+        </div>
+        <div class="model-wrap">
+          <div class="mcard" id="mc0">
+            <div class="m-icon">🏠</div>
+            <div class="m-type">Kịch bản 1</div>
+            <div class="m-name">Dài Hạn</div>
+            <div class="m-div"></div>
+            <div class="m-income">
+              12–15<span style="font-size: 26px; color: #7a9cb8">tr</span>
+            </div>
+            <div class="m-period">/ tháng</div>
+            <div class="m-yield">5–6.5%/năm</div>
+          </div>
+          <div class="mcard airbnb" id="mc1">
+            <div class="m-icon">✈️</div>
+            <div class="m-type">Kịch bản 2</div>
+            <div class="m-name">Airbnb<br />Ngắn Hạn</div>
+            <div class="m-div"></div>
+            <div class="m-income">
+              20–25<span style="font-size: 30px; color: #8aafc5">tr</span>
+            </div>
+            <div class="m-period">/ tháng · 240–300tr/năm</div>
+            <div class="m-yield">8–12%/năm</div>
+          </div>
+          <div class="mcard" id="mc2">
+            <div class="m-icon">🔀</div>
+            <div class="m-type">Kịch bản 3</div>
+            <div class="m-name">Hybrid<br />Tối Ưu</div>
+            <div class="m-div"></div>
+            <div class="m-income">
+              18–22<span style="font-size: 26px; color: #7a9cb8">tr</span>
+            </div>
+            <div class="m-period">/ tháng</div>
+            <div class="m-yield">7–10%/năm</div>
+          </div>
+        </div>
+        <div id="s3-insight" class="insight-box">
+          Du lịch bùng nổ →
+          <strong style="color: #ffd166">Airbnb Đà Nẵng</strong><br />
+          đang hoạt động 60–75% công suất quanh năm
+        </div>
+      </div>
+
+      <!-- ══ S4: CTA ══ -->
+      <div
+        id="s4"
+        class="clip scene scene-center"
+        data-start="45.78"
+        data-duration="11.22"
+        data-track-index="31"
+      >
+        <div class="morph-bg"></div>
+        <div class="cta-inner">
+          <div id="s4-label" class="cta-label">Tổng Kết</div>
+          <div id="s4-title" class="cta-title">
+            Du Lịch Bùng Nổ<br /><span>Dòng Tiền #1</span><br />Miền Trung
+          </div>
+          <div id="s4-stats" class="cta-stats">
+            <div class="cta-stat">
+              <div class="cs-num">17.3tr</div>
+              <div class="cs-lbl">KHÁCH 2025</div>
+            </div>
+            <div class="cs-sep"></div>
+            <div class="cta-stat">
+              <div class="cs-num">12%</div>
+              <div class="cs-lbl">YIELD TỐI ĐA</div>
+            </div>
+            <div class="cs-sep"></div>
+            <div class="cta-stat">
+              <div class="cs-num">#1</div>
+              <div class="cs-lbl">7 THÀNH PHỐ</div>
+            </div>
+          </div>
+          <div id="s4-btn" class="cta-btn">Follow · Cập Nhật Thị Trường</div>
+          <div id="s4-contact" class="cta-contact" style="margin-top: 28px">
+            <div class="cta-contact-text">
+              <span class="cta-contact-name">Bình Phan IQI</span>
+            </div>
+            <img
+              class="cta-avatar"
+              src="assets/me-outtro.jpg"
+              alt="Bình Phan"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- #root -->
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      // Beat-synced timeline — 97.5 BPM, beat every 0.615s
+      // Beat timestamps (librosa): [0]=0.476 [1]=1.091 [2]=1.707 [3]=2.322 [4]=2.926
+      // [5]=3.529 [10]=6.594 [11]=7.198 [12]=7.814 [14]=9.044 [16]=10.263
+      // [18]=11.494 [20]=12.713 [22]=13.944 [36]=22.512 [37]=23.127 [38]=23.742
+      // [39]=24.358 [40]=24.973 [41]=25.588 [42]=26.204 [43]=26.819
+      // [54]=33.530 [55]=34.145 [56]=34.749 [57]=35.364 [58]=35.979 [66]=40.879
+      // [74]=45.778 [75]=46.382 [76]=46.997 [77]=47.613 [79]=48.832 [80]=49.448
+
+      // ── SFX ──
+      var sfxWhoosh = new Audio("assets/sfx_whoosh.mp3");
+      var sfxImpact = new Audio("assets/sfx_impact.mp3");
+      var sfxPop = new Audio("assets/sfx_pop.mp3");
+      sfxWhoosh.volume = 0.45;
+      sfxImpact.volume = 0.65;
+      sfxPop.volume = 0.5;
+      function playWhoosh() {
+        sfxWhoosh.currentTime = 0;
+        sfxWhoosh.play().catch(function () {});
+      }
+      function playImpact() {
+        sfxImpact.currentTime = 0;
+        sfxImpact.play().catch(function () {});
+      }
+      function playPop() {
+        var s = sfxPop.cloneNode();
+        s.volume = 0.45;
+        s.play().catch(function () {});
+      }
+
+      // ── Progress ──
+      tl.to(
+        "#progress-fill",
+        { scaleX: 1, duration: 55, ease: "none", transformOrigin: "left" },
+        1,
+      );
+
+      // ── Video clip crossfades — 6 clips, no image cards ──
+      tl.set("#bg-overlay", { background: "rgba(2,12,24,0.62)" }, 0);
+      var F = 0.5;
+      var CLIPS = [
+        ["c01", 0.0, 7.0], // s0 hook
+        ["c02", 6.5, 14.5], // s1 part A
+        ["c03", 14.0, 22.5], // s1 part B
+        ["c04", 22.0, 33.5], // s2 yield chart
+        ["c05", 33.0, 45.8], // s3 revenue models
+        ["c07", 45.5, null], // s4 CTA
+      ];
+      CLIPS.forEach(function (c) {
+        tl.fromTo(
+          "#" + c[0],
+          { opacity: 0 },
+          { opacity: 1, duration: F, ease: "power2.inOut" },
+          c[1],
+        );
+        if (c[2])
+          tl.to(
+            "#" + c[0],
+            { opacity: 0, duration: F, ease: "power2.inOut" },
+            c[2] - F,
+          );
+      });
+
+      // ── Neon border draw ──
+      tl.to(
+        "#neon-path",
+        { strokeDashoffset: 0, duration: 2.5, ease: "power2.inOut" },
+        0.476,
+      );
+      tl.to("#neon-path", { opacity: 0, duration: 0.5 }, 6.2);
+
+      // ══ S0: Hook — beat[0]=0.476, beat[1]=1.091 ══
+      tl.call(playWhoosh, [], 0.476);
+      tl.from(
+        "#s0",
+        {
+          opacity: 0,
+          scale: 0.94,
+          filter: "blur(16px)",
+          duration: 0.7,
+          ease: "power2.out",
+        },
+        0,
+      );
+      tl.from("#s0-eye", { y: -28, opacity: 0, duration: 0.4 }, 0.476);
+      tl.from(
+        "#s0-hdiv",
+        { scaleX: 0, opacity: 0, duration: 0.45, transformOrigin: "center" },
+        0.7,
+      );
+      tl.call(playImpact, [], 1.091);
+      tl.from(
+        "#s0-hook-num",
+        { scale: 0.65, opacity: 0, duration: 0.7, ease: "back.out(1.7)" },
+        1.091,
+      );
+      tl.to(
+        { v: 0 },
+        {
+          v: 17.3,
+          duration: 0.8,
+          ease: "power2.out",
+          onUpdate: function () {
+            document.getElementById("s0-hook-num").textContent =
+              this.targets()[0].v.toFixed(1);
+          },
+        },
+        1.091,
+      );
+      tl.from(
+        "#s0-hook-unit",
+        { y: 24, opacity: 0, duration: 0.4, ease: "expo.out" },
+        1.707,
+      );
+      tl.from("#s0-sub", { y: 28, opacity: 0, duration: 0.45 }, 2.322);
+      tl.from(
+        "#s0-tag",
+        { scale: 0.8, opacity: 0, duration: 0.4, ease: "back.out(1.7)" },
+        2.926,
+      );
+      tl.to(
+        "#s0-hook-num",
+        {
+          textShadow:
+            "0 0 70px rgba(255,209,102,0.85),4px 7px 0 rgba(139,98,0,0.85)",
+          duration: 1.2,
+          yoyo: true,
+          repeat: 2,
+          ease: "sine.inOut",
+        },
+        3.529,
+      );
+
+      // ══ S1: Tourism Cards — every 2 beats (1.23s), beat[12..22] ══
+      tl.call(playWhoosh, [], 6.594);
+      tl.from(
+        "#s1",
+        { opacity: 0, scale: 0.97, filter: "blur(8px)", duration: 0.5 },
+        6.594,
+      );
+      tl.from("#s1-head", { x: -40, opacity: 0, duration: 0.4 }, 7.198);
+      var cardTimes = [7.814, 9.044, 10.263, 11.494, 12.713, 13.944];
+      ["sp1", "sp2", "sp3", "sp4", "sp5", "sp6"].forEach(function (id, i) {
+        tl.call(playPop, [], cardTimes[i]);
+        tl.to(
+          "#" + id,
+          {
+            opacity: 1,
+            scale: 1,
+            rotateY: 0,
+            duration: 0.38,
+            ease: "back.out(1.7)",
+          },
+          cardTimes[i],
+        );
+        tl.to(
+          "#" + id,
+          {
+            rotateY: i % 2 === 0 ? 4 : -4,
+            rotateX: -2,
+            transformPerspective: 700,
+            duration: 2.8,
+            yoyo: true,
+            repeat: 2,
+            ease: "sine.inOut",
+          },
+          cardTimes[i] + 0.5,
+        );
+      });
+      tl.set(
+        ["#sp1", "#sp2", "#sp3", "#sp4", "#sp5", "#sp6"],
+        {
+          rotateY: function (i) {
+            return i % 2 === 0 ? -28 : 28;
+          },
+          transformPerspective: 700,
+        },
+        0,
+      );
+      tl.to(
+        "#s1-glow",
+        {
+          "--gx": "70%",
+          "--gy": "60%",
+          duration: 3,
+          ease: "sine.inOut",
+          yoyo: true,
+          repeat: 2,
+        },
+        8.429,
+      );
+      // Glow Pulse — từng card pulse neon amber sau khi xuất hiện
+      ["sp1", "sp2", "sp3", "sp4", "sp5", "sp6"].forEach(function (id, i) {
+        tl.to(
+          "#" + id,
+          {
+            boxShadow:
+              "0 8px 32px rgba(0,0,0,0.6), 0 0 36px rgba(255,209,102,0.45)",
+            duration: 0.7,
+            yoyo: true,
+            repeat: 3,
+            ease: "sine.inOut",
+          },
+          cardTimes[i] + 0.45,
+        );
+      });
+
+      // ── Giây 14: Cards fade OUT, chuyển sang stats ──
+      tl.to(
+        "#s1-head",
+        { opacity: 0, y: -16, duration: 0.4, ease: "power2.in" },
+        13.8,
+      );
+      tl.to(
+        ".spot-grid",
+        { opacity: 0, y: -20, duration: 0.5, ease: "power2.in" },
+        14.0,
+      );
+
+      // Stats section — 3 cards slide in từ phải t=14.5s
+      tl.fromTo(
+        "#s1-stats",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.3, ease: "none" },
+        14.5,
+      );
+      tl.fromTo(
+        ".s1-stats-title",
+        { opacity: 0, y: -10 },
+        { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" },
+        14.55,
+      );
+      tl.fromTo(
+        "#s1-sc1",
+        { x: 80, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.5, ease: "back.out(1.4)" },
+        14.7,
+      );
+      tl.fromTo(
+        "#s1-sc1 .s1-sc-num",
+        { scale: 1.25 },
+        { scale: 1, duration: 0.4, ease: "back.out(2)" },
+        14.7,
+      );
+      tl.fromTo(
+        "#s1-sc2",
+        { x: 80, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.5, ease: "back.out(1.4)" },
+        15.1,
+      );
+      tl.fromTo(
+        "#s1-sc2 .s1-sc-num",
+        { scale: 1.25 },
+        { scale: 1, duration: 0.4, ease: "back.out(2)" },
+        15.1,
+      );
+      tl.fromTo(
+        "#s1-sc3",
+        { x: 80, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.5, ease: "back.out(1.4)" },
+        15.5,
+      );
+      tl.fromTo(
+        "#s1-sc3 .s1-sc-num",
+        { scale: 1.25 },
+        { scale: 1, duration: 0.4, ease: "back.out(2)" },
+        15.5,
+      );
+      // Exit trước khi s2 vào
+      tl.to(
+        "#s1-stats",
+        { opacity: 0, y: -20, duration: 0.5, ease: "power2.in" },
+        21.8,
+      );
+
+      // ══ S2: Yield Ranking — every beat (0.615s), ĐN row on beat[43] ══
+      tl.call(playWhoosh, [], 22.512);
+      tl.from(
+        "#s2",
+        { opacity: 0, scale: 0.97, filter: "blur(8px)", duration: 0.5 },
+        22.512,
+      );
+      tl.from("#s2-head", { x: -40, opacity: 0, duration: 0.4 }, 23.127);
+      var rowTimes = [23.127, 23.742, 24.358, 24.973, 25.588, 26.204, 26.819];
+      [0, 1, 2, 3, 4, 5, 6].forEach(function (i) {
+        tl.from(
+          "#yr" + i,
+          { x: -50, opacity: 0, duration: 0.35, ease: "power2.out" },
+          rowTimes[i],
+        );
+        tl.to(
+          "#yr" + i + " .y-bar",
+          { scaleX: 1, duration: 0.5, ease: "expo.out" },
+          rowTimes[i] + 0.2,
+        );
+      });
+      tl.to(
+        "#s2-spotlight",
+        {
+          "--sx": "60%",
+          "--sy": "75%",
+          duration: 3.5,
+          ease: "sine.inOut",
+          yoyo: true,
+          repeat: 1,
+        },
+        24.358,
+      );
+      tl.to(
+        "#yr6",
+        {
+          filter: "brightness(1.25)",
+          duration: 1.2,
+          yoyo: true,
+          repeat: 2,
+          ease: "sine.inOut",
+        },
+        26.819,
+      );
+      tl.from("#yield-note", { y: 20, opacity: 0, duration: 0.4 }, 29.896);
+      // Flow Line — shimmer chạy qua bar Đà Nẵng sau khi expand
+      tl.fromTo(
+        "#yr6 .y-bar",
+        {
+          backgroundImage:
+            "linear-gradient(90deg, #ffd166 0%, #ffe57a 30%, #fff0a0 50%, #ffe57a 70%, #ffc300 100%)",
+          backgroundSize: "200% 100%",
+          backgroundPositionX: "-100%",
+        },
+        {
+          backgroundPositionX: "200%",
+          duration: 1.2,
+          ease: "power1.inOut",
+          repeat: 2,
+        },
+        27.6,
+      );
+      // Glow Pulse — yr6 Đà Nẵng row sáng lên mạnh hơn
+      tl.to(
+        "#yr6",
+        {
+          filter:
+            "brightness(1.4) drop-shadow(0 0 18px rgba(255,209,102,0.85))",
+          duration: 0.9,
+          yoyo: true,
+          repeat: 3,
+          ease: "sine.inOut",
+        },
+        27.6,
+      );
+
+      // ══ S3: Revenue Models — mc0/mc1/mc2 on beat[56/57/58] ══
+      tl.call(playWhoosh, [], 33.53);
+      // Camera Push-In — zoom từ xa vào, mạnh hơn basic scale
+      tl.from(
+        "#s3",
+        {
+          opacity: 0,
+          scale: 0.82,
+          filter: "blur(12px)",
+          duration: 0.65,
+          ease: "power3.out",
+        },
+        33.53,
+      );
+      tl.from("#s3-head", { x: -40, opacity: 0, duration: 0.4 }, 34.145);
+      tl.from(".s3-sub", { x: -40, opacity: 0, duration: 0.4 }, 34.457);
+      tl.call(playPop, [], 34.749);
+      tl.from(
+        "#mc0",
+        { y: 60, opacity: 0, duration: 0.4, ease: "back.out(1.5)" },
+        34.749,
+      );
+      tl.call(playImpact, [], 35.364);
+      tl.from(
+        "#mc1",
+        {
+          y: 80,
+          scale: 0.85,
+          opacity: 0,
+          duration: 0.55,
+          ease: "back.out(1.7)",
+        },
+        35.364,
+      );
+      tl.call(playPop, [], 35.979);
+      tl.from(
+        "#mc2",
+        { y: 60, opacity: 0, duration: 0.4, ease: "back.out(1.5)" },
+        35.979,
+      );
+      tl.to(
+        "#mc1",
+        {
+          rotateY: 7,
+          rotateX: -4,
+          transformPerspective: 700,
+          duration: 2.5,
+          yoyo: true,
+          repeat: 2,
+          ease: "sine.inOut",
+        },
+        36.0,
+      );
+      tl.from(
+        "#s3-insight",
+        {
+          y: 28,
+          opacity: 0,
+          scale: 0.95,
+          duration: 0.45,
+          ease: "back.out(1.4)",
+        },
+        40.879,
+      );
+      // Glow Pulse — mc1 Airbnb card pulse amber mạnh sau khi 3 cards vào đủ
+      tl.to(
+        "#mc1",
+        {
+          boxShadow:
+            "0 0 44px rgba(255,209,102,0.22), 0 0 90px rgba(255,209,102,0.55)",
+          duration: 1.0,
+          yoyo: true,
+          repeat: 3,
+          ease: "sine.inOut",
+        },
+        36.6,
+      );
+
+      // ══ S4: CTA — beat[74..80] ══
+      tl.call(playWhoosh, [], 45.778);
+      tl.from(
+        "#s4",
+        { opacity: 0, scale: 0.94, filter: "blur(12px)", duration: 0.65 },
+        45.778,
+      );
+      tl.from("#s4-label", { y: -20, opacity: 0, duration: 0.4 }, 46.382);
+      tl.call(playImpact, [], 46.997);
+      tl.from(
+        "#s4-title",
+        { y: 40, opacity: 0, scale: 0.91, duration: 0.65, ease: "expo.out" },
+        46.997,
+      );
+      tl.from(
+        ".cta-stat",
+        {
+          y: 22,
+          opacity: 0,
+          stagger: 0.14,
+          duration: 0.4,
+          ease: "back.out(1.5)",
+        },
+        47.613,
+      );
+      tl.from(
+        "#s4-btn",
+        { scale: 0.78, opacity: 0, duration: 0.45, ease: "back.out(1.7)" },
+        48.832,
+      );
+      tl.from("#s4-contact", { y: 14, opacity: 0, duration: 0.35 }, 49.448);
+
+      window.__timelines["video-danang"] = tl;
+
+      // Boost VO via Web Audio GainNode (vượt giới hạn 1.0 của browser)
+      (function () {
+        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+        var gain = ctx.createGain();
+        gain.gain.value = 1.3;
+        gain.connect(ctx.destination);
+        ["vo0", "vo1", "vo2", "vo3", "vo4"].forEach(function (id) {
+          var el = document.getElementById(id);
+          if (!el) return;
+          ctx.createMediaElementSource(el).connect(gain);
+        });
+        document.addEventListener(
+          "click",
+          function () {
+            ctx.resume();
+          },
+          { once: true },
+        );
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,2415 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Be Vietnam Pro";
+        font-weight: 400;
+        src:
+          url("fonts/BeVietnamPro-Regular-vietnamese.woff2") format("woff2"),
+          url("fonts/BeVietnamPro-Regular-latin.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Be Vietnam Pro";
+        font-weight: 600;
+        src:
+          url("fonts/BeVietnamPro-SemiBold-vietnamese.woff2") format("woff2"),
+          url("fonts/BeVietnamPro-SemiBold-latin.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Be Vietnam Pro";
+        font-weight: 900;
+        src:
+          url("fonts/BeVietnamPro-Black-vietnamese.woff2") format("woff2"),
+          url("fonts/BeVietnamPro-Black-latin.woff2") format("woff2");
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #08080f;
+        font-family: "Be Vietnam Pro", system-ui, sans-serif;
+        cursor: none;
+      }
+
+      .scene {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        overflow: hidden;
+      }
+      .scene-bg {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+      }
+      .label-wrap {
+        position: absolute;
+        top: 210px;
+        left: 64px;
+        right: 64px;
+        z-index: 10;
+      }
+      .label-num {
+        font-size: 22px;
+        font-weight: 600;
+        color: rgba(255, 209, 102, 0.7);
+        letter-spacing: 2px;
+        margin-bottom: 10px;
+      }
+      .label-name {
+        font-size: 44px;
+        font-weight: 900;
+        color: #ffd166;
+        line-height: 1.15;
+      }
+      .label-desc {
+        font-size: 26px;
+        font-weight: 400;
+        color: #7a9cb8;
+        margin-top: 12px;
+        line-height: 1.4;
+      }
+      .demo-area {
+        position: absolute;
+        left: 64px;
+        right: 64px;
+        top: 480px;
+        bottom: 420px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #progress-fill {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(90deg, #06d6a0, #ffd166);
+        transform-origin: left;
+        transform: scaleX(0);
+        z-index: 100;
+      }
+
+      /* ══ S1: Mask Wipe Reveal ══ */
+      .wipe-stack {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+      .wipe-card {
+        position: absolute;
+        inset: 0;
+        border-radius: 24px;
+        display: flex;
+        align-items: flex-end;
+        padding: 40px;
+      }
+      .wc1 {
+        background: linear-gradient(135deg, #ff6b35, #ffa500);
+      }
+      .wc2 {
+        background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+      }
+      .wc3 {
+        background: linear-gradient(135deg, #06d6a0, #00b894);
+      }
+      .wipe-label {
+        font-size: 44px;
+        font-weight: 900;
+        color: #fff;
+      }
+      .wipe-sub {
+        font-size: 24px;
+        color: rgba(255, 255, 255, 0.7);
+        margin-top: 8px;
+      }
+
+      /* ══ S2: Split Text Cascade ══ */
+      .split-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        width: 100%;
+      }
+      .split-title {
+        font-size: 100px;
+        font-weight: 900;
+        color: #ffd166;
+        line-height: 1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .split-word {
+        display: inline-block;
+        overflow: hidden;
+      }
+      .split-inner {
+        display: inline-block;
+      }
+      .split-sub {
+        font-size: 42px;
+        font-weight: 600;
+        color: #efefef;
+        overflow: hidden;
+      }
+      .split-sub-inner {
+        display: inline-block;
+      }
+      .split-tag {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+      .split-chip {
+        background: rgba(6, 214, 160, 0.15);
+        border: 1px solid rgba(6, 214, 160, 0.4);
+        border-radius: 8px;
+        padding: 10px 24px;
+        font-size: 24px;
+        font-weight: 700;
+        color: #06d6a0;
+        overflow: hidden;
+      }
+      .split-chip-inner {
+        display: inline-block;
+      }
+
+      /* ══ S3: Camera Push-In ══ */
+      .cam-wrap {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        border-radius: 24px;
+        overflow: hidden;
+      }
+      .cam-bg {
+        position: absolute;
+        inset: -10%;
+        background: linear-gradient(135deg, #020c18, #0d2b4b 40%, #1a0533);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .cam-grid {
+        position: absolute;
+        inset: 0;
+        opacity: 0.15;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.3) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.3) 1px, transparent 1px);
+        background-size: 80px 80px;
+      }
+      .cam-mid {
+        position: absolute;
+        top: 30%;
+        left: 10%;
+        right: 10%;
+        height: 200px;
+        background: rgba(255, 107, 53, 0.12);
+        border-radius: 40px;
+        filter: blur(30px);
+      }
+      .cam-fg {
+        position: absolute;
+        bottom: 10%;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 64px;
+        font-weight: 900;
+        color: #ffd166;
+        text-shadow: 0 0 40px rgba(255, 209, 102, 0.6);
+      }
+      .cam-fg-sub {
+        position: absolute;
+        bottom: 6%;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 28px;
+        font-weight: 400;
+        color: #8ab0c8;
+      }
+
+      /* ══ S4: Number Flip Counter ══ */
+      .flip-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 40px;
+        width: 100%;
+      }
+      .flip-row {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 20px;
+        padding: 28px 32px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .flip-num {
+        font-size: 80px;
+        font-weight: 900;
+        color: #ffd166;
+        min-width: 280px;
+        font-variant-numeric: tabular-nums;
+        line-height: 1;
+      }
+      .flip-unit {
+        font-size: 26px;
+        font-weight: 600;
+        color: #7a9cb8;
+      }
+      .flip-label {
+        font-size: 24px;
+        font-weight: 600;
+        color: #efefef;
+      }
+      .flip-badge {
+        margin-left: auto;
+        background: rgba(6, 214, 160, 0.15);
+        border: 1px solid rgba(6, 214, 160, 0.35);
+        border-radius: 8px;
+        padding: 6px 18px;
+        font-size: 20px;
+        font-weight: 700;
+        color: #06d6a0;
+        white-space: nowrap;
+      }
+
+      /* ══ S5: Glassmorphism Slide ══ */
+      .glass-bg {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          135deg,
+          #020c18 0%,
+          #0d2b4b 50%,
+          #1a0533 100%
+        );
+      }
+      .glass-blob1 {
+        position: absolute;
+        width: 400px;
+        height: 400px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(255, 107, 53, 0.3),
+          transparent 70%
+        );
+        top: 10%;
+        left: -10%;
+        filter: blur(40px);
+      }
+      .glass-blob2 {
+        position: absolute;
+        width: 500px;
+        height: 500px;
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          rgba(106, 92, 253, 0.3),
+          transparent 70%
+        );
+        bottom: 5%;
+        right: -15%;
+        filter: blur(50px);
+      }
+      .glass-card {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 880px;
+        border-radius: 28px;
+        padding: 40px;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow:
+          0 8px 60px rgba(0, 0, 0, 0.4),
+          inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      }
+      .glass-shimmer {
+        position: absolute;
+        inset: 0;
+        border-radius: 28px;
+        overflow: hidden;
+        pointer-events: none;
+      }
+      .glass-shimmer::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 60%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.08),
+          transparent
+        );
+        transform: skewX(-20deg);
+      }
+      .glass-title {
+        font-size: 38px;
+        font-weight: 900;
+        color: #efefef;
+        margin-bottom: 14px;
+      }
+      .glass-sub {
+        font-size: 26px;
+        color: #8ab0c8;
+        margin-bottom: 32px;
+        line-height: 1.5;
+      }
+      .glass-stats {
+        display: flex;
+        gap: 32px;
+      }
+      .glass-stat {
+        text-align: center;
+      }
+      .glass-num {
+        font-size: 52px;
+        font-weight: 900;
+        color: #ffd166;
+      }
+      .glass-lbl {
+        font-size: 20px;
+        color: #7a9cb8;
+        margin-top: 4px;
+      }
+
+      /* ══ S6: Flow Line ══ */
+      .flow-wrap {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+      .flow-node {
+        position: absolute;
+        width: 140px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1.5px solid rgba(255, 209, 102, 0.4);
+        border-radius: 16px;
+        padding: 16px;
+        text-align: center;
+      }
+      .flow-icon {
+        font-size: 36px;
+      }
+      .flow-name {
+        font-size: 20px;
+        font-weight: 700;
+        color: #efefef;
+        margin-top: 6px;
+      }
+      .flow-val {
+        font-size: 18px;
+        color: #ffd166;
+        margin-top: 4px;
+      }
+      #flow-svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+      }
+
+      /* ══ S7: Heat Glow ══ */
+      .heat-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        width: 100%;
+      }
+      .heat-card {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        padding: 28px 32px;
+        display: flex;
+        align-items: center;
+        gap: 24px;
+      }
+      .heat-num {
+        font-size: 64px;
+        font-weight: 900;
+        color: #ffd166;
+        min-width: 200px;
+        line-height: 1;
+      }
+      .heat-card.active .heat-num {
+        color: #ff6b35;
+      }
+      .heat-info {
+        flex: 1;
+      }
+      .heat-label {
+        font-size: 26px;
+        font-weight: 700;
+        color: #efefef;
+      }
+      .heat-sub {
+        font-size: 22px;
+        color: #7a9cb8;
+        margin-top: 6px;
+      }
+
+      /* ══ S8: Orbiting Elements ══ */
+      .orbit-wrap {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .orbit-center {
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ff6b35, #ffd166);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        font-weight: 900;
+        color: #fff;
+        text-align: center;
+        line-height: 1.2;
+        box-shadow: 0 0 40px rgba(255, 107, 53, 0.4);
+      }
+      .orbit-dot {
+        position: absolute;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: rgba(255, 209, 102, 0.15);
+        border: 2px solid rgba(255, 209, 102, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+      }
+      .orbit-ring {
+        position: absolute;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      /* ══ S9: Depth Blur ══ */
+      .depth-wrap {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+      .depth-bg {
+        position: absolute;
+        inset: 0;
+        border-radius: 24px;
+        background: linear-gradient(180deg, #020c18, #0d2b4b);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .depth-mid {
+        position: absolute;
+        left: 10%;
+        right: 10%;
+        top: 20%;
+        bottom: 20%;
+        background: rgba(255, 107, 53, 0.1);
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48px;
+        font-weight: 900;
+        color: rgba(255, 255, 255, 0.6);
+      }
+      .depth-fg {
+        position: absolute;
+        bottom: 10%;
+        left: 5%;
+        right: 5%;
+        background: rgba(6, 18, 40, 0.9);
+        border: 1px solid rgba(255, 209, 102, 0.3);
+        border-radius: 20px;
+        padding: 28px 32px;
+        text-align: center;
+      }
+      .depth-title {
+        font-size: 44px;
+        font-weight: 900;
+        color: #ffd166;
+      }
+      .depth-sub {
+        font-size: 24px;
+        color: #8ab0c8;
+        margin-top: 8px;
+      }
+
+      /* ══ S10: Wipe + Overshoot ══ */
+      .overshoot-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        width: 100%;
+      }
+      .os-card {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1.5px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 28px 32px;
+        display: flex;
+        align-items: center;
+        gap: 24px;
+      }
+      .os-num {
+        font-size: 64px;
+        font-weight: 900;
+        color: #ffd166;
+        min-width: 180px;
+        line-height: 1;
+      }
+      .os-label {
+        font-size: 28px;
+        font-weight: 700;
+        color: #efefef;
+      }
+      .os-sub {
+        font-size: 22px;
+        color: #7a9cb8;
+        margin-top: 4px;
+      }
+
+      /* ══ S11: Echo Trail ══ */
+      .echo-wrap {
+        position: relative;
+        width: 100%;
+        height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .echo-main {
+        position: absolute;
+        font-size: 120px;
+        font-weight: 900;
+        color: #ffd166;
+        text-shadow: 0 0 30px rgba(255, 209, 102, 0.5);
+        white-space: nowrap;
+      }
+      .echo-ghost {
+        position: absolute;
+        font-size: 120px;
+        font-weight: 900;
+        color: #ffd166;
+        pointer-events: none;
+        white-space: nowrap;
+      }
+
+      /* ══ S12: Progress Ring ══ */
+      .ring-wrap {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        width: 100%;
+      }
+      .ring-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+      }
+      .ring-svg {
+        width: 220px;
+        height: 220px;
+      }
+      .ring-label {
+        font-size: 26px;
+        font-weight: 700;
+        color: #efefef;
+        text-align: center;
+      }
+      .ring-sub {
+        font-size: 20px;
+        color: #7a9cb8;
+        text-align: center;
+      }
+
+      /* ══ S13: Perspective Grid ══ */
+      .pgrid-wrap {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        perspective: 600px;
+      }
+      .pgrid-floor {
+        position: absolute;
+        bottom: 0;
+        left: -20%;
+        right: -20%;
+        height: 60%;
+        background-image:
+          linear-gradient(rgba(255, 209, 102, 0.15) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 209, 102, 0.15) 1px, transparent 1px);
+        background-size: 100px 100px;
+        transform: rotateX(65deg);
+        transform-origin: bottom;
+        background-position: center bottom;
+      }
+      .pgrid-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        margin-bottom: 40%;
+      }
+      .pgrid-title {
+        font-size: 90px;
+        font-weight: 900;
+        color: #ffd166;
+        text-shadow: 0 0 50px rgba(255, 209, 102, 0.5);
+      }
+      .pgrid-sub {
+        font-size: 32px;
+        color: #8ab0c8;
+        margin-top: 12px;
+      }
+
+      /* ══ S14: Responsive Stack Reorder ══ */
+      .stack-wrap {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+      .stack-card {
+        position: absolute;
+        border-radius: 20px;
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1.5px solid rgba(255, 255, 255, 0.1);
+      }
+      .sc-icon {
+        font-size: 40px;
+        flex-shrink: 0;
+      }
+      .sc-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #efefef;
+      }
+      .sc-val {
+        font-size: 22px;
+        color: #ffd166;
+        margin-top: 4px;
+        font-weight: 600;
+      }
+
+      /* ══ S15: Section Sync Beat ══ */
+      .sync-wrap {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr 1fr;
+        gap: 18px;
+        width: 100%;
+        height: 100%;
+      }
+      .sync-cell {
+        border-radius: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .sync-cell.span2 {
+        grid-column: 1/3;
+      }
+      .sync-icon {
+        font-size: 52px;
+      }
+      .sync-num {
+        font-size: 52px;
+        font-weight: 900;
+        color: #ffd166;
+        line-height: 1;
+      }
+      .sync-lbl {
+        font-size: 20px;
+        color: #7a9cb8;
+        text-align: center;
+        padding: 0 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="video-effects-demo-2"
+      data-start="0"
+      data-duration="105"
+      data-width="1080"
+      data-height="1920"
+    >
+      <div id="progress-fill"></div>
+      <audio
+        id="bgm"
+        class="clip"
+        src="assets/bgm.mp3"
+        preload="auto"
+        data-start="0"
+        data-duration="105"
+        data-track-index="0"
+        data-volume="0.25"
+      ></audio>
+
+      <!-- ══ S1: Mask Wipe Reveal (0–7s) ══ -->
+      <div
+        id="s1"
+        class="clip scene"
+        data-start="0"
+        data-duration="7"
+        data-track-index="10"
+      >
+        <div class="scene-bg" style="background: #08080f"></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 01 — ƯU TIÊN 1</div>
+          <div class="label-name">Mask Wipe Reveal</div>
+          <div class="label-desc">
+            Nội dung lộ ra qua mask — trái/phải, top/bottom
+          </div>
+        </div>
+        <div class="demo-area" style="flex-direction: column; gap: 16px">
+          <div
+            style="
+              position: relative;
+              width: 100%;
+              height: 33%;
+              border-radius: 24px;
+              overflow: hidden;
+            "
+          >
+            <div
+              id="wc1"
+              class="wipe-card wc1"
+              style="clip-path: inset(0 100% 0 0)"
+            >
+              <div>
+                <div class="wipe-label">Trái → Phải</div>
+                <div class="wipe-sub">clip-path animate</div>
+              </div>
+            </div>
+          </div>
+          <div
+            style="
+              position: relative;
+              width: 100%;
+              height: 33%;
+              border-radius: 24px;
+              overflow: hidden;
+            "
+          >
+            <div
+              id="wc2"
+              class="wipe-card wc2"
+              style="clip-path: inset(100% 0 0 0)"
+            >
+              <div>
+                <div class="wipe-label">Trên → Dưới</div>
+                <div class="wipe-sub">clip-path animate</div>
+              </div>
+            </div>
+          </div>
+          <div
+            style="
+              position: relative;
+              width: 100%;
+              height: 33%;
+              border-radius: 24px;
+              overflow: hidden;
+            "
+          >
+            <div
+              id="wc3"
+              class="wipe-card wc3"
+              style="clip-path: inset(0 0 0 100%)"
+            >
+              <div>
+                <div class="wipe-label">Phải → Trái</div>
+                <div class="wipe-sub">clip-path animate</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S2: Split Text Cascade (7–14s) ══ -->
+      <div
+        id="s2"
+        class="clip scene"
+        data-start="7"
+        data-duration="7"
+        data-track-index="11"
+      >
+        <div
+          class="scene-bg"
+          style="background: linear-gradient(180deg, #08080f, #0d1b2a)"
+        ></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 02 — ƯU TIÊN 1</div>
+          <div class="label-name">Split Text Cascade</div>
+          <div class="label-desc">
+            Từng từ / ký tự stagger xuất hiện theo nhịp
+          </div>
+        </div>
+        <div class="demo-area">
+          <div class="split-wrap">
+            <div class="split-title">
+              <div class="split-word">
+                <div
+                  id="sw1"
+                  class="split-inner"
+                  style="opacity: 0; transform: translateY(60px)"
+                >
+                  ĐÀ
+                </div>
+              </div>
+              <div class="split-word">
+                <div
+                  id="sw2"
+                  class="split-inner"
+                  style="opacity: 0; transform: translateY(60px)"
+                >
+                  NẴNG
+                </div>
+              </div>
+              <div class="split-word">
+                <div
+                  id="sw3"
+                  class="split-inner"
+                  style="opacity: 0; transform: translateY(60px)"
+                >
+                  2025
+                </div>
+              </div>
+            </div>
+            <div class="split-sub" style="overflow: hidden">
+              <div
+                id="ss1"
+                class="split-sub-inner"
+                style="opacity: 0; transform: translateY(40px)"
+              >
+                Thành phố đáng sống nhất Việt Nam
+              </div>
+            </div>
+            <div class="split-tag">
+              <div class="split-chip">
+                <div
+                  id="sc1"
+                  class="split-chip-inner"
+                  style="opacity: 0; transform: translateY(30px)"
+                >
+                  17.3 triệu khách
+                </div>
+              </div>
+              <div class="split-chip">
+                <div
+                  id="sc2"
+                  class="split-chip-inner"
+                  style="opacity: 0; transform: translateY(30px)"
+                >
+                  Tỷ suất 8–12%
+                </div>
+              </div>
+              <div class="split-chip">
+                <div
+                  id="sc3"
+                  class="split-chip-inner"
+                  style="opacity: 0; transform: translateY(30px)"
+                >
+                  Số 1 miền Trung
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S3: Camera Push-In (14–21s) ══ -->
+      <div
+        id="s3"
+        class="clip scene"
+        data-start="14"
+        data-duration="7"
+        data-track-index="12"
+      >
+        <div class="scene-bg" style="background: #08080f"></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 03 — ƯU TIÊN 1</div>
+          <div class="label-name">Camera Push-In</div>
+          <div class="label-desc">
+            Scale + parallax giả cảm giác camera tiến
+          </div>
+        </div>
+        <div class="demo-area">
+          <div class="cam-wrap">
+            <div id="cam-bg" class="cam-bg">
+              <div class="cam-grid"></div>
+            </div>
+            <div id="cam-mid" class="cam-mid"></div>
+            <div id="cam-fg" class="cam-fg">BĐS ĐÀ NẴNG</div>
+            <div id="cam-fg-sub" class="cam-fg-sub">Thị trường triệu đô</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S4: Number Flip Counter (21–28s) ══ -->
+      <div
+        id="s4"
+        class="clip scene"
+        data-start="21"
+        data-duration="7"
+        data-track-index="13"
+      >
+        <div class="scene-bg" style="background: #08080f"></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 04 — ƯU TIÊN 1</div>
+          <div class="label-name">Number Flip Counter</div>
+          <div class="label-desc">
+            Từng digit xáo trộn rồi land vào con số thật
+          </div>
+        </div>
+        <div class="demo-area">
+          <div class="flip-wrap">
+            <div class="flip-row">
+              <div>
+                <div id="fn1" class="flip-num">0</div>
+                <div class="flip-unit">triệu khách</div>
+              </div>
+              <div class="flip-label">Lượng khách 2025</div>
+              <div class="flip-badge">+26%</div>
+            </div>
+            <div class="flip-row">
+              <div>
+                <div id="fn2" class="flip-num">0</div>
+                <div class="flip-unit">tỷ đồng</div>
+              </div>
+              <div class="flip-label">Doanh thu DIFF</div>
+              <div class="flip-badge">+45%</div>
+            </div>
+            <div class="flip-row">
+              <div>
+                <div id="fn3" class="flip-num">0</div>
+                <div class="flip-unit">%</div>
+              </div>
+              <div class="flip-label">Lấp đầy khách sạn</div>
+              <div class="flip-badge">Kỷ lục</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S5: Glassmorphism Slide (28–35s) ══ -->
+      <div
+        id="s5"
+        class="clip scene"
+        data-start="28"
+        data-duration="7"
+        data-track-index="14"
+        style="overflow: hidden"
+      >
+        <div class="scene-bg" style="background: #020c18"></div>
+        <div id="gb1" class="glass-blob1"></div>
+        <div id="gb2" class="glass-blob2"></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 05 — ƯU TIÊN 2</div>
+          <div class="label-name">Glassmorphism Slide</div>
+          <div class="label-desc">
+            Card nền mờ, shimmer chạy qua, content trượt vào
+          </div>
+        </div>
+        <div class="demo-area" style="overflow: hidden">
+          <div
+            id="glass-card"
+            class="glass-card"
+            style="opacity: 0; width: 100%; max-width: 880px"
+          >
+            <div class="glass-shimmer" id="glass-shimmer"></div>
+            <div class="glass-title">Vinhomes Hải Vân Bay</div>
+            <div class="glass-sub">
+              Dự án BĐS đỉnh nhất Đà Nẵng<br />Ven biển · Cao cấp · Sinh lời
+            </div>
+            <div class="glass-stats">
+              <div class="glass-stat">
+                <div class="glass-num">8%</div>
+                <div class="glass-lbl">Tỷ suất</div>
+              </div>
+              <div class="glass-stat">
+                <div class="glass-num">2026</div>
+                <div class="glass-lbl">Mở bán</div>
+              </div>
+              <div class="glass-stat">
+                <div class="glass-num">97%</div>
+                <div class="glass-lbl">Lấp đầy</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S6: Flow Line Connection (35–42s) ══ -->
+      <div
+        id="s6"
+        class="clip scene"
+        data-start="35"
+        data-duration="7"
+        data-track-index="15"
+      >
+        <div class="scene-bg" style="background: #08080f"></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 06 — ƯU TIÊN 2</div>
+          <div class="label-name">Flow Line Connection</div>
+          <div class="label-desc">
+            SVG path animate kết nối các node dữ liệu
+          </div>
+        </div>
+        <div class="demo-area">
+          <div class="flow-wrap">
+            <svg
+              id="flow-svg"
+              viewBox="0 0 952 1020"
+              preserveAspectRatio="xMidYMid meet"
+            >
+              <path
+                id="fl1"
+                d="M 140 200 C 350 200, 550 500, 750 500"
+                fill="none"
+                stroke="rgba(255,209,102,0.6)"
+                stroke-width="3"
+                stroke-dasharray="700"
+                stroke-dashoffset="700"
+                filter="drop-shadow(0 0 6px rgba(255,209,102,0.5))"
+              />
+              <path
+                id="fl2"
+                d="M 750 500 C 650 500, 400 780, 200 800"
+                fill="none"
+                stroke="rgba(6,214,160,0.6)"
+                stroke-width="3"
+                stroke-dasharray="700"
+                stroke-dashoffset="700"
+                filter="drop-shadow(0 0 6px rgba(6,214,160,0.5))"
+              />
+              <circle
+                id="fn-a"
+                cx="140"
+                cy="200"
+                r="12"
+                fill="#FFD166"
+                opacity="0"
+                filter="drop-shadow(0 0 8px #FFD166)"
+              />
+              <circle
+                id="fn-b"
+                cx="750"
+                cy="500"
+                r="12"
+                fill="#FF6B35"
+                opacity="0"
+                filter="drop-shadow(0 0 8px #FF6B35)"
+              />
+              <circle
+                id="fn-c"
+                cx="200"
+                cy="800"
+                r="12"
+                fill="#06D6A0"
+                opacity="0"
+                filter="drop-shadow(0 0 8px #06D6A0)"
+              />
+            </svg>
+            <div
+              id="fnode-a"
+              class="flow-node"
+              style="top: 12%; left: 4%; opacity: 0"
+            >
+              <div class="flow-icon">🏖️</div>
+              <div class="flow-name">Ven Biển</div>
+              <div class="flow-val">8–12%</div>
+            </div>
+            <div
+              id="fnode-b"
+              class="flow-node"
+              style="top: 44%; right: 4%; opacity: 0"
+            >
+              <div class="flow-icon">🌉</div>
+              <div class="flow-name">Sông Hàn</div>
+              <div class="flow-val">7–10%</div>
+            </div>
+            <div
+              id="fnode-c"
+              class="flow-node"
+              style="bottom: 12%; left: 10%; opacity: 0"
+            >
+              <div class="flow-icon">🏔️</div>
+              <div class="flow-name">Bà Nà Hills</div>
+              <div class="flow-val">6–9%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S7: Heat Glow Pulse (42–49s) ══ -->
+      <div
+        id="s7"
+        class="clip scene"
+        data-start="42"
+        data-duration="7"
+        data-track-index="16"
+      >
+        <div class="scene-bg" style="background: #08080f"></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 07 — ƯU TIÊN 2</div>
+          <div class="label-name">Heat Glow Pulse</div>
+          <div class="label-desc">
+            Vùng quan trọng phát sáng dẫn mắt người xem
+          </div>
+        </div>
+        <div class="demo-area">
+          <div class="heat-wrap">
+            <div id="hc1" class="heat-card">
+              <div class="heat-num">17.3tr</div>
+              <div class="heat-info">
+                <div class="heat-label">Khách du lịch 2025</div>
+                <div class="heat-sub">Kỷ lục lịch sử Đà Nẵng</div>
+              </div>
+            </div>
+            <div id="hc2" class="heat-card active">
+              <div class="heat-num">97%</div>
+              <div class="heat-info">
+                <div class="heat-label">Lấp đầy đêm chung kết</div>
+                <div class="heat-sub">Cao nhất 3 năm DIFF</div>
+              </div>
+            </div>
+            <div id="hc3" class="heat-card">
+              <div class="heat-num">5.600</div>
+              <div class="heat-info">
+                <div class="heat-label">Tỷ đồng doanh thu</div>
+                <div class="heat-sub">Mùa DIFF 2025 · 45 ngày</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S8: Orbiting Accent Elements (49–56s) ══ -->
+      <div
+        id="s8"
+        class="clip scene"
+        data-start="49"
+        data-duration="7"
+        data-track-index="17"
+      >
+        <div class="scene-bg" style="background: #08080f"></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 08 — ƯU TIÊN 2</div>
+          <div class="label-name">Orbiting Accents</div>
+          <div class="label-desc">Icon bay quanh focal point — bớt "phẳng"</div>
+        </div>
+        <div class="demo-area">
+          <div class="orbit-wrap">
+            <div
+              class="orbit-ring"
+              id="or1"
+              style="
+                width: 320px;
+                height: 320px;
+                margin-top: -40px;
+                margin-left: -20px;
+              "
+            ></div>
+            <div
+              class="orbit-ring"
+              id="or2"
+              style="
+                width: 480px;
+                height: 480px;
+                margin-top: -40px;
+                margin-left: -20px;
+              "
+            ></div>
+            <div class="orbit-center" id="orbit-center">BĐS<br />Đà Nẵng</div>
+            <div id="od1" class="orbit-dot" style="position: absolute">🏖️</div>
+            <div id="od2" class="orbit-dot" style="position: absolute">💰</div>
+            <div id="od3" class="orbit-dot" style="position: absolute">✈️</div>
+            <div id="od4" class="orbit-dot" style="position: absolute">🌊</div>
+            <div id="od5" class="orbit-dot" style="position: absolute">📈</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S9: Depth Blur Reveal (56–63s) ══ -->
+      <div
+        id="s9"
+        class="clip scene"
+        data-start="56"
+        data-duration="7"
+        data-track-index="18"
+      >
+        <div class="scene-bg" style="background: #08080f"></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 09 — ƯU TIÊN 3</div>
+          <div class="label-name">Depth Blur Reveal</div>
+          <div class="label-desc">
+            Background blur → nét dần · tạo cảm giác layer
+          </div>
+        </div>
+        <div class="demo-area">
+          <div class="depth-wrap" style="width: 100%; height: 100%">
+            <div id="d-bg" class="depth-bg" style="filter: blur(0px)">
+              <div
+                style="
+                  font-size: 180px;
+                  font-weight: 900;
+                  color: rgba(255, 209, 102, 0.06);
+                "
+              >
+                BĐS
+              </div>
+            </div>
+            <div
+              id="d-mid"
+              class="depth-mid"
+              style="filter: blur(12px); opacity: 0.4"
+            >
+              Vinhomes HVB
+            </div>
+            <div
+              id="d-fg"
+              class="depth-fg"
+              style="filter: blur(16px); opacity: 0"
+            >
+              <div class="depth-title">17.3 Triệu Khách</div>
+              <div class="depth-sub">Đà Nẵng · Năm 2025 · Kỷ lục</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S10: Wipe + Overshoot (63–70s) ══ -->
+      <div
+        id="s10"
+        class="clip scene"
+        data-start="63"
+        data-duration="7"
+        data-track-index="19"
+      >
+        <div class="scene-bg" style="background: #08080f"></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 10 — ƯU TIÊN 3</div>
+          <div class="label-name">Wipe + Overshoot</div>
+          <div class="label-desc">
+            Đi quá đà rồi snap về — tạo cảm giác "có lực"
+          </div>
+        </div>
+        <div class="demo-area">
+          <div class="overshoot-wrap">
+            <div
+              id="osc1"
+              class="os-card"
+              style="opacity: 0; transform: translateX(-400px)"
+            >
+              <div class="os-num">8%</div>
+              <div>
+                <div class="os-label">Tỷ suất cho thuê</div>
+                <div class="os-sub">Ven biển Đà Nẵng</div>
+              </div>
+            </div>
+            <div
+              id="osc2"
+              class="os-card"
+              style="opacity: 0; transform: translateX(400px)"
+            >
+              <div class="os-num">12%</div>
+              <div>
+                <div class="os-label">Peak mùa lễ hội</div>
+                <div class="os-sub">DIFF 2025</div>
+              </div>
+            </div>
+            <div
+              id="osc3"
+              class="os-card"
+              style="opacity: 0; transform: translateX(-400px)"
+            >
+              <div class="os-num">97%</div>
+              <div>
+                <div class="os-label">Tỷ lệ lấp đầy</div>
+                <div class="os-sub">Đêm chung kết</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S11: Echo Trail (70–77s) ══ -->
+      <div
+        id="s11"
+        class="clip scene"
+        data-start="70"
+        data-duration="7"
+        data-track-index="20"
+      >
+        <div class="scene-bg" style="background: #08080f"></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 11 — ƯU TIÊN 3</div>
+          <div class="label-name">Echo Trail</div>
+          <div class="label-desc">Vệt bóng mờ theo chuyển động của object</div>
+        </div>
+        <div class="demo-area" style="flex-direction: column; gap: 0">
+          <div class="echo-wrap" style="width: 100%">
+            <div
+              id="eg3"
+              class="echo-ghost"
+              style="opacity: 0.06; transform: translateX(-800px)"
+            >
+              17.3M
+            </div>
+            <div
+              id="eg2"
+              class="echo-ghost"
+              style="opacity: 0.12; transform: translateX(-800px)"
+            >
+              17.3M
+            </div>
+            <div
+              id="eg1"
+              class="echo-ghost"
+              style="opacity: 0.22; transform: translateX(-800px)"
+            >
+              17.3M
+            </div>
+            <div
+              id="em1"
+              class="echo-main"
+              style="transform: translateX(-800px)"
+            >
+              17.3M
+            </div>
+          </div>
+          <div
+            style="
+              font-size: 28px;
+              font-weight: 600;
+              color: #7a9cb8;
+              text-align: center;
+              margin-top: 16px;
+            "
+          >
+            Khách du lịch · Đà Nẵng 2025
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S12: Progress Ring (77–84s) ══ -->
+      <div
+        id="s12"
+        class="clip scene"
+        data-start="77"
+        data-duration="7"
+        data-track-index="21"
+      >
+        <div class="scene-bg" style="background: #08080f"></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 12 — ƯU TIÊN 1</div>
+          <div class="label-name">Progress Ring</div>
+          <div class="label-desc">
+            Cung tròn SVG build dần — chuyên nghiệp hơn bar
+          </div>
+        </div>
+        <div class="demo-area">
+          <div class="ring-wrap">
+            <div class="ring-item">
+              <svg class="ring-svg" viewBox="0 0 200 200">
+                <circle
+                  cx="100"
+                  cy="100"
+                  r="80"
+                  fill="none"
+                  stroke="rgba(255,255,255,0.06)"
+                  stroke-width="12"
+                />
+                <circle
+                  id="rc1"
+                  cx="100"
+                  cy="100"
+                  r="80"
+                  fill="none"
+                  stroke="#FFD166"
+                  stroke-width="12"
+                  stroke-dasharray="502"
+                  stroke-dashoffset="502"
+                  stroke-linecap="round"
+                  transform="rotate(-90 100 100)"
+                  filter="drop-shadow(0 0 8px #FFD166)"
+                />
+                <text
+                  x="100"
+                  y="108"
+                  text-anchor="middle"
+                  font-size="42"
+                  font-weight="900"
+                  fill="#FFD166"
+                  font-family="Be Vietnam Pro"
+                >
+                  97%
+                </text>
+              </svg>
+              <div class="ring-label">Lấp đầy</div>
+              <div class="ring-sub">Đêm chung kết</div>
+            </div>
+            <div class="ring-item">
+              <svg class="ring-svg" viewBox="0 0 200 200">
+                <circle
+                  cx="100"
+                  cy="100"
+                  r="80"
+                  fill="none"
+                  stroke="rgba(255,255,255,0.06)"
+                  stroke-width="12"
+                />
+                <circle
+                  id="rc2"
+                  cx="100"
+                  cy="100"
+                  r="80"
+                  fill="none"
+                  stroke="#06D6A0"
+                  stroke-width="12"
+                  stroke-dasharray="502"
+                  stroke-dashoffset="502"
+                  stroke-linecap="round"
+                  transform="rotate(-90 100 100)"
+                  filter="drop-shadow(0 0 8px #06D6A0)"
+                />
+                <text
+                  x="100"
+                  y="108"
+                  text-anchor="middle"
+                  font-size="42"
+                  font-weight="900"
+                  fill="#06D6A0"
+                  font-family="Be Vietnam Pro"
+                >
+                  12%
+                </text>
+              </svg>
+              <div class="ring-label">Tỷ suất</div>
+              <div class="ring-sub">Cho thuê/năm</div>
+            </div>
+            <div class="ring-item">
+              <svg class="ring-svg" viewBox="0 0 200 200">
+                <circle
+                  cx="100"
+                  cy="100"
+                  r="80"
+                  fill="none"
+                  stroke="rgba(255,255,255,0.06)"
+                  stroke-width="12"
+                />
+                <circle
+                  id="rc3"
+                  cx="100"
+                  cy="100"
+                  r="80"
+                  fill="none"
+                  stroke="#FF6B35"
+                  stroke-width="12"
+                  stroke-dasharray="502"
+                  stroke-dashoffset="502"
+                  stroke-linecap="round"
+                  transform="rotate(-90 100 100)"
+                  filter="drop-shadow(0 0 8px #FF6B35)"
+                />
+                <text
+                  x="100"
+                  y="108"
+                  text-anchor="middle"
+                  font-size="42"
+                  font-weight="900"
+                  fill="#FF6B35"
+                  font-family="Be Vietnam Pro"
+                >
+                  26%
+                </text>
+              </svg>
+              <div class="ring-label">Tăng trưởng</div>
+              <div class="ring-sub">Khách 2025</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S13: Perspective Grid (84–91s) ══ -->
+      <div
+        id="s13"
+        class="clip scene"
+        data-start="84"
+        data-duration="7"
+        data-track-index="22"
+      >
+        <div class="scene-bg" style="background: #08080f"></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 13 — ƯU TIÊN 3</div>
+          <div class="label-name">Perspective Grid</div>
+          <div class="label-desc">
+            Grid 3D dịch chuyển tạo không gian — intro/outro
+          </div>
+        </div>
+        <div class="demo-area" style="overflow: visible; position: relative">
+          <div class="pgrid-wrap" style="width: 100%; height: 100%">
+            <div id="pgrid-floor" class="pgrid-floor"></div>
+            <div id="pgrid-content" class="pgrid-content" style="opacity: 0">
+              <div class="pgrid-title">2026</div>
+              <div class="pgrid-sub">DIFF · 10 Quốc Gia</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S14: Responsive Stack Reorder (91–98s) ══ -->
+      <div
+        id="s14"
+        class="clip scene"
+        data-start="91"
+        data-duration="7"
+        data-track-index="23"
+      >
+        <div class="scene-bg" style="background: #08080f"></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 14 — ƯU TIÊN 3</div>
+          <div class="label-name">Stack Reorder</div>
+          <div class="label-desc">
+            Card tự sắp xếp lại vị trí theo nhịp reveal
+          </div>
+        </div>
+        <div class="demo-area" style="position: relative">
+          <div class="stack-wrap">
+            <div
+              id="sk1"
+              class="stack-card"
+              style="width: 880px; height: 140px; top: 0; left: 0; opacity: 0"
+            >
+              <div class="sc-icon">🏖️</div>
+              <div>
+                <div class="sc-title">Ven Biển Mỹ Khê</div>
+                <div class="sc-val">8–12% tỷ suất</div>
+              </div>
+            </div>
+            <div
+              id="sk2"
+              class="stack-card"
+              style="
+                width: 880px;
+                height: 140px;
+                top: 160px;
+                left: 0;
+                opacity: 0;
+              "
+            >
+              <div class="sc-icon">🌉</div>
+              <div>
+                <div class="sc-title">Ven Sông Hàn</div>
+                <div class="sc-val">7–10% tỷ suất</div>
+              </div>
+            </div>
+            <div
+              id="sk3"
+              class="stack-card"
+              style="
+                width: 880px;
+                height: 140px;
+                top: 320px;
+                left: 0;
+                opacity: 0;
+              "
+            >
+              <div class="sc-icon">🏔️</div>
+              <div>
+                <div class="sc-title">Bà Nà · Sơn Trà</div>
+                <div class="sc-val">6–9% tỷ suất</div>
+              </div>
+            </div>
+            <div
+              id="sk4"
+              class="stack-card"
+              style="
+                width: 880px;
+                height: 140px;
+                top: 480px;
+                left: 0;
+                opacity: 0;
+              "
+            >
+              <div class="sc-icon">🏙️</div>
+              <div>
+                <div class="sc-title">Trung Tâm TP</div>
+                <div class="sc-val">5–8% tỷ suất</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S15: Section Sync Beat (98–105s) ══ -->
+      <div
+        id="s15"
+        class="clip scene"
+        data-start="98"
+        data-duration="7"
+        data-track-index="24"
+      >
+        <div class="scene-bg" style="background: #08080f"></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 15 — ƯU TIÊN 3</div>
+          <div class="label-name">Section Sync Beat</div>
+          <div class="label-desc">
+            Mỗi beat nhạc kích hoạt micro action — từ đẹp → có nhịp
+          </div>
+        </div>
+        <div class="demo-area">
+          <div class="sync-wrap">
+            <div id="sy1" class="sync-cell">
+              <div class="sync-icon">🏖️</div>
+              <div class="sync-num">17.3M</div>
+              <div class="sync-lbl">Khách du lịch</div>
+            </div>
+            <div id="sy2" class="sync-cell">
+              <div class="sync-icon">💰</div>
+              <div class="sync-num">5.600</div>
+              <div class="sync-lbl">Tỷ đồng</div>
+            </div>
+            <div id="sy3" class="sync-cell">
+              <div class="sync-icon">📈</div>
+              <div class="sync-num">+45%</div>
+              <div class="sync-lbl">Tăng trưởng</div>
+            </div>
+            <div id="sy4" class="sync-cell">
+              <div class="sync-icon">🏨</div>
+              <div class="sync-num">97%</div>
+              <div class="sync-lbl">Lấp đầy</div>
+            </div>
+            <div id="sy5" class="sync-cell span2">
+              <div class="sync-icon">🎆</div>
+              <div class="sync-num">DIFF 2026</div>
+              <div class="sync-lbl">10 đội · 10 quốc gia · Kỷ lục mới</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      var sfxWhoosh = new Audio("assets/sfx_whoosh.mp3");
+      var sfxPop = new Audio("assets/sfx_pop.mp3");
+      var sfxImpact = new Audio("assets/sfx_impact.mp3");
+      sfxWhoosh.volume = 0.4;
+      sfxPop.volume = 0.45;
+      sfxImpact.volume = 0.6;
+      function playWhoosh() {
+        sfxWhoosh.currentTime = 0;
+        sfxWhoosh.play().catch(function () {});
+      }
+      function playPop() {
+        var s = sfxPop.cloneNode();
+        s.volume = 0.4;
+        s.play().catch(function () {});
+      }
+      function playImpact() {
+        sfxImpact.currentTime = 0;
+        sfxImpact.play().catch(function () {});
+      }
+
+      tl.to(
+        "#progress-fill",
+        { scaleX: 1, duration: 103, ease: "none", transformOrigin: "left" },
+        1,
+      );
+
+      function fadeIn(id, t) {
+        tl.from(
+          id,
+          {
+            opacity: 0,
+            scale: 0.96,
+            filter: "blur(8px)",
+            duration: 0.5,
+            ease: "power2.out",
+          },
+          t,
+        );
+      }
+      function labelIn(sel, t) {
+        tl.from(
+          sel + " .label-num",
+          { y: -20, opacity: 0, duration: 0.35 },
+          t + 0.3,
+        );
+        tl.from(
+          sel + " .label-name",
+          { y: 20, opacity: 0, duration: 0.4, ease: "back.out(1.5)" },
+          t + 0.5,
+        );
+        tl.from(
+          sel + " .label-desc",
+          { y: 15, opacity: 0, duration: 0.35 },
+          t + 0.75,
+        );
+      }
+
+      // ══ S1: Mask Wipe Reveal ══
+      fadeIn("#s1", 0);
+      labelIn("#s1", 0);
+      tl.call(playImpact, [], 1.0);
+      tl.to(
+        "#wc1",
+        { clipPath: "inset(0 0% 0 0)", duration: 0.8, ease: "power2.inOut" },
+        1.0,
+      );
+      tl.call(playPop, [], 2.0);
+      tl.to(
+        "#wc2",
+        { clipPath: "inset(0% 0 0 0)", duration: 0.8, ease: "power2.inOut" },
+        2.0,
+      );
+      tl.call(playPop, [], 3.0);
+      tl.to(
+        "#wc3",
+        { clipPath: "inset(0 0 0 0%)", duration: 0.8, ease: "power2.inOut" },
+        3.0,
+      );
+
+      // ══ S2: Split Text Cascade ══
+      fadeIn("#s2", 7);
+      labelIn("#s2", 7);
+      tl.call(playWhoosh, [], 7);
+      tl.to(
+        ["#sw1", "#sw2", "#sw3"],
+        {
+          y: 0,
+          opacity: 1,
+          stagger: 0.18,
+          duration: 0.55,
+          ease: "back.out(1.7)",
+        },
+        8.0,
+      );
+      tl.call(playImpact, [], 8.5);
+      tl.to(
+        "#ss1",
+        { y: 0, opacity: 1, duration: 0.45, ease: "expo.out" },
+        8.8,
+      );
+      tl.to(
+        ["#sc1", "#sc2", "#sc3"],
+        {
+          y: 0,
+          opacity: 1,
+          stagger: 0.15,
+          duration: 0.4,
+          ease: "back.out(1.5)",
+        },
+        9.5,
+      );
+
+      // ══ S3: Camera Push-In ══
+      fadeIn("#s3", 14);
+      labelIn("#s3", 14);
+      tl.call(playWhoosh, [], 14);
+      tl.from("#cam-bg", { scale: 1.0, duration: 0.4 }, 14.5);
+      tl.from(
+        ["#cam-fg", "#cam-fg-sub"],
+        { opacity: 0, y: 30, stagger: 0.2, duration: 0.5 },
+        15.0,
+      );
+      // Push in: bg scales up (camera moves in), fg moves less (parallax)
+      tl.to(
+        "#cam-bg",
+        { scale: 1.18, duration: 5, ease: "power1.inOut" },
+        15.0,
+      );
+      tl.to("#cam-mid", { y: -30, duration: 4, ease: "power1.inOut" }, 15.5);
+      tl.to("#cam-fg", { y: -15, duration: 4.5, ease: "power1.inOut" }, 15.5);
+
+      // ══ S4: Number Flip Counter ══
+      fadeIn("#s4", 21);
+      labelIn("#s4", 21);
+      tl.call(playWhoosh, [], 21);
+      tl.from(
+        ".flip-row",
+        {
+          x: -60,
+          opacity: 0,
+          stagger: 0.2,
+          duration: 0.4,
+          ease: "back.out(1.5)",
+        },
+        22.0,
+      );
+
+      // Deterministic flip: cycle through fixed digits before landing
+      var DIGITS = "9385027461908354";
+      var dIdx = 0;
+      function nextD() {
+        return DIGITS[dIdx++ % DIGITS.length];
+      }
+
+      // fn1 → 17.3
+      tl.call(
+        function () {
+          var el = document.getElementById("fn1");
+          var target = 17.3;
+          var frame = 0;
+          var iv = setInterval(function () {
+            frame++;
+            if (frame < 20) el.textContent = nextD() + "." + nextD();
+            else if (frame < 25)
+              el.textContent = (17 - Math.floor((25 - frame) * 0.3)).toFixed(1);
+            else {
+              el.textContent = "17.3";
+              clearInterval(iv);
+            }
+          }, 60);
+        },
+        [],
+        22.5,
+      );
+
+      // fn2 → 5.600
+      tl.call(
+        function () {
+          var el = document.getElementById("fn2");
+          var frame = 0;
+          var iv = setInterval(function () {
+            frame++;
+            if (frame < 20)
+              el.textContent = nextD() + "." + nextD() + nextD() + nextD();
+            else if (frame < 25)
+              el.textContent = (
+                5600 - Math.floor((25 - frame) * 140)
+              ).toString();
+            else {
+              el.textContent = "5.600";
+              clearInterval(iv);
+            }
+          }, 60);
+        },
+        [],
+        23.2,
+      );
+
+      // fn3 → 97
+      tl.call(
+        function () {
+          var el = document.getElementById("fn3");
+          var frame = 0;
+          var iv = setInterval(function () {
+            frame++;
+            if (frame < 20) el.textContent = nextD() + nextD();
+            else if (frame < 25)
+              el.textContent = Math.round(97 - (25 - frame) * 3);
+            else {
+              el.textContent = "97";
+              clearInterval(iv);
+            }
+          }, 60);
+        },
+        [],
+        24.0,
+      );
+
+      // ══ S5: Glassmorphism Slide ══
+      fadeIn("#s5", 28);
+      labelIn("#s5", 28);
+      tl.call(playWhoosh, [], 28);
+      // Blobs drift
+      tl.to(
+        "#gb1",
+        {
+          x: 40,
+          y: -20,
+          duration: 4,
+          ease: "sine.inOut",
+          yoyo: true,
+          repeat: 1,
+        },
+        28.5,
+      );
+      tl.to(
+        "#gb2",
+        {
+          x: -30,
+          y: 30,
+          duration: 3.5,
+          ease: "sine.inOut",
+          yoyo: true,
+          repeat: 1,
+        },
+        28.5,
+      );
+      // Card slides in
+      tl.call(playImpact, [], 29.5);
+      tl.fromTo(
+        "#glass-card",
+        { x: 200, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.6, ease: "back.out(1.4)" },
+        29.5,
+      );
+      // Shimmer sweep
+      tl.to(
+        "#glass-shimmer::after",
+        { left: "150%", duration: 1.2, ease: "power2.inOut" },
+        30.5,
+      );
+      tl.call(
+        function () {
+          var sh = document.getElementById("glass-shimmer");
+          sh.style.setProperty("--shimmer-x", "150%");
+          var el = sh.querySelector && sh.querySelector("::after");
+          gsap.fromTo(
+            sh,
+            { backgroundPosition: "-200% 0" },
+            { backgroundPosition: "200% 0", duration: 1.2 },
+          );
+        },
+        [],
+        30.5,
+      );
+
+      // ══ S6: Flow Line ══
+      fadeIn("#s6", 35);
+      labelIn("#s6", 35);
+      tl.call(playWhoosh, [], 35);
+      tl.to(["#fnode-a", "#fn-a"], { opacity: 1, duration: 0.4 }, 36.0);
+      tl.call(playPop, [], 36.0);
+      tl.to(
+        "#fl1",
+        { strokeDashoffset: 0, duration: 1.5, ease: "power2.inOut" },
+        36.2,
+      );
+      tl.to(["#fnode-b", "#fn-b"], { opacity: 1, duration: 0.4 }, 37.8);
+      tl.call(playPop, [], 37.8);
+      tl.to(
+        "#fl2",
+        { strokeDashoffset: 0, duration: 1.5, ease: "power2.inOut" },
+        38.0,
+      );
+      tl.to(["#fnode-c", "#fn-c"], { opacity: 1, duration: 0.4 }, 39.5);
+      tl.call(playPop, [], 39.5);
+      // Pulse nodes
+      tl.to(
+        ["#fn-a", "#fn-b", "#fn-c"],
+        {
+          scale: 1.3,
+          duration: 0.5,
+          yoyo: true,
+          repeat: 1,
+          stagger: 0.3,
+          ease: "sine.inOut",
+        },
+        40.5,
+      );
+
+      // ══ S7: Heat Glow ══
+      fadeIn("#s7", 42);
+      labelIn("#s7", 42);
+      tl.call(playWhoosh, [], 42);
+      tl.from(
+        ".heat-card",
+        { x: -60, opacity: 0, stagger: 0.2, duration: 0.4, ease: "power2.out" },
+        43.0,
+      );
+      // Pulse the active (hc2) card
+      tl.to(
+        "#hc2",
+        {
+          boxShadow:
+            "0 0 0 4px rgba(255,107,53,0.3),0 0 40px rgba(255,107,53,0.25)",
+          duration: 1.0,
+          yoyo: true,
+          repeat: 2,
+          ease: "sine.inOut",
+        },
+        44.0,
+      );
+      // Cycle highlight to other cards
+      tl.to(
+        "#hc1",
+        {
+          boxShadow:
+            "0 0 0 3px rgba(255,209,102,0.3),0 0 30px rgba(255,209,102,0.2)",
+          duration: 0.8,
+          yoyo: true,
+          repeat: 1,
+          ease: "sine.inOut",
+        },
+        46.0,
+      );
+
+      // ══ S8: Orbiting ══
+      fadeIn("#s8", 49);
+      labelIn("#s8", 49);
+      tl.call(playWhoosh, [], 49);
+      tl.from(
+        "#orbit-center",
+        { scale: 0.5, opacity: 0, duration: 0.5, ease: "back.out(1.7)" },
+        50.0,
+      );
+      tl.from(
+        ".orbit-ring",
+        {
+          scale: 0.3,
+          opacity: 0,
+          stagger: 0.2,
+          duration: 0.5,
+          ease: "back.out(1.5)",
+        },
+        50.2,
+      );
+      tl.from(
+        [".orbit-dot"],
+        {
+          scale: 0,
+          opacity: 0,
+          stagger: 0.15,
+          duration: 0.4,
+          ease: "back.out(1.7)",
+        },
+        50.5,
+      );
+
+      // Orbit via trigonometry — deterministic
+      var orbitDots = ["od1", "od2", "od3", "od4", "od5"];
+      tl.to(
+        { angle: 0 },
+        {
+          angle: Math.PI * 3.5,
+          duration: 5.5,
+          ease: "none",
+          onUpdate: function () {
+            var a = this.targets()[0].angle;
+            var cx = 0;
+            var cy = -40; // center offset (relative to orbit-wrap center)
+            var r1 = 160;
+            var r2 = 240;
+            orbitDots.forEach(function (id, i) {
+              var offset = (i / orbitDots.length) * Math.PI * 2;
+              var r = i < 3 ? r1 : r2;
+              var x = Math.cos(a + offset) * r + cx;
+              var y = Math.sin(a + offset) * r * 0.55 + cy;
+              gsap.set("#" + id, { x: x, y: y });
+            });
+          },
+        },
+        50.5,
+      );
+
+      // ══ S9: Depth Blur Reveal ══
+      fadeIn("#s9", 56);
+      labelIn("#s9", 56);
+      tl.call(playWhoosh, [], 56);
+      // BG starts clear → blurs (bg recedes)
+      tl.to(
+        "#d-bg",
+        { filter: "blur(12px)", duration: 2.5, ease: "power2.inOut" },
+        57.0,
+      );
+      // Mid clears up
+      tl.to(
+        "#d-mid",
+        { filter: "blur(0px)", opacity: 1, duration: 2, ease: "power2.out" },
+        57.5,
+      );
+      // FG starts blurry → sharp (comes into focus)
+      tl.to(
+        "#d-fg",
+        {
+          opacity: 1,
+          filter: "blur(0px)",
+          y: 0,
+          duration: 1.5,
+          ease: "power2.out",
+        },
+        58.5,
+      );
+      tl.from("#d-fg", { y: 20 }, 58.5);
+
+      // ══ S10: Wipe + Overshoot ══
+      fadeIn("#s10", 63);
+      labelIn("#s10", 63);
+      tl.call(playWhoosh, [], 63);
+      // Alternating: left and right entries with overshoot (back.out easing)
+      tl.call(playPop, [], 64.0);
+      tl.to(
+        "#osc1",
+        { opacity: 1, x: 0, duration: 0.6, ease: "back.out(2.5)" },
+        64.0,
+      );
+      tl.call(playPop, [], 65.0);
+      tl.to(
+        "#osc2",
+        { opacity: 1, x: 0, duration: 0.6, ease: "back.out(2.5)" },
+        65.0,
+      );
+      tl.call(playImpact, [], 66.0);
+      tl.to(
+        "#osc3",
+        { opacity: 1, x: 0, duration: 0.6, ease: "back.out(2.5)" },
+        66.0,
+      );
+
+      // ══ S11: Echo Trail ══
+      fadeIn("#s11", 70);
+      labelIn("#s11", 70);
+      tl.call(playWhoosh, [], 70);
+      // Ghosts start behind, main moves forward
+      tl.to(
+        ["#eg3", "#eg2", "#eg1", "#em1"],
+        {
+          x: 0,
+          duration: 1.5,
+          ease: "power2.out",
+          stagger: 0.08,
+        },
+        71.0,
+      );
+      // After landing, move across again
+      tl.to("#em1", { x: 200, duration: 2, ease: "power2.inOut" }, 72.5);
+      tl.to("#eg1", { x: 160, duration: 2, ease: "power2.inOut" }, 72.58);
+      tl.to("#eg2", { x: 110, duration: 2, ease: "power2.inOut" }, 72.66);
+      tl.to("#eg3", { x: 50, duration: 2, ease: "power2.inOut" }, 72.74);
+
+      // ══ S12: Progress Ring ══
+      fadeIn("#s12", 77);
+      labelIn("#s12", 77);
+      tl.call(playWhoosh, [], 77);
+      tl.from(
+        ".ring-item",
+        {
+          y: 40,
+          opacity: 0,
+          stagger: 0.2,
+          duration: 0.45,
+          ease: "back.out(1.5)",
+        },
+        78.0,
+      );
+      // ring circumference = 2 * PI * 80 = 502.65
+      // 97% = 502.65 * (1 - 0.97) = 15.08 dashoffset remaining → dashoffset = 502 * 0.03 = 15
+      tl.to(
+        "#rc1",
+        { strokeDashoffset: 502 * 0.03, duration: 1.5, ease: "power2.out" },
+        78.5,
+      );
+      // 12% = 502 * (1 - 0.12) = 502 * 0.88 = 441.76
+      tl.to(
+        "#rc2",
+        { strokeDashoffset: 502 * 0.88, duration: 1.5, ease: "power2.out" },
+        79.0,
+      );
+      // 26% = 502 * (1 - 0.26) = 502 * 0.74 = 371.48
+      tl.to(
+        "#rc3",
+        { strokeDashoffset: 502 * 0.74, duration: 1.5, ease: "power2.out" },
+        79.5,
+      );
+      // Pulse rings
+      tl.to(
+        ["#rc1", "#rc2", "#rc3"],
+        {
+          strokeWidth: 16,
+          duration: 0.8,
+          yoyo: true,
+          repeat: 1,
+          stagger: 0.2,
+          ease: "sine.inOut",
+        },
+        81.5,
+      );
+
+      // ══ S13: Perspective Grid ══
+      fadeIn("#s13", 84);
+      labelIn("#s13", 84);
+      tl.call(playWhoosh, [], 84);
+      tl.from(
+        "#pgrid-floor",
+        { opacity: 0, scaleX: 0.3, duration: 0.8, ease: "power2.out" },
+        85.0,
+      );
+      // Grid scrolls
+      tl.to(
+        "#pgrid-floor",
+        { backgroundPositionY: "400px", duration: 4, ease: "none" },
+        85.5,
+      );
+      tl.to(
+        "#pgrid-content",
+        { opacity: 1, y: 0, duration: 0.6, ease: "back.out(1.5)" },
+        86.0,
+      );
+      tl.from("#pgrid-content", { y: -30 }, 86.0);
+
+      // ══ S14: Stack Reorder ══
+      fadeIn("#s14", 91);
+      labelIn("#s14", 91);
+      tl.call(playWhoosh, [], 91);
+      // All cards appear initially
+      tl.to(
+        ["#sk1", "#sk2", "#sk3", "#sk4"],
+        { opacity: 1, duration: 0.3, stagger: 0.1 },
+        92.0,
+      );
+      tl.from(
+        ["#sk1", "#sk2", "#sk3", "#sk4"],
+        { x: -60, stagger: 0.1, duration: 0.35, ease: "back.out(1.5)" },
+        92.0,
+      );
+      tl.call(playImpact, [], 93.5);
+      // Reorder: sk1 → top, sk3 → second, sk2 → third, sk4 → bottom (swap 2 and 3)
+      tl.to("#sk2", { top: 320, duration: 0.5, ease: "power2.inOut" }, 93.5);
+      tl.to("#sk3", { top: 160, duration: 0.5, ease: "power2.inOut" }, 93.6);
+      // Scale highlight
+      tl.to(
+        "#sk3",
+        {
+          borderColor: "rgba(255,209,102,0.6)",
+          boxShadow: "0 0 20px rgba(255,209,102,0.2)",
+          duration: 0.4,
+        },
+        94.2,
+      );
+
+      // ══ S15: Section Sync Beat — 97.5 BPM, beat every 0.615s ══
+      fadeIn("#s15", 98);
+      labelIn("#s15", 98);
+      tl.call(playWhoosh, [], 98);
+      tl.from(
+        ".sync-cell",
+        {
+          scale: 0.85,
+          opacity: 0,
+          stagger: 0.12,
+          duration: 0.4,
+          ease: "back.out(1.5)",
+        },
+        99.0,
+      );
+
+      // Beat sync: 97.5 BPM starting from 99.5s within this timeline
+      // Beat times relative to composition: 99.5, 100.115, 100.73, 101.345, 101.96, 102.575...
+      var beatBase = 99.5;
+      var beatInterval = 0.615;
+      var syncEls = [
+        "#sy1",
+        "#sy2",
+        "#sy3",
+        "#sy4",
+        "#sy5",
+        "#sy1",
+        "#sy3",
+        "#sy2",
+        "#sy4",
+        "#sy5",
+      ];
+      var beatActions = [
+        function (el) {
+          gsap.to(el, {
+            scale: 1.08,
+            duration: 0.12,
+            yoyo: true,
+            repeat: 1,
+            ease: "back.out(2)",
+          });
+        },
+        function (el) {
+          gsap.to(el, {
+            boxShadow: "0 0 30px rgba(255,209,102,0.4)",
+            duration: 0.3,
+            yoyo: true,
+            repeat: 1,
+          });
+        },
+        function (el) {
+          gsap.to(el, {
+            scale: 1.06,
+            filter: "brightness(1.3)",
+            duration: 0.15,
+            yoyo: true,
+            repeat: 1,
+          });
+        },
+        function (el) {
+          gsap.to(el, {
+            borderColor: "rgba(6,214,160,0.6)",
+            duration: 0.3,
+            yoyo: true,
+            repeat: 1,
+          });
+        },
+        function (el) {
+          gsap.to(el, {
+            scale: 1.04,
+            duration: 0.2,
+            yoyo: true,
+            repeat: 1,
+            ease: "sine.inOut",
+          });
+        },
+      ];
+      syncEls.forEach(function (elId, i) {
+        var beatTime = beatBase + i * beatInterval;
+        var action = beatActions[i % beatActions.length];
+        tl.call(
+          function () {
+            action(document.querySelector(elId));
+          },
+          [],
+          beatTime,
+        );
+        tl.call(playPop, [], beatTime);
+      });
+
+      window.__timelines["video-effects-demo-2"] = tl;
+    </script>
+  </body>
+</html>

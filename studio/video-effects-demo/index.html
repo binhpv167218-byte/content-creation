@@ -1,0 +1,1483 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face {
+        font-family: "Be Vietnam Pro";
+        font-weight: 400;
+        src:
+          url("fonts/BeVietnamPro-Regular-vietnamese.woff2") format("woff2"),
+          url("fonts/BeVietnamPro-Regular-latin.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Be Vietnam Pro";
+        font-weight: 600;
+        src:
+          url("fonts/BeVietnamPro-SemiBold-vietnamese.woff2") format("woff2"),
+          url("fonts/BeVietnamPro-SemiBold-latin.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Be Vietnam Pro";
+        font-weight: 900;
+        src:
+          url("fonts/BeVietnamPro-Black-vietnamese.woff2") format("woff2"),
+          url("fonts/BeVietnamPro-Black-latin.woff2") format("woff2");
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #08080f;
+        font-family: "Be Vietnam Pro", system-ui, sans-serif;
+        cursor: none;
+      }
+
+      /* ── Label chip — mỗi scene ── */
+      .scene {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        overflow: hidden;
+      }
+      .scene-bg {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+      }
+      .label-wrap {
+        position: absolute;
+        top: 210px;
+        left: 64px;
+        right: 64px;
+        z-index: 10;
+      }
+      .label-num {
+        font-size: 22px;
+        font-weight: 600;
+        color: rgba(255, 209, 102, 0.7);
+        letter-spacing: 2px;
+        margin-bottom: 10px;
+      }
+      .label-name {
+        font-size: 44px;
+        font-weight: 900;
+        color: #ffd166;
+        line-height: 1.15;
+      }
+      .label-desc {
+        font-size: 26px;
+        font-weight: 400;
+        color: #7a9cb8;
+        margin-top: 12px;
+        line-height: 1.4;
+      }
+      .demo-area {
+        position: absolute;
+        left: 64px;
+        right: 64px;
+        top: 480px;
+        bottom: 420px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* ── Progress ── */
+      #progress-fill {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(90deg, #ffd166, #06d6a0);
+        transform-origin: left;
+        transform: scaleX(0);
+        z-index: 100;
+      }
+
+      /* ══ S1: Bento Grid Reveal ══ */
+      .bento-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 20px;
+        width: 100%;
+        height: 100%;
+      }
+      .bento-cell {
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        font-weight: 900;
+        color: #efefef;
+        opacity: 0;
+      }
+      .bc1 {
+        background: linear-gradient(135deg, #ff6b35, #ff4500);
+      }
+      .bc2 {
+        background: linear-gradient(135deg, #ffd166, #ffa500);
+      }
+      .bc3 {
+        background: linear-gradient(135deg, #06d6a0, #00b894);
+      }
+      .bc4 {
+        background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+      }
+      .bc5 {
+        background: linear-gradient(135deg, #fd79a8, #e84393);
+      }
+      .bc6 {
+        background: linear-gradient(135deg, #74b9ff, #0984e3);
+      }
+
+      /* ══ S2: Modal Expand ══ */
+      .modal-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 20px;
+        width: 100%;
+        height: 100%;
+      }
+      .modal-card {
+        border-radius: 24px;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+      }
+      .mc-a {
+        background: linear-gradient(135deg, #ff6b35 0%, #ffa500 100%);
+      }
+      .mc-b {
+        background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+      }
+      .mc-c {
+        background: linear-gradient(135deg, #06d6a0 0%, #00b894 100%);
+      }
+      .mc-d {
+        background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+      }
+      .mc-label {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        font-size: 28px;
+        font-weight: 700;
+        color: #fff;
+      }
+      #modal-expanded {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, #ff6b35, #ffa500);
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        font-weight: 900;
+        color: #fff;
+        z-index: 20;
+        opacity: 0;
+        pointer-events: none;
+        padding: 40px;
+        text-align: center;
+      }
+
+      /* ══ S3: Parallax Layers ══ */
+      .parallax-wrap {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        border-radius: 24px;
+        background: linear-gradient(180deg, #020c18 0%, #1a0533 100%);
+      }
+      .p-stars {
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(
+            circle at 30% 40%,
+            rgba(255, 255, 255, 0.8) 1px,
+            transparent 1px
+          ),
+          radial-gradient(
+            circle at 70% 20%,
+            rgba(255, 255, 255, 0.6) 1px,
+            transparent 1px
+          ),
+          radial-gradient(
+            circle at 50% 70%,
+            rgba(255, 255, 255, 0.9) 1px,
+            transparent 1px
+          ),
+          radial-gradient(
+            circle at 20% 80%,
+            rgba(255, 255, 255, 0.5) 1px,
+            transparent 1px
+          ),
+          radial-gradient(
+            circle at 80% 60%,
+            rgba(255, 255, 255, 0.7) 1px,
+            transparent 1px
+          ),
+          radial-gradient(
+            circle at 10% 30%,
+            rgba(255, 255, 255, 0.6) 1px,
+            transparent 1px
+          ),
+          radial-gradient(
+            circle at 90% 45%,
+            rgba(255, 255, 255, 0.8) 1px,
+            transparent 1px
+          );
+        background-size: 300px 300px;
+      }
+      .p-mid {
+        position: absolute;
+        bottom: 30%;
+        left: 10%;
+        right: 10%;
+        height: 120px;
+        background: rgba(255, 107, 53, 0.15);
+        border-radius: 60px;
+        filter: blur(20px);
+      }
+      .p-fg {
+        position: absolute;
+        bottom: 10%;
+        left: 5%;
+        right: 5%;
+        font-size: 52px;
+        font-weight: 900;
+        color: #ffd166;
+        text-align: center;
+        text-shadow: 0 0 30px rgba(255, 209, 102, 0.5);
+      }
+
+      /* ══ S4: Spotlight ══ */
+      .spotlight-wrap {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        border-radius: 24px;
+        background: #0a0a1a;
+        overflow: hidden;
+        clip-path: inset(0 round 24px);
+      }
+      .spotlight-glow {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          circle at var(--sx, 50%) var(--sy, 50%),
+          rgba(255, 209, 102, 0.18) 0%,
+          rgba(255, 209, 102, 0.06) 25%,
+          transparent 60%
+        );
+        pointer-events: none;
+      }
+      .spotlight-content {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: center;
+        gap: 24px;
+        padding: 40px;
+        overflow: hidden;
+      }
+      .sp-card {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 18px;
+        padding: 20px 24px;
+        font-size: 24px;
+        font-weight: 600;
+        color: #efefef;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* ══ S5: Morphing Shape ══ */
+      .morph-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+      }
+      .morph-shape {
+        width: 380px;
+        height: 380px;
+        background: linear-gradient(
+          135deg,
+          #ff6b35 0%,
+          #ffd166 50%,
+          #06d6a0 100%
+        );
+        animation: morphShape 4s ease-in-out infinite;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        font-weight: 900;
+        color: #fff;
+        text-align: center;
+        line-height: 1.3;
+      }
+      @keyframes morphShape {
+        0%,
+        100% {
+          border-radius: 60% 40% 30% 70%/60% 30% 70% 40%;
+        }
+        25% {
+          border-radius: 30% 70% 70% 30%/30% 40% 60% 70%;
+        }
+        50% {
+          border-radius: 50% 50% 30% 70%/40% 60% 40% 60%;
+        }
+        75% {
+          border-radius: 70% 30% 50% 50%/60% 40% 40% 60%;
+        }
+      }
+
+      /* ══ S6: 3D Card Tilt ══ */
+      .tilt-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        perspective: 800px;
+      }
+      .tilt-card {
+        width: 620px;
+        height: 400px;
+        border-radius: 28px;
+        background: linear-gradient(135deg, #1a0533 0%, #0d1b4b 100%);
+        border: 2px solid rgba(255, 209, 102, 0.3);
+        box-shadow:
+          0 20px 60px rgba(0, 0, 0, 0.6),
+          0 0 40px rgba(255, 209, 102, 0.15);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        padding: 40px;
+      }
+      .tilt-title {
+        font-size: 40px;
+        font-weight: 900;
+        color: #ffd166;
+      }
+      .tilt-sub {
+        font-size: 24px;
+        color: #8ab0c8;
+        text-align: center;
+      }
+      .tilt-badge {
+        background: rgba(255, 107, 53, 0.2);
+        border: 1px solid rgba(255, 107, 53, 0.5);
+        border-radius: 8px;
+        padding: 8px 24px;
+        font-size: 22px;
+        font-weight: 700;
+        color: #ff6b35;
+      }
+
+      /* ══ S7: Text Shuffle ══ */
+      .shuffle-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+        width: 100%;
+        padding: 20px;
+      }
+      .shuffle-line {
+        font-size: 64px;
+        font-weight: 900;
+        color: #ffd166;
+        letter-spacing: 4px;
+        min-height: 80px;
+        font-variant-numeric: tabular-nums;
+      }
+      .shuffle-line-sub {
+        font-size: 38px;
+        font-weight: 600;
+        color: #06d6a0;
+        letter-spacing: 2px;
+      }
+      .shuffle-line-sm {
+        font-size: 32px;
+        font-weight: 600;
+        color: #8ab0c8;
+        letter-spacing: 1px;
+      }
+
+      /* ══ S8: Haptic Bounce ══ */
+      .haptic-wrap {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 28px;
+        width: 100%;
+      }
+      .haptic-icon {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 24px;
+        padding: 36px 20px;
+      }
+      .haptic-emoji {
+        font-size: 72px;
+      }
+      .haptic-label {
+        font-size: 22px;
+        font-weight: 600;
+        color: #8ab0c8;
+        text-align: center;
+      }
+
+      /* ══ S9: Image Distortion ══ */
+      .distort-wrap {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        border-radius: 24px;
+        overflow: hidden;
+      }
+      .distort-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: url(#wave-filter);
+      }
+      .distort-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          180deg,
+          transparent 40%,
+          rgba(8, 8, 15, 0.9) 100%
+        );
+        display: flex;
+        align-items: flex-end;
+        padding: 36px;
+      }
+      .distort-text {
+        font-size: 38px;
+        font-weight: 900;
+        color: #efefef;
+      }
+
+      /* ══ S10: Neon Border ══ */
+      .neon-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+      }
+      .neon-box {
+        position: relative;
+        width: 620px;
+        height: 360px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .neon-content {
+        font-size: 56px;
+        font-weight: 900;
+        color: #ffd166;
+        text-align: center;
+        text-shadow: 0 0 30px rgba(255, 209, 102, 0.6);
+        z-index: 2;
+      }
+      #neon-demo-svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+      }
+      #neon-demo-path {
+        fill: none;
+        stroke: #ffd166;
+        stroke-width: 4;
+        filter: drop-shadow(0 0 8px #ffd166) drop-shadow(0 0 18px #ffc300);
+      }
+
+      /* ══ S11: Skeleton Shimmer ══ */
+      .skeleton-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        width: 100%;
+      }
+      .sk-line {
+        height: 48px;
+        border-radius: 12px;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.06) 0%,
+          rgba(255, 255, 255, 0.14) 50%,
+          rgba(255, 255, 255, 0.06) 100%
+        );
+        background-size: 400% 100%;
+        animation: shimmer 2s ease-in-out infinite;
+      }
+      .sk-card {
+        height: 200px;
+        border-radius: 20px;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.06) 0%,
+          rgba(255, 255, 255, 0.14) 50%,
+          rgba(255, 255, 255, 0.06) 100%
+        );
+        background-size: 400% 100%;
+        animation: shimmer 2s ease-in-out infinite;
+      }
+      .sk-line.w60 {
+        width: 60%;
+      }
+      .sk-line.w80 {
+        width: 80%;
+      }
+      .sk-line.w40 {
+        width: 40%;
+      }
+      @keyframes shimmer {
+        0% {
+          background-position: 200% 0;
+        }
+        100% {
+          background-position: -200% 0;
+        }
+      }
+      /* Revealed content */
+      .reveal-content {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        opacity: 0;
+        overflow: hidden;
+      }
+      .rv-card {
+        height: 200px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #ff6b35 0%, #ffd166 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        font-weight: 900;
+        color: #fff;
+      }
+      .rv-title {
+        font-size: 48px;
+        font-weight: 900;
+        color: #ffd166;
+      }
+      .rv-sub {
+        font-size: 28px;
+        color: #8ab0c8;
+      }
+      .rv-tag {
+        display: inline-block;
+        background: rgba(6, 214, 160, 0.2);
+        border: 1px solid rgba(6, 214, 160, 0.4);
+        border-radius: 8px;
+        padding: 6px 20px;
+        font-size: 22px;
+        font-weight: 600;
+        color: #06d6a0;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="video-effects-demo"
+      data-start="0"
+      data-duration="77"
+      data-width="1080"
+      data-height="1920"
+    >
+      <!-- SVG filter for distortion -->
+      <svg width="0" height="0" style="position: absolute">
+        <defs>
+          <filter id="wave-filter" x="-10%" y="-10%" width="120%" height="120%">
+            <feTurbulence
+              id="fe-turb"
+              type="turbulence"
+              baseFrequency="0.02 0.015"
+              numOctaves="3"
+              result="noise"
+              seed="2"
+            />
+            <feDisplacementMap
+              in="SourceGraphic"
+              in2="noise"
+              scale="0"
+              xChannelSelector="R"
+              yChannelSelector="G"
+            />
+          </filter>
+        </defs>
+      </svg>
+
+      <div id="progress-fill"></div>
+      <audio
+        id="bgm"
+        class="clip"
+        src="assets/bgm.mp3"
+        preload="auto"
+        data-start="0"
+        data-duration="77"
+        data-track-index="0"
+        data-volume="0.25"
+      ></audio>
+
+      <!-- ══ S1: Bento Grid Reveal ══ -->
+      <div
+        id="s1"
+        class="clip scene"
+        data-start="0"
+        data-duration="7"
+        data-track-index="10"
+      >
+        <div
+          class="scene-bg"
+          style="background: linear-gradient(180deg, #08080f, #0d1b2a)"
+        ></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 01 / 11</div>
+          <div class="label-name">Bento Grid Reveal</div>
+          <div class="label-desc">Các ô grid tự mở từ tâm ra ngoài</div>
+        </div>
+        <div class="demo-area">
+          <div class="bento-grid">
+            <div id="bc1" class="bento-cell bc1">01</div>
+            <div id="bc2" class="bento-cell bc2">02</div>
+            <div id="bc3" class="bento-cell bc3">03</div>
+            <div id="bc4" class="bento-cell bc4">04</div>
+            <div id="bc5" class="bento-cell bc5">05</div>
+            <div id="bc6" class="bento-cell bc6">06</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S2: Modal Expand ══ -->
+      <div
+        id="s2"
+        class="clip scene"
+        data-start="7"
+        data-duration="7"
+        data-track-index="11"
+      >
+        <div
+          class="scene-bg"
+          style="background: linear-gradient(180deg, #0d0320, #08080f)"
+        ></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 02 / 11</div>
+          <div class="label-name">Modal Expand</div>
+          <div class="label-desc">1 card phóng to thành màn hình chi tiết</div>
+        </div>
+        <div class="demo-area" style="position: relative">
+          <div class="modal-grid">
+            <div class="modal-card mc-a">
+              <div class="mc-label">Card A</div>
+            </div>
+            <div class="modal-card mc-b">
+              <div class="mc-label">Card B</div>
+            </div>
+            <div class="modal-card mc-c">
+              <div class="mc-label">Card C</div>
+            </div>
+            <div class="modal-card mc-d">
+              <div class="mc-label">Card D</div>
+            </div>
+          </div>
+          <div id="modal-expanded">✦ Chi Tiết</div>
+        </div>
+      </div>
+
+      <!-- ══ S3: Parallax Layers ══ -->
+      <div
+        id="s3"
+        class="clip scene"
+        data-start="14"
+        data-duration="7"
+        data-track-index="12"
+      >
+        <div class="scene-bg" style="background: #08080f"></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 03 / 11</div>
+          <div class="label-name">Parallax Layers</div>
+          <div class="label-desc">Các layer di chuyển ở tốc độ khác nhau</div>
+        </div>
+        <div class="demo-area">
+          <div class="parallax-wrap">
+            <div id="p-stars" class="p-stars"></div>
+            <div id="p-mid" class="p-mid"></div>
+            <div id="p-fg" class="p-fg">ĐÀ NẴNG 2025</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S4: Spotlight Radial ══ -->
+      <div
+        id="s4"
+        class="clip scene"
+        data-start="21"
+        data-duration="7"
+        data-track-index="13"
+      >
+        <div class="scene-bg" style="background: #08080f"></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 04 / 11</div>
+          <div class="label-name">Spotlight Radial</div>
+          <div class="label-desc">Ánh sáng spotlight tự quét qua nội dung</div>
+        </div>
+        <div class="demo-area">
+          <div class="spotlight-wrap">
+            <div id="sp-glow" class="spotlight-glow"></div>
+            <div class="spotlight-content">
+              <div class="sp-card">🏖️ Mỹ Khê — Top 6 châu Á</div>
+              <div class="sp-card">🌉 Cầu Vàng — 1 triệu lượt/năm</div>
+              <div class="sp-card">🏠 BĐS — Tỷ suất 8–12%/năm</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S5: Morphing Shape ══ -->
+      <div
+        id="s5"
+        class="clip scene"
+        data-start="28"
+        data-duration="7"
+        data-track-index="14"
+      >
+        <div class="scene-bg" style="background: #08080f"></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 05 / 11</div>
+          <div class="label-name">Morphing Shape</div>
+          <div class="label-desc">Hình nền biến đổi liên tục — CSS only</div>
+        </div>
+        <div class="demo-area">
+          <div class="morph-wrap">
+            <div id="morph-shape" class="morph-shape">
+              Bất Động Sản<br />Đà Nẵng
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S6: 3D Card Tilt ══ -->
+      <div
+        id="s6"
+        class="clip scene"
+        data-start="35"
+        data-duration="7"
+        data-track-index="15"
+      >
+        <div
+          class="scene-bg"
+          style="background: linear-gradient(180deg, #08080f, #0d1b2a)"
+        ></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 06 / 11</div>
+          <div class="label-name">3D Card Tilt</div>
+          <div class="label-desc">Card nghiêng 3D qua lại tự động</div>
+        </div>
+        <div class="demo-area">
+          <div class="tilt-wrap">
+            <div id="tilt-card" class="tilt-card">
+              <div class="tilt-title">Vinhomes HVB</div>
+              <div class="tilt-sub">Hải Vân Bay · Đà Nẵng</div>
+              <div class="tilt-badge">Mở bán 2026</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S7: Text Shuffle ══ -->
+      <div
+        id="s7"
+        class="clip scene"
+        data-start="42"
+        data-duration="7"
+        data-track-index="16"
+      >
+        <div class="scene-bg" style="background: #08080f"></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 07 / 11</div>
+          <div class="label-name">Text Shuffle</div>
+          <div class="label-desc">
+            Ký tự xáo trộn rồi settle thành text thật
+          </div>
+        </div>
+        <div class="demo-area">
+          <div class="shuffle-wrap">
+            <div id="sh1" class="shuffle-line">17.3 TRIỆU</div>
+            <div id="sh2" class="shuffle-line-sub">KHÁCH DU LỊCH</div>
+            <div id="sh3" class="shuffle-line-sm">Đà Nẵng · Năm 2025</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S8: Haptic Bounce ══ -->
+      <div
+        id="s8"
+        class="clip scene"
+        data-start="49"
+        data-duration="7"
+        data-track-index="17"
+      >
+        <div class="scene-bg" style="background: #08080f"></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 08 / 11</div>
+          <div class="label-name">Haptic Bounce</div>
+          <div class="label-desc">Icon pulse liên tục để thu hút ánh nhìn</div>
+        </div>
+        <div class="demo-area">
+          <div class="haptic-wrap">
+            <div class="haptic-icon">
+              <div id="hap1" class="haptic-emoji">🏖️</div>
+              <div class="haptic-label">Bãi biển</div>
+            </div>
+            <div class="haptic-icon">
+              <div id="hap2" class="haptic-emoji">🏠</div>
+              <div class="haptic-label">BĐS</div>
+            </div>
+            <div class="haptic-icon">
+              <div id="hap3" class="haptic-emoji">💰</div>
+              <div class="haptic-label">Đầu tư</div>
+            </div>
+            <div class="haptic-icon">
+              <div id="hap4" class="haptic-emoji">✈️</div>
+              <div class="haptic-label">Du lịch</div>
+            </div>
+            <div class="haptic-icon">
+              <div id="hap5" class="haptic-emoji">🌊</div>
+              <div class="haptic-label">Biển</div>
+            </div>
+            <div class="haptic-icon">
+              <div id="hap6" class="haptic-emoji">📈</div>
+              <div class="haptic-label">Tăng giá</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S9: Image Distortion Wave ══ -->
+      <div
+        id="s9"
+        class="clip scene"
+        data-start="56"
+        data-duration="7"
+        data-track-index="18"
+      >
+        <div class="scene-bg" style="background: #08080f"></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 09 / 11</div>
+          <div class="label-name">Image Distortion Wave</div>
+          <div class="label-desc">Sóng nước SVG feTurbulence lướt qua ảnh</div>
+        </div>
+        <div class="demo-area">
+          <div class="distort-wrap">
+            <div
+              style="
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(
+                  135deg,
+                  #020c18 0%,
+                  #0d2b4b 50%,
+                  #1a0533 100%
+                );
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                filter: url(#wave-filter);
+              "
+              id="distort-box"
+            >
+              <div
+                style="
+                  font-size: 80px;
+                  font-weight: 900;
+                  color: #ffd166;
+                  text-shadow: 0 0 40px rgba(255, 209, 102, 0.6);
+                  text-align: center;
+                  line-height: 1.2;
+                "
+              >
+                ĐÀ<br />NẴNG
+              </div>
+            </div>
+            <div class="distort-overlay">
+              <div class="distort-text">SVG Wave Filter</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S10: Neon Border Draw ══ -->
+      <div
+        id="s10"
+        class="clip scene"
+        data-start="63"
+        data-duration="7"
+        data-track-index="19"
+      >
+        <div class="scene-bg" style="background: #08080f"></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 10 / 11</div>
+          <div class="label-name">Neon Border Draw</div>
+          <div class="label-desc">Đường viền SVG tự vẽ với ánh sáng neon</div>
+        </div>
+        <div class="demo-area">
+          <div class="neon-wrap">
+            <div class="neon-box">
+              <svg id="neon-demo-svg" viewBox="0 0 620 360">
+                <rect
+                  id="ndp1"
+                  x="10"
+                  y="10"
+                  width="600"
+                  height="340"
+                  rx="28"
+                  fill="none"
+                  stroke="#FFD166"
+                  stroke-width="4"
+                  filter="drop-shadow(0 0 8px #FFD166) drop-shadow(0 0 20px #ffc300)"
+                  stroke-dasharray="1880"
+                  stroke-dashoffset="1880"
+                />
+                <rect
+                  id="ndp2"
+                  x="30"
+                  y="30"
+                  width="560"
+                  height="300"
+                  rx="18"
+                  fill="none"
+                  stroke="#FF6B35"
+                  stroke-width="2"
+                  filter="drop-shadow(0 0 6px #FF6B35)"
+                  stroke-dasharray="1720"
+                  stroke-dashoffset="1720"
+                  opacity="0.6"
+                />
+              </svg>
+              <div class="neon-content">NEON<br />BORDER</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ S11: Skeleton Shimmer → Reveal ══ -->
+      <div
+        id="s11"
+        class="clip scene"
+        data-start="70"
+        data-duration="7"
+        data-track-index="20"
+        style="overflow: hidden"
+      >
+        <div class="scene-bg" style="background: #08080f"></div>
+        <div class="label-wrap">
+          <div class="label-num">HIỆU ỨNG 11 / 11</div>
+          <div class="label-name">Skeleton → Reveal</div>
+          <div class="label-desc">
+            Shimmer placeholder rồi content xuất hiện
+          </div>
+        </div>
+        <div class="demo-area" style="position: relative">
+          <div id="skeleton-view" class="skeleton-wrap" style="width: 100%">
+            <div class="sk-card"></div>
+            <div class="sk-line w80"></div>
+            <div class="sk-line w60"></div>
+            <div class="sk-line w40"></div>
+          </div>
+          <div
+            id="reveal-view"
+            class="reveal-content"
+            style="width: 100%; max-width: 100%; overflow: hidden"
+          >
+            <div class="rv-card">🏖️ Mỹ Khê Beach</div>
+            <div class="rv-title">17.3 Triệu Khách</div>
+            <div class="rv-sub">Đà Nẵng · Năm 2025</div>
+            <div class="rv-tag">+26% so với 2024</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      // SFX
+      var sfxWhoosh = new Audio("assets/sfx_whoosh.mp3");
+      var sfxPop = new Audio("assets/sfx_pop.mp3");
+      var sfxImpact = new Audio("assets/sfx_impact.mp3");
+      sfxWhoosh.volume = 0.4;
+      sfxPop.volume = 0.45;
+      sfxImpact.volume = 0.6;
+      function playWhoosh() {
+        sfxWhoosh.currentTime = 0;
+        sfxWhoosh.play().catch(function () {});
+      }
+      function playPop() {
+        var s = sfxPop.cloneNode();
+        s.volume = 0.4;
+        s.play().catch(function () {});
+      }
+      function playImpact() {
+        sfxImpact.currentTime = 0;
+        sfxImpact.play().catch(function () {});
+      }
+
+      // Progress
+      tl.to(
+        "#progress-fill",
+        { scaleX: 1, duration: 75, ease: "none", transformOrigin: "left" },
+        1,
+      );
+
+      // Helper: scene fade in
+      function fadeIn(id, t) {
+        tl.from(
+          id,
+          {
+            opacity: 0,
+            scale: 0.96,
+            filter: "blur(8px)",
+            duration: 0.5,
+            ease: "power2.out",
+          },
+          t,
+        );
+      }
+      function labelIn(num, t) {
+        tl.from(
+          num + " .label-num",
+          { y: -20, opacity: 0, duration: 0.35 },
+          t + 0.3,
+        );
+        tl.from(
+          num + " .label-name",
+          { y: 20, opacity: 0, duration: 0.4, ease: "back.out(1.5)" },
+          t + 0.5,
+        );
+        tl.from(
+          num + " .label-desc",
+          { y: 15, opacity: 0, duration: 0.35 },
+          t + 0.75,
+        );
+      }
+
+      // ══ S1: Bento Grid Reveal — stagger from center ══
+      fadeIn("#s1", 0);
+      labelIn("#s1", 0);
+      tl.call(playImpact, [], 1.0);
+      tl.to(
+        ["#bc1", "#bc2", "#bc3", "#bc4", "#bc5", "#bc6"],
+        {
+          opacity: 1,
+          scale: 1,
+          stagger: { amount: 0.5, from: "center" },
+          ease: "back.out(1.7)",
+          duration: 0.28,
+        },
+        1.0,
+      );
+      tl.from(
+        ["#bc1", "#bc2", "#bc3", "#bc4", "#bc5", "#bc6"],
+        {
+          scale: 0.8,
+          stagger: { amount: 0.5, from: "center" },
+        },
+        1.0,
+      );
+      // Ambient tilt on cells
+      tl.to(
+        "#bc1,#bc3,#bc5",
+        {
+          rotateY: 6,
+          transformPerspective: 600,
+          duration: 2,
+          yoyo: true,
+          repeat: 1,
+          ease: "sine.inOut",
+        },
+        2.0,
+      );
+      tl.to(
+        "#bc2,#bc4,#bc6",
+        {
+          rotateY: -6,
+          transformPerspective: 600,
+          duration: 2,
+          yoyo: true,
+          repeat: 1,
+          ease: "sine.inOut",
+        },
+        2.0,
+      );
+
+      // ══ S2: Modal Expand ══
+      fadeIn("#s2", 7);
+      labelIn("#s2", 7);
+      tl.call(playWhoosh, [], 7);
+      // Cards appear
+      tl.from(
+        ".modal-card",
+        {
+          opacity: 0,
+          scale: 0.85,
+          stagger: 0.12,
+          duration: 0.35,
+          ease: "back.out(1.7)",
+        },
+        8.0,
+      );
+      // Card A expands
+      tl.call(playImpact, [], 9.5);
+      tl.to(
+        "#modal-expanded",
+        { opacity: 1, duration: 0.5, ease: "power2.out" },
+        9.5,
+      );
+      tl.from(
+        "#modal-expanded",
+        { scale: 0.3, borderRadius: "50%", duration: 0.6, ease: "expo.out" },
+        9.5,
+      );
+      tl.to("#modal-expanded", { opacity: 0, duration: 0.4 }, 12.8);
+
+      // ══ S3: Parallax ══
+      fadeIn("#s3", 14);
+      labelIn("#s3", 14);
+      tl.call(playWhoosh, [], 14);
+      // Stars move slow, mid glow moves medium, fg text moves fast (yoyo)
+      tl.to(
+        "#p-stars",
+        { y: -12, duration: 3, yoyo: true, repeat: 1, ease: "sine.inOut" },
+        15.0,
+      );
+      tl.to(
+        "#p-mid",
+        {
+          y: -24,
+          x: 30,
+          duration: 2.5,
+          yoyo: true,
+          repeat: 1,
+          ease: "sine.inOut",
+        },
+        15.0,
+      );
+      tl.to(
+        "#p-fg",
+        { y: -40, duration: 2, yoyo: true, repeat: 1, ease: "sine.inOut" },
+        15.0,
+      );
+      tl.from("#p-fg", { opacity: 0, y: 20, duration: 0.5 }, 14.8);
+
+      // ══ S4: Spotlight sweep ══
+      fadeIn("#s4", 21);
+      labelIn("#s4", 21);
+      tl.call(playWhoosh, [], 21);
+      tl.from(
+        ".sp-card",
+        {
+          x: -60,
+          opacity: 0,
+          stagger: 0.18,
+          duration: 0.4,
+          ease: "power2.out",
+        },
+        22.0,
+      );
+      tl.to(
+        "#sp-glow",
+        { "--sx": "20%", "--sy": "30%", duration: 1.5, ease: "power1.inOut" },
+        22.5,
+      );
+      tl.to(
+        "#sp-glow",
+        { "--sx": "80%", "--sy": "60%", duration: 1.5, ease: "power1.inOut" },
+        24.0,
+      );
+      tl.to(
+        "#sp-glow",
+        { "--sx": "40%", "--sy": "80%", duration: 1.5, ease: "power1.inOut" },
+        25.5,
+      );
+
+      // ══ S5: Morphing shape — CSS animation, just reveal ══
+      fadeIn("#s5", 28);
+      labelIn("#s5", 28);
+      tl.call(playWhoosh, [], 28);
+      tl.from(
+        "#morph-shape",
+        { scale: 0.6, opacity: 0, duration: 0.6, ease: "back.out(1.7)" },
+        29.0,
+      );
+
+      // ══ S6: 3D Card Tilt ══
+      fadeIn("#s6", 35);
+      labelIn("#s6", 35);
+      tl.call(playWhoosh, [], 35);
+      tl.from(
+        "#tilt-card",
+        { y: 80, opacity: 0, duration: 0.55, ease: "back.out(1.5)" },
+        36.0,
+      );
+      tl.to(
+        "#tilt-card",
+        {
+          rotateY: 10,
+          rotateX: -5,
+          transformPerspective: 800,
+          duration: 2.5,
+          yoyo: true,
+          repeat: 1,
+          ease: "sine.inOut",
+        },
+        36.6,
+      );
+      tl.to(
+        "#tilt-card",
+        {
+          boxShadow:
+            "0 20px 60px rgba(0,0,0,0.6),0 0 60px rgba(255,209,102,0.3)",
+          duration: 2.5,
+          yoyo: true,
+          repeat: 1,
+          ease: "sine.inOut",
+        },
+        36.6,
+      );
+
+      // ══ S7: Text Shuffle — deterministic ══
+      fadeIn("#s7", 42);
+      labelIn("#s7", 42);
+      tl.call(playWhoosh, [], 42);
+      // Deterministic shuffle: reveal char by char with matrix effect
+      var CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&";
+      var charIdx = 0;
+      function nextChar() {
+        return CHARS[charIdx++ % CHARS.length];
+      }
+
+      var targets = [
+        { id: "sh1", final: "17.3 TRIỆU", delay: 42.5 },
+        { id: "sh2", final: "KHÁCH DU LỊCH", delay: 44.0 },
+        { id: "sh3", final: "Đà Nẵng · Năm 2025", delay: 45.2 },
+      ];
+      targets.forEach(function (t) {
+        var el = document.getElementById(t.id);
+        var chars = t.final.split("");
+        el.textContent = "";
+        tl.call(
+          function () {
+            var revealed = Array(chars.length).fill("·");
+            var frame = 0;
+            var interval = setInterval(function () {
+              frame++;
+              // Reveal one char per 3 frames
+              var revealIdx = Math.min(Math.floor(frame / 3), chars.length);
+              for (var i = 0; i < chars.length; i++) {
+                if (i < revealIdx) revealed[i] = chars[i];
+                else if (chars[i] === " ") revealed[i] = " ";
+                else revealed[i] = nextChar();
+              }
+              el.textContent = revealed.join("");
+              if (revealIdx >= chars.length) clearInterval(interval);
+            }, 50);
+          },
+          [],
+          t.delay,
+        );
+      });
+
+      // ══ S8: Haptic Bounce — staggered infinite CSS-like via GSAP ══
+      fadeIn("#s8", 49);
+      labelIn("#s8", 49);
+      tl.call(playWhoosh, [], 49);
+      tl.from(
+        ".haptic-icon",
+        {
+          y: 40,
+          opacity: 0,
+          stagger: 0.12,
+          duration: 0.4,
+          ease: "back.out(1.7)",
+        },
+        50.0,
+      );
+      // Each icon bounces at different timing
+      var hapIds = ["#hap1", "#hap2", "#hap3", "#hap4", "#hap5", "#hap6"];
+      var hapDelays = [0, 0.4, 0.8, 0.2, 0.6, 1.0];
+      hapIds.forEach(function (id, i) {
+        var startT = 50.5 + hapDelays[i];
+        tl.to(
+          id,
+          {
+            scale: 1.18,
+            duration: 0.18,
+            yoyo: true,
+            repeat: 5,
+            repeatDelay: 0.8,
+            ease: "back.out(2)",
+          },
+          startT,
+        );
+      });
+
+      // ══ S9: Image Distortion Wave ══
+      fadeIn("#s9", 56);
+      labelIn("#s9", 56);
+      tl.call(playWhoosh, [], 56);
+      tl.from("#distort-box", { scale: 0.9, opacity: 0, duration: 0.5 }, 57.0);
+      // Animate feTurbulence scale via GSAP custom prop
+      tl.to(
+        { v: 0 },
+        {
+          v: 20,
+          duration: 1.5,
+          ease: "power2.inOut",
+          onUpdate: function () {
+            var el = document.getElementById("fe-turb");
+            if (el) el.setAttribute("scale", this.targets()[0].v);
+          },
+        },
+        57.2,
+      );
+      tl.to(
+        { v: 20 },
+        {
+          v: 8,
+          duration: 2.0,
+          ease: "sine.inOut",
+          onUpdate: function () {
+            var el = document.getElementById("fe-turb");
+            if (el) el.setAttribute("scale", this.targets()[0].v);
+          },
+        },
+        58.7,
+      );
+      tl.to(
+        { v: 8 },
+        {
+          v: 24,
+          duration: 1.5,
+          ease: "power2.inOut",
+          onUpdate: function () {
+            var el = document.getElementById("fe-turb");
+            if (el) el.setAttribute("scale", this.targets()[0].v);
+          },
+        },
+        60.7,
+      );
+
+      // ══ S10: Neon Border Draw ══
+      fadeIn("#s10", 63);
+      labelIn("#s10", 63);
+      tl.call(playWhoosh, [], 63);
+      tl.from(".neon-content", { opacity: 0, scale: 0.8, duration: 0.4 }, 63.5);
+      tl.to(
+        "#ndp1",
+        { strokeDashoffset: 0, duration: 2.0, ease: "power2.inOut" },
+        63.8,
+      );
+      tl.to(
+        "#ndp2",
+        { strokeDashoffset: 0, duration: 1.8, ease: "power2.inOut" },
+        64.5,
+      );
+      // Pulse glow
+      tl.to(
+        "#ndp1",
+        {
+          attr: { strokeWidth: 6 },
+          filter: "drop-shadow(0 0 16px #FFD166) drop-shadow(0 0 32px #ffc300)",
+          duration: 1.2,
+          yoyo: true,
+          repeat: 1,
+          ease: "sine.inOut",
+        },
+        66.0,
+      );
+
+      // ══ S11: Skeleton → Reveal ══
+      fadeIn("#s11", 70);
+      labelIn("#s11", 70);
+      tl.call(playWhoosh, [], 70);
+      tl.from("#skeleton-view", { opacity: 0, duration: 0.4 }, 71.0);
+      // After 2s shimmer → reveal content
+      tl.call(playImpact, [], 73.5);
+      tl.to(
+        "#skeleton-view",
+        { opacity: 0, duration: 0.5, ease: "power2.in" },
+        73.5,
+      );
+      tl.to(
+        "#reveal-view",
+        { opacity: 1, duration: 0.5, ease: "power2.out" },
+        74.0,
+      );
+      tl.from(
+        "#reveal-view .rv-card",
+        { y: 30, scale: 0.9, opacity: 0, duration: 0.5, ease: "back.out(1.5)" },
+        74.0,
+      );
+      tl.from(
+        "#reveal-view .rv-title",
+        { y: 20, opacity: 0, duration: 0.4 },
+        74.5,
+      );
+      tl.from(
+        "#reveal-view .rv-sub",
+        { y: 15, opacity: 0, duration: 0.35 },
+        74.8,
+      );
+      tl.from(
+        "#reveal-view .rv-tag",
+        { scale: 0.8, opacity: 0, duration: 0.4, ease: "back.out(1.7)" },
+        75.1,
+      );
+
+      window.__timelines["video-effects-demo"] = tl;
+    </script>
+  </body>
+</html>

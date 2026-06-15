@@ -36,7 +36,8 @@ def fetch_followups(at_key, at_base, target_date: date) -> list:
     date_str = target_date.isoformat()
     params = {
         "filterByFormula": f"IS_SAME({{Ngày follow-up}},'{date_str}','day')",
-        "fields[]": ["Tên", "Dự án quan tâm", "Hành động tiếp theo", "Số lần liên hệ"],
+        "fields[]": ["Tên", "Dự án quan tâm", "Hành động tiếp theo", "Số lần liên hệ",
+                     "Phase", "Nội dung tương tác gần nhất", "Kết quả gần nhất"],
         "pageSize": 100,
     }
     r = requests.get(
@@ -56,26 +57,75 @@ def send_telegram(bot_token, chat_id, message):
     r.raise_for_status()
 
 
+# Mục đích cụ thể cho mỗi lần liên hệ — thêm giá trị, không hỏi "đã quyết chưa"
+CONTACT_PURPOSE = {
+    1: {
+        "label": "Kết nối lần đầu",
+        "guide": "Hỏi thăm đã nhận SMS chưa. Hỏi 1 câu mở để hiểu nhu cầu — chưa giới thiệu dự án.",
+        "vi_du": "\"Anh nhận được tin em chưa ạ? Anh đang tìm hiểu để đầu tư hay mua ở lâu dài?\"",
+    },
+    2: {
+        "label": "Gửi thông tin có giá trị",
+        "guide": "Chia sẻ 1 thông tin cụ thể phù hợp nhu cầu — tỷ suất, pháp lý, mặt bằng. Hỏi xin phép trước khi gửi.",
+        "vi_du": "\"Em có tài liệu tỷ suất thực tế S1-S3 — anh muốn em gửi qua không ạ?\"",
+    },
+    3: {
+        "label": "Hỏi thẳng rào cản",
+        "guide": "Hỏi 1 câu mở để khách tự nói ra điều đang vướng. Không đoán thay khách.",
+        "vi_du": "\"Anh đang cân nhắc điểm nào nhất ạ? Em muốn hiểu đúng thay vì đoán.\"",
+    },
+    4: {
+        "label": "Chạm nhẹ — để ngỏ",
+        "guide": "Không hỏi quyết định. Chia sẻ 1 cập nhật mới nếu có, hoặc chỉ cho biết em vẫn ở đây khi cần.",
+        "vi_du": "\"Anh ơi, em không làm phiền thêm. Khi nào anh cần em sẵn sàng, cứ nhắn ạ.\"",
+    },
+}
+
+# Gợi ý thêm theo Phase của khách
+PHASE_HINT = {
+    "A": "Khách mới — ưu tiên lắng nghe, chưa vội giới thiệu dự án.",
+    "B": "Đang xây dựng tin tưởng — gửi dữ liệu thật, để khách tự đánh giá.",
+    "C": "Đang chần chừ — hỏi rào cản thật sự, không tạo thêm áp lực.",
+    "D": "Đang so sánh — minh bạch cả ưu điểm lẫn hạn chế, khách tự kết luận.",
+    "E": "Gần quyết — thu nhỏ bước tiếp thành hành động nhỏ nhất, không rủi ro.",
+    "F": "Dài hạn — chỉ liên hệ khi có cập nhật thật, không hỏi \"đã quyết chưa\".",
+}
+
 def format_record(rec, prefix=""):
-    f      = rec.get("fields", {})
-    name   = f.get("Tên", "Không rõ")
+    f       = rec.get("fields", {})
+    name    = f.get("Tên", "Không rõ")
     project = f.get("Dự án quan tâm", "")
     action  = f.get("Hành động tiếp theo", "").strip()
     lan     = f.get("Số lần liên hệ")
+    phase   = f.get("Phase", "").strip()
+    ket_qua = f.get("Kết quả gần nhất", "").strip()
 
-    lan_tag = f" [Lần {int(lan)}/4]" if lan else ""
+    lan_int = int(lan) if lan else 0
+    lan_tag = f" [Lần {lan_int}]" if lan_int else ""
     line = f"{prefix}<b>{name}</b>{lan_tag}"
     if project:
-        line += f" — {project}"
-    if action:
-        line += f"\n    {action}"
+        line += f" · {project}"
+    if phase:
+        line += f" · Phase {phase}"
 
-    # Gợi ý lần tiếp theo
-    if lan and int(lan) < 4:
-        days_next = CADENCE.get(int(lan), 3)
-        line += f"\n    <i>Lần {int(lan)+1} dự kiến sau {days_next} ngày nếu không hồi âm</i>"
-    elif lan and int(lan) == 4:
-        line += f"\n    <i>Lần cuối — nếu không hồi âm chuyển sang Chờ sự kiện</i>"
+    # Kết quả lần trước (nếu có)
+    if ket_qua:
+        line += f"\n    📝 Lần trước: {ket_qua}"
+
+    # Hành động Bình đã set thủ công trong Airtable (nếu có)
+    if action:
+        line += f"\n    ✅ {action}"
+
+    # Gợi ý mục đích lần liên hệ này
+    purpose = CONTACT_PURPOSE.get(lan_int)
+    if purpose:
+        line += f"\n    💡 <b>{purpose['label']}:</b> {purpose['guide']}"
+        line += f"\n    <i>{purpose['vi_du']}</i>"
+
+    # Gợi ý thêm theo phase
+    phase_hint = PHASE_HINT.get(phase)
+    if phase_hint:
+        line += f"\n    <i>Phase {phase}: {phase_hint}</i>"
 
     return line
 

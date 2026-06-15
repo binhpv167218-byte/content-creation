@@ -18,12 +18,12 @@ Usage:
         --output posts/NNN/image.png
 
 Rules:
-  - Main hook text: uppercased, BeVietnamPro-Bold (sans-serif), pastel orange
+  - Main hook text: uppercased, BeVietnamPro-Bold (sans-serif), pastel yellow
   - --highlight words rendered WHITE with shadow
   - --eyebrow (optional): serif eyebrow line above hook, Cormorant Garamond Light,
     white, sentence case, small letter-spacing feel
   - Gradient: linear 0%→75% from H/2 to bottom
-  - Brand mark: top-right, "BìnhPhan" white + "IQI" pastel orange
+  - Brand mark: top-right, "BìnhPhan" white + "IQI" pastel yellow
 """
 
 import argparse
@@ -34,7 +34,7 @@ from PIL import Image, ImageDraw, ImageFont
 # ─────────────────────────────────────────────
 # CONFIG
 # ─────────────────────────────────────────────
-TEXT_COLOR      = (245, 160, 80)    # Pastel orange
+TEXT_COLOR      = (255, 220, 80)    # Pastel yellow
 HIGHLIGHT_COLOR = (255, 255, 255)   # White for highlighted words
 BLACK           = (0, 0, 0)
 WHITE           = (255, 255, 255)
@@ -73,20 +73,16 @@ def wrap_text(text, font, max_width, draw):
 
 def draw_lines(draw, lines, cx, y, font_med, font_semi, hi_set, lh):
     """Draw hook lines centered at cx.
-    Highlight words: Bold white + multi-layer shadow.
-    Regular words: Medium pastel orange, no shadow."""
+    All words Bold. Highlight = white, regular = pastel yellow. No shadows."""
     for line in lines:
         lw = draw.textbbox((0, 0), line, font=font_med)[2]
         words = line.split(" ")
         x = cx - lw // 2
         for i, word in enumerate(words):
             is_hi  = word in hi_set
-            font   = font_semi if is_hi else font_med
+            font   = font_med  # both bold now
             color  = HIGHLIGHT_COLOR if is_hi else TEXT_COLOR
             suffix = " " if i < len(words) - 1 else ""
-            if is_hi:
-                for sx, sy, sa in [(7, 7, 30), (5, 5, 55), (3, 3, 85), (1, 1, 110)]:
-                    draw.text((x + sx, y + sy), word, font=font, fill=(0, 0, 0, sa))
             draw.text((x, y), word, font=font, fill=color)
             x += draw.textbbox((0, 0), word + suffix, font=font)[2]
         y += lh
@@ -157,7 +153,7 @@ def add_overlay(photo_path, hook_text, output_path,
     draw = ImageDraw.Draw(img)
 
     # ── Fonts ────────────────────────────────────────────
-    font_med    = load_font(FONT_MEDIUM, 38)
+    font_med    = load_font(FONT_BOLD, 38)   # bold for all text
     font_bold   = load_font(FONT_BOLD, 38)
     font_serif  = load_font(FONT_SERIF_LIGHT, 26)
 
@@ -173,13 +169,19 @@ def add_overlay(photo_path, hook_text, output_path,
         eb_bbox = draw.textbbox((0, 0), eyebrow, font=font_serif)
         eyebrow_block_h = eb_bbox[3] + 8 + 1 + 18  # text + rule + gap
 
-    # ── Text anchor ──────────────────────────────────────
+    # ── Text anchor — constrained to 25%–75% of image height ──
+    # H=1350 → safe zone: 337–1012px
     if position == "bottom":
-        block_top = int(H * 2 / 3) + 120
+        # anchor text bottom edge near 72% → block_top ~ 60–65%
+        block_top = int(H * 0.63) - total_h // 2
+        block_top = max(int(H * 0.25), min(block_top, int(H * 0.72) - total_h))
     elif position == "top":
-        block_top = 60
+        # anchor text top edge near 27%
+        block_top = int(H * 0.27)
+        block_top = max(int(H * 0.25), min(block_top, int(H * 0.50) - total_h))
     else:
-        block_top = (H - eyebrow_block_h - total_h) // 2 - 10
+        block_top = (H - eyebrow_block_h - total_h) // 2
+        block_top = max(int(H * 0.25), min(block_top, int(H * 0.75) - total_h))
 
     # Draw eyebrow serif line first
     if eyebrow:
@@ -226,7 +228,13 @@ def main():
                    default="bottom")
     p.add_argument("--no-person", action="store_true",
                    help="Non-person photo: flat 50%% at bottom 1/3")
+    p.add_argument("--white", action="store_true",
+                   help="All-white text (dùng cho ảnh storytelling/đen trắng)")
     args = p.parse_args()
+
+    if args.white:
+        global TEXT_COLOR
+        TEXT_COLOR = (255, 255, 255)
 
     if not os.path.exists(args.photo):
         print(f"ERROR: photo not found: {args.photo}", file=sys.stderr)

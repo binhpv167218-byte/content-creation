@@ -1,0 +1,26 @@
+#bx24-sync-toast {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 999999;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  display: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  max-width: 300px;
+  line-height: 1.4;
+}
+.bx24-toast--loading {
+  background: #1a3a5c;
+  color: #fff;
+}
+.bx24-toast--success {
+  background: #27ae60;
+  color: #fff;
+}
+.bx24-toast--error {
+  background: #e74c3c;
+  color: #fff;
+}

@@ -1,0 +1,85 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        width: 280px;
+        padding: 16px;
+        margin: 0;
+        color: #1a1a1a;
+      }
+      h3 {
+        margin: 0 0 14px;
+        font-size: 14px;
+        color: #1a3a5c;
+      }
+      label {
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+        color: #555;
+        margin: 12px 0 3px;
+      }
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 6px 8px;
+        border: 1px solid #dde3f5;
+        border-radius: 4px;
+        font-size: 12px;
+        outline: none;
+      }
+      input:focus {
+        border-color: #1a3a5c;
+      }
+      .hint {
+        font-size: 10px;
+        color: #999;
+        margin-top: 3px;
+        line-height: 1.4;
+      }
+      button {
+        margin-top: 16px;
+        width: 100%;
+        padding: 9px;
+        background: #1a3a5c;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      button:hover {
+        background: #223f6b;
+      }
+      .saved {
+        color: #27ae60;
+        font-size: 12px;
+        margin-top: 8px;
+        text-align: center;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h3>Bitrix24 → Airtable Sync</h3>
+
+    <label>Airtable API Key</label>
+    <input id="airtableKey" type="password" placeholder="patXXXXXXXXXXXXXX" />
+
+    <label>Airtable Base ID</label>
+    <input id="airtableBase" placeholder="appwFMsNMzvK5nv2M" />
+    <div class="hint">
+      Tìm trong URL khi mở Airtable base:
+      airtable.com/<strong>appXXX</strong>/...
+    </div>
+
+    <button id="save">Lưu cài đặt</button>
+    <div class="saved" id="saved-msg">Đã lưu!</div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

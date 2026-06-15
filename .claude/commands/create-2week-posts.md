@@ -22,6 +22,33 @@ Không tạo infographic, video, hay Market post.
 
 ---
 
+## BƯỚC 0 — KIỂM TRA VÀ CẬP NHẬT DỮ LIỆU
+
+Kiểm tra ngày cập nhật của tất cả file intelligence:
+
+```bash
+head -2 context/intelligence/audience-painpoints.md
+head -2 context/intelligence/viral-patterns.md
+head -2 context/intelligence/market-pulse.md
+head -2 context/intelligence/danang-macro.md
+head -2 context/intelligence/policy-interest.md
+head -2 context/intelligence/ai-trends.md
+```
+
+Chỉ chạy lại khi data đã cũ hơn ngưỡng — chạy **tuần tự**, không song song:
+
+| File                                           | Ngưỡng    | Lệnh                                                                                                                                                                                                                |
+| ---------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `audience-painpoints.md` + `viral-patterns.md` | > 14 ngày | `python3 scripts/update-intelligence.py` (~5 phút, ~$2 Apify)                                                                                                                                                       |
+| `market-pulse.md`                              | > 7 ngày  | `python3 scripts/research_bot.py "thị trường căn hộ Đà Nẵng 2026 giá bán giá thuê tỷ suất cho thuê giao dịch mới nhất nguồn báo lớn" --output context/intelligence/market-pulse.md --recency week`                  |
+| `danang-macro.md`                              | > 14 ngày | `python3 scripts/research_bot.py "Đà Nẵng 2026 du lịch hạ tầng quy hoạch sân bay cảng Liên Chiểu metro tăng trưởng kinh tế chiến lược phát triển" --output context/intelligence/danang-macro.md --recency month`    |
+| `policy-interest.md`                           | > 7 ngày  | `python3 scripts/research_bot.py "lãi suất ngân hàng 2026 chính sách bất động sản luật đất đai luật nhà ở mới thuế BĐS tác động thị trường căn hộ" --output context/intelligence/policy-interest.md --recency week` |
+| `ai-trends.md`                                 | > 14 ngày | `python3 scripts/research_bot.py "AI ứng dụng bất động sản môi giới 2026 công nghệ proptech tự động hóa công việc sales AI agent" --output context/intelligence/ai-trends.md --recency month`                       |
+
+Sau khi cập nhật xong: tóm tắt **1-2 điểm mới nhất** từ mỗi file đã cập nhật cho user biết. Rồi tiếp tục BƯỚC 1.
+
+---
+
 ## BƯỚC 1 — NẠP CONTEXT
 
 Đọc các file sau (không hỏi, tự đọc):

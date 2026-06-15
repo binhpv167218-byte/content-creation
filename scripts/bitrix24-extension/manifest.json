@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Bitrix24 → Airtable Sync",
+  "version": "1.0",
+  "description": "Tự động sync deal/lead từ Bitrix24 IQI sang Airtable khi mở trang",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "https://iqi.bitrix24.vn/*",
+    "https://api.airtable.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://iqi.bitrix24.vn/*"],
+      "js": ["watcher.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://iqi.bitrix24.vn/crm/deal/*",
+        "https://iqi.bitrix24.vn/crm/lead/*"
+      ],
+      "js": ["content.js"],
+      "css": ["toast.css"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "B24 Sync — Cài đặt"
+  }
+}
