@@ -111,7 +111,7 @@ def verify_results(env: dict, results: dict) -> dict:
         if "LỖI" in value:
             verified[platform] = value
             continue
-        if platform in ("Facebook BMN", "Facebook"):
+        if platform in ("BMN", "Facebook BMN", "Facebook", "FB Bình Phan"):
             ok = verify_facebook(fb_bmn, value)
             verified[platform] = value if ok else f"⚠️ CHƯA XÁC MINH: {value}"
         elif platform in ("Instagram", "TikTok", "Threads"):
@@ -136,11 +136,14 @@ def load_env():
     return env
 
 
-def get_due_posts(env: dict, now_vn: datetime, window_min=5, window_max=10) -> list:
-    """Lấy bài Scheduled trong khoảng [now - window_min, now + window_max] phút."""
-    window_start = now_vn - timedelta(minutes=window_min)
-    window_end   = now_vn + timedelta(minutes=window_max)
-    today        = now_vn.strftime("%Y-%m-%d")
+def get_due_posts(env: dict, now_vn: datetime, window_max=10) -> list:
+    """
+    Catch-up mode: lấy TẤT CẢ bài Scheduled hôm nay đã qua giờ đăng (hoặc sắp đến).
+    Không dùng window_min — GitHub Actions chạy muộn vẫn pick up được bài bị bỏ lọt.
+    Dedup an toàn: bài đã đăng → Status=Published → không bao giờ bị chọn lại.
+    """
+    window_end = now_vn + timedelta(minutes=window_max)
+    today      = now_vn.strftime("%Y-%m-%d")
 
     at_key  = env["AIRTABLE_API_KEY"]
     at_base = env["AIRTABLE_BASE_ID"]
@@ -149,11 +152,20 @@ def get_due_posts(env: dict, now_vn: datetime, window_min=5, window_max=10) -> l
         f"https://api.airtable.com/v0/{at_base}/tbll5ikhBQPeak8xR",
         headers={"Authorization": f"Bearer {at_key}"},
         params={"fields[]": ["Slug", "Nội dung", "Format", "Platform",
-                              "Đăng lúc", "Ngày đăng", "Status", "Slide URLs", "Ảnh URL"]},
+                              "Đăng lúc", "Ngày đăng", "Status", "Slide URLs", "Ảnh URL", "Ảnh"]},
+        timeout=15,
     )
+    if r.status_code != 200:
+        raise RuntimeError(f"Airtable API lỗi {r.status_code}: {r.text[:200]}")
+    data = r.json()
+    if "error" in data:
+        raise RuntimeError(f"Airtable error: {data['error']}")
+    records = data.get("records", [])
+    if not records:
+        print(f"  ℹ️  Airtable trả về 0 records (tổng bảng có thể trống)")
 
     due = []
-    for rec in r.json().get("records", []):
+    for rec in records:
         f = rec["fields"]
         if f.get("Status") != "Scheduled":
             continue
@@ -162,11 +174,17 @@ def get_due_posts(env: dict, now_vn: datetime, window_min=5, window_max=10) -> l
         dang_luc = f.get("Đăng lúc", "")
         try:
             post_time = datetime.strptime(dang_luc, "%d/%m/%Y %H:%M")
-            if window_start <= post_time <= window_end:
+            # Catch-up: đăng nếu đã qua giờ hoặc sắp đến (trong window_max phút)
+            if post_time <= window_end:
+                late_min = int((now_vn - post_time).total_seconds() / 60)
+                if late_min > 15:
+                    print(f"  ⚠️  Bài muộn {late_min} phút: {f.get('Slug')} ({dang_luc})")
                 due.append(rec)
         except ValueError:
             pass
 
+    # Sắp xếp theo giờ đăng — đăng bài sớm nhất trước
+    due.sort(key=lambda r: r["fields"].get("Đăng lúc", ""))
     return due
 
 
@@ -326,6 +344,9 @@ def update_airtable(env: dict, rec_id: str, results: dict):
         "Ghi chú":  f"Tự đăng lúc {now.strftime('%d/%m/%Y %H:%M')}\n{notes}",
     }
     # Lưu platform IDs để evening summary có thể lấy link
+    fb_url = results.get("Facebook BMN", results.get("FB Bình Phan", results.get("Facebook", "")))
+    if fb_url and "LỖI" not in fb_url and "facebook.com/" in fb_url:
+        fields["Facebook ID"] = fb_url.split("facebook.com/")[-1].strip("/")
     if "Instagram" in results and "LỖI" not in results["Instagram"]:
         fields["Instagram ID"] = results["Instagram"]
     if "TikTok" in results and "LỖI" not in results["TikTok"]:
@@ -389,6 +410,9 @@ def publish_post(env: dict, rec: dict, dry_run=False) -> dict:
     fmt        = fields.get("Format", "")
     slide_urls = json.loads(fields.get("Slide URLs", "[]"))
 
+    # Ảnh attachment field — dùng cho Video Market khi Slide URLs rỗng
+    anh_attachments = fields.get("Ảnh", []) or []
+    anh_url = anh_attachments[0]["url"] if anh_attachments else fields.get("Ảnh URL", "")
 
     is_video    = fmt == "Video Market"
     is_carousel = len(slide_urls) > 1
@@ -398,9 +422,9 @@ def publish_post(env: dict, rec: dict, dry_run=False) -> dict:
     buf    = env.get("BUFFER_ACCESS_TOKEN", "")
 
     # ── Video Market ──────────────────────────────────────────────────────────
-    if is_video and slide_urls:
-        video_url = slide_urls[0]
-        if fb_bmn and any(p in platforms for p in ["Facebook BMN", "Facebook"]):
+    if is_video and (slide_urls or anh_url):
+        video_url = slide_urls[0] if slide_urls else anh_url
+        if fb_bmn and any(p in platforms for p in ["BMN", "Facebook BMN", "Facebook", "FB Bình Phan"]):
             try:
                 pid = fb_post_video(fb_bmn, caption, video_url, dry_run)
                 results["Facebook BMN"] = f"https://facebook.com/{pid}"
@@ -416,8 +440,8 @@ def publish_post(env: dict, rec: dict, dry_run=False) -> dict:
 
     # ── Image / Carousel ─────────────────────────────────────────────────────
     # Facebook Bình Mê Nhà — đăng tất cả loại nội dung
-    # Nhận "Facebook BMN" (mới) hoặc "Facebook" (backward compat)
-    post_bmn = fb_bmn and any(p in platforms for p in ["Facebook BMN", "Facebook"])
+    # Nhận "Facebook BMN" / "FB Bình Phan" (mới) hoặc "Facebook" (backward compat)
+    post_bmn = fb_bmn and any(p in platforms for p in ["BMN", "Facebook BMN", "Facebook", "FB Bình Phan"])
     if post_bmn:
         try:
             if is_carousel:
@@ -469,10 +493,9 @@ def get_posts_by_slug(env: dict, slugs: list) -> list:
         headers={"Authorization": f"Bearer {at_key}"},
         params={"filterByFormula": formula,
                 "fields[]": ["Slug", "Nội dung", "Format", "Platform",
-                             "Đăng lúc", "Ngày đăng", "Status", "Slide URLs", "Ảnh URL"]},
+                             "Đăng lúc", "Ngày đăng", "Status", "Slide URLs", "Ảnh URL", "Ảnh"]},
     )
-    return [rec for rec in r.json().get("records", [])
-            if rec["fields"].get("Status") == "Scheduled"]
+    return r.json().get("records", [])
 
 
 def main():
@@ -497,7 +520,7 @@ def main():
             time.sleep(delay)
 
         now_vn = datetime.utcnow() + timedelta(hours=7)
-        due_posts = get_due_posts(env, now_vn, window_min=60, window_max=10)
+        due_posts = get_due_posts(env, now_vn, window_max=10)
 
     print(f"🕐 Kiểm tra lịch: {now_vn.strftime('%d/%m/%Y %H:%M:%S')} (giờ VN)")
 
