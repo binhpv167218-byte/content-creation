@@ -86,23 +86,23 @@ def verify_buffer(buffer_token: str, post_value: str) -> tuple:
     try:
         time.sleep(3)
         query = """
-        query GetPost($id: String!) {
-          post(id: $id) { id status url }
+        query GetPost($input: PostInput!) {
+          post(input: $input) { id status error { message } }
         }
         """
         r = requests.post(
             BUFFER_GQL,
             headers={"Authorization": f"Bearer {buffer_token}", "Content-Type": "application/json"},
-            json={"query": query, "variables": {"id": post_value}},
+            json={"query": query, "variables": {"input": {"id": post_value}}},
             timeout=10,
         )
         post = (r.json().get("data") or {}).get("post") or {}
         status = post.get("status", "")
-        url = post.get("url") or post_value
+        err = (post.get("error") or {}).get("message", "")
         if status in ("sent", "service_update_sent"):
-            return True, url
+            return True, post_value
         if status:
-            return False, url
+            return False, f"{post_value} ({err or status})"
         return True, post_value  # Buffer không hỗ trợ query → trust
     except Exception:
         return True, post_value
@@ -343,9 +343,10 @@ def update_airtable(env: dict, rec_id: str, results: dict):
     headers = {"Authorization": f"Bearer {at_key}", "Content-Type": "application/json"}
     now     = datetime.utcnow() + timedelta(hours=7)  # Vietnam time
 
-    notes = "\n".join([f"{k}: {v}" for k, v in results.items()])
+    notes    = "\n".join([f"{k}: {v}" for k, v in results.items()])
+    has_loi  = any("LỖI" in v or "CHƯA XÁC MINH" in v for v in results.values())
     fields = {
-        "Status":   "Published",
+        "Status":   "Lỗi" if has_loi else "Published",
         "Đăng lúc": now.strftime("%d/%m/%Y %H:%M"),
         "Ghi chú":  f"Tự đăng lúc {now.strftime('%d/%m/%Y %H:%M')}\n{notes}",
     }
@@ -361,20 +362,17 @@ def update_airtable(env: dict, rec_id: str, results: dict):
         fields["Threads ID"] = results["Threads"]
     requests.patch(
         f"https://api.airtable.com/v0/{at_base}/tbll5ikhBQPeak8xR/{rec_id}",
-        headers=headers, json={"fields": fields},
+        headers=headers, json={"fields": fields, "typecast": True},
     )
 
 
 # ── Telegram ──────────────────────────────────────────────────────────────────
 
-def notify_telegram(env: dict, slug: str, results: dict):
+def notify_telegram(env: dict, slug: str, verified: dict):
     token   = env.get("TELEGRAM_BOT_TOKEN", "")
     chat_id = env.get("TELEGRAM_CHAT_ID", "")
     if not token or not chat_id:
         return
-
-    print(f"  🔍 Xác minh bài đăng...", flush=True)
-    verified = verify_results(env, results)
 
     success    = sum(1 for v in verified.values() if "LỖI" not in v and "CHƯA XÁC MINH" not in v)
     unverified = sum(1 for v in verified.values() if "CHƯA XÁC MINH" in v)
@@ -533,8 +531,9 @@ def get_posts_by_slug(env: dict, slugs: list) -> list:
         f"https://api.airtable.com/v0/{at_base}/tbll5ikhBQPeak8xR",
         headers={"Authorization": f"Bearer {at_key}"},
         params={"filterByFormula": formula,
-                "fields[]": ["Slug", "Nội dung", "Format", "Platform",
-                             "Đăng lúc", "Ngày đăng", "Status", "Slide URLs", "Ảnh URL", "Ảnh"]},
+                "fields[]": ["Slug", "Nội dung", "Tiêu đề", "Format", "Platform",
+                             "Đăng lúc", "Ngày đăng", "Status", "Slide URLs", "Ảnh URL", "Ảnh",
+                             "Link", "Board Id"]},
     )
     return r.json().get("records", [])
 
@@ -590,8 +589,10 @@ def main():
             print(f"  {icon_r} {k}: {v}")
 
         if not args.dry_run:
-            update_airtable(env, rec["id"], results)
-            notify_telegram(env, slug, results)
+            print(f"  🔍 Xác minh bài đăng...", flush=True)
+            verified = verify_results(env, results)
+            update_airtable(env, rec["id"], verified)
+            notify_telegram(env, slug, verified)
             print(f"  📱 Telegram notified | Airtable updated")
 
 
