@@ -26,6 +26,11 @@ BUFFER_TIKTOK    = "6a030a3f090476fb990f46e6"
 BUFFER_INSTAGRAM = "6a033e20090476fb99104f87"
 BUFFER_THREADS   = "6a030a61090476fb990f47b7"
 
+# ── dananghome.com — Pinterest + LinkedIn + Google Business ─────────────────────
+BUFFER_DANANGHOME_PINTEREST = "6a55ebc180cc80cdcaafd7e7"
+BUFFER_DANANGHOME_LINKEDIN  = "6a55ebee80cc80cdcaafd85a"
+BUFFER_DANANGHOME_GBP       = "6a54582b80cc80cdcaa92412"
+
 
 def summarize_for_threads(caption: str, perplexity_key: str, limit: int = 490) -> str:
     """Dùng Perplexity sonar-pro tóm tắt caption xuống dưới `limit` ký tự."""
@@ -114,7 +119,7 @@ def verify_results(env: dict, results: dict) -> dict:
         if platform in ("BMN", "Facebook BMN", "Facebook", "FB Bình Phan"):
             ok = verify_facebook(fb_bmn, value)
             verified[platform] = value if ok else f"⚠️ CHƯA XÁC MINH: {value}"
-        elif platform in ("Instagram", "TikTok", "Threads"):
+        elif platform in ("Instagram", "TikTok", "Threads", "Pinterest", "LinkedIn", "GoogleBusiness"):
             ok, url = verify_buffer(buf, value)
             verified[platform] = url if ok else f"⚠️ CHƯA XÁC MINH: {url}"
         else:
@@ -151,8 +156,9 @@ def get_due_posts(env: dict, now_vn: datetime, window_max=10) -> list:
     r = requests.get(
         f"https://api.airtable.com/v0/{at_base}/tbll5ikhBQPeak8xR",
         headers={"Authorization": f"Bearer {at_key}"},
-        params={"fields[]": ["Slug", "Nội dung", "Format", "Platform",
-                              "Đăng lúc", "Ngày đăng", "Status", "Slide URLs", "Ảnh URL", "Ảnh"]},
+        params={"fields[]": ["Slug", "Nội dung", "Tiêu đề", "Format", "Platform",
+                              "Đăng lúc", "Ngày đăng", "Status", "Slide URLs", "Ảnh URL", "Ảnh",
+                              "Link", "Board Id"]},
         timeout=15,
     )
     if r.status_code != 200:
@@ -406,6 +412,9 @@ def notify_telegram(env: dict, slug: str, results: dict):
 def publish_post(env: dict, rec: dict, dry_run=False) -> dict:
     fields     = rec["fields"]
     caption    = fields.get("Nội dung", "")
+    title      = fields.get("Tiêu đề", "")
+    link       = fields.get("Link", "")
+    board_id   = fields.get("Board Id", "")
     platforms  = fields.get("Platform", [])
     fmt        = fields.get("Format", "")
     slide_urls = json.loads(fields.get("Slide URLs", "[]"))
@@ -477,6 +486,38 @@ def publish_post(env: dict, rec: dict, dry_run=False) -> dict:
             results["Threads"] = pid
         except Exception as e:
             results["Threads"] = f"LỖI: {e}"
+
+    # dananghome.com — Pinterest
+    if "Pinterest" in platforms and buf and anh_url:
+        try:
+            pid = buffer_post(BUFFER_DANANGHOME_PINTEREST, caption, [anh_url], buf,
+                               metadata={"pinterest": {"title": title, "url": link, "boardServiceId": board_id}},
+                               dry_run=dry_run)
+            results["Pinterest"] = pid
+        except Exception as e:
+            results["Pinterest"] = f"LỖI: {e}"
+
+    # dananghome.com — LinkedIn
+    if "LinkedIn" in platforms and buf and anh_url:
+        li_text = f"{title}\n\n{caption}" if title else caption
+        try:
+            pid = buffer_post(BUFFER_DANANGHOME_LINKEDIN, li_text, [anh_url], buf,
+                               metadata={"linkedin": {"linkAttachment": {"url": link}}},
+                               dry_run=dry_run)
+            results["LinkedIn"] = pid
+        except Exception as e:
+            results["LinkedIn"] = f"LỖI: {e}"
+
+    # dananghome.com — Google Business Profile
+    if "GoogleBusiness" in platforms and buf and anh_url:
+        try:
+            pid = buffer_post(BUFFER_DANANGHOME_GBP, caption, [anh_url], buf,
+                               metadata={"google": {"type": "whats_new",
+                                                     "detailsWhatsNew": {"button": "learn_more", "link": link}}},
+                               dry_run=dry_run)
+            results["GoogleBusiness"] = pid
+        except Exception as e:
+            results["GoogleBusiness"] = f"LỖI: {e}"
 
     return results
 
