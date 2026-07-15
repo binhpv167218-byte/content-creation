@@ -368,17 +368,23 @@ def update_airtable(env: dict, rec_id: str, results: dict):
 
 # ── Telegram ──────────────────────────────────────────────────────────────────
 
-def notify_telegram(env: dict, slug: str, verified: dict):
+def notify_telegram(env: dict, slug: str, verified: dict, title: str = "", link: str = ""):
     token   = env.get("TELEGRAM_BOT_TOKEN", "")
     chat_id = env.get("TELEGRAM_CHAT_ID", "")
     if not token or not chat_id:
         return
 
+    now_vn = datetime.utcnow() + timedelta(hours=7)
     success    = sum(1 for v in verified.values() if "LỖI" not in v and "CHƯA XÁC MINH" not in v)
     unverified = sum(1 for v in verified.values() if "CHƯA XÁC MINH" in v)
     failed     = sum(1 for v in verified.values() if "LỖI" in v)
 
-    lines = [f"📢 *Đã đăng tự động:* `{slug}`", ""]
+    lines = ["🏠 *DANANGHOME — Đăng bài tự động*", f"📝 {title or slug}"]
+    if link:
+        lines.append(f"🔗 [Xem bài viết]({link})")
+    lines.append(f"🕐 {now_vn.strftime('%d/%m/%Y %H:%M')} · `{slug}`")
+    lines.append("")
+    lines.append("*Kênh:*")
     for k, v in verified.items():
         if "LỖI" in v:
             lines.append(f"❌ *{k}:* {v.replace('LỖI: ', '')}")
@@ -592,7 +598,8 @@ def main():
             print(f"  🔍 Xác minh bài đăng...", flush=True)
             verified = verify_results(env, results)
             update_airtable(env, rec["id"], verified)
-            notify_telegram(env, slug, verified)
+            notify_telegram(env, slug, verified,
+                             title=rec["fields"].get("Tiêu đề", ""), link=rec["fields"].get("Link", ""))
             print(f"  📱 Telegram notified | Airtable updated")
 
 
