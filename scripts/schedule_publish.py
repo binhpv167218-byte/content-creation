@@ -83,27 +83,30 @@ def verify_buffer(buffer_token: str, post_value: str) -> tuple:
     """Returns (verified: bool, url: str)."""
     if not post_value or "LỖI" in post_value:
         return False, post_value
+    query = """
+    query GetPost($input: PostInput!) {
+      post(input: $input) { id status error { message } }
+    }
+    """
     try:
-        time.sleep(3)
-        query = """
-        query GetPost($input: PostInput!) {
-          post(input: $input) { id status error { message } }
-        }
-        """
-        r = requests.post(
-            BUFFER_GQL,
-            headers={"Authorization": f"Bearer {buffer_token}", "Content-Type": "application/json"},
-            json={"query": query, "variables": {"input": {"id": post_value}}},
-            timeout=10,
-        )
-        post = (r.json().get("data") or {}).get("post") or {}
-        status = post.get("status", "")
-        err = (post.get("error") or {}).get("message", "")
-        if status in ("sent", "service_update_sent"):
-            return True, post_value
-        if status:
-            return False, f"{post_value} ({err or status})"
-        return True, post_value  # Buffer không hỗ trợ query → trust
+        for wait_s in (3, 5, 8):  # "sending" là trạng thái transient, retry trước khi kết luận lỗi
+            time.sleep(wait_s)
+            r = requests.post(
+                BUFFER_GQL,
+                headers={"Authorization": f"Bearer {buffer_token}", "Content-Type": "application/json"},
+                json={"query": query, "variables": {"input": {"id": post_value}}},
+                timeout=10,
+            )
+            post = (r.json().get("data") or {}).get("post") or {}
+            status = post.get("status", "")
+            err = (post.get("error") or {}).get("message", "")
+            if status in ("sent", "service_update_sent"):
+                return True, post_value
+            if status and status != "sending":
+                return False, f"{post_value} ({err or status})"
+            if not status:
+                return True, post_value  # Buffer không hỗ trợ query → trust
+        return False, f"{post_value} ({status})"
     except Exception:
         return True, post_value
 
@@ -511,12 +514,12 @@ def publish_post(env: dict, rec: dict, dry_run=False) -> dict:
             results["Pinterest"] = f"LỖI: {e}"
 
     # dananghome.com — LinkedIn
+    # Link CTA đã viết thẳng trong caption/text — không gửi kèm metadata.linkAttachment
+    # vì Buffer/LinkedIn từ chối post vừa có ảnh (assets) vừa có linkAttachment.
     if "LinkedIn" in platforms and buf and anh_url:
         li_text = f"{title}\n\n{caption}" if title else caption
         try:
-            pid = buffer_post(BUFFER_DANANGHOME_LINKEDIN, li_text, [anh_url], buf,
-                               metadata={"linkedin": {"linkAttachment": {"url": link}}},
-                               dry_run=dry_run)
+            pid = buffer_post(BUFFER_DANANGHOME_LINKEDIN, li_text, [anh_url], buf, dry_run=dry_run)
             results["LinkedIn"] = pid
         except Exception as e:
             results["LinkedIn"] = f"LỖI: {e}"
