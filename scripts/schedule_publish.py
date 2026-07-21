@@ -153,20 +153,29 @@ def get_due_posts(env: dict, now_vn: datetime, window_max=10) -> list:
     at_key  = env["AIRTABLE_API_KEY"]
     at_base = env["AIRTABLE_BASE_ID"]
 
-    r = requests.get(
-        f"https://api.airtable.com/v0/{at_base}/tbll5ikhBQPeak8xR",
-        headers={"Authorization": f"Bearer {at_key}"},
-        params={"fields[]": ["Slug", "Nội dung", "Tiêu đề", "Format", "Platform",
-                              "Đăng lúc", "Ngày đăng", "Status", "Slide URLs", "Ảnh URL", "Ảnh",
-                              "Link", "Board Id"]},
-        timeout=15,
-    )
-    if r.status_code != 200:
-        raise RuntimeError(f"Airtable API lỗi {r.status_code}: {r.text[:200]}")
-    data = r.json()
-    if "error" in data:
-        raise RuntimeError(f"Airtable error: {data['error']}")
-    records = data.get("records", [])
+    records = []
+    offset = None
+    while True:
+        params = {"fields[]": ["Slug", "Nội dung", "Tiêu đề", "Format", "Platform",
+                                "Đăng lúc", "Ngày đăng", "Status", "Slide URLs", "Ảnh URL", "Ảnh",
+                                "Link", "Board Id"]}
+        if offset:
+            params["offset"] = offset
+        r = requests.get(
+            f"https://api.airtable.com/v0/{at_base}/tbll5ikhBQPeak8xR",
+            headers={"Authorization": f"Bearer {at_key}"},
+            params=params,
+            timeout=15,
+        )
+        if r.status_code != 200:
+            raise RuntimeError(f"Airtable API lỗi {r.status_code}: {r.text[:200]}")
+        data = r.json()
+        if "error" in data:
+            raise RuntimeError(f"Airtable error: {data['error']}")
+        records.extend(data.get("records", []))
+        offset = data.get("offset")
+        if not offset:
+            break
     if not records:
         print(f"  ℹ️  Airtable trả về 0 records (tổng bảng có thể trống)")
 
