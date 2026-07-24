@@ -28,7 +28,7 @@ BUFFER_THREADS   = "6a030a61090476fb990f47b7"
 
 # ── dananghome.com — Pinterest + LinkedIn + Google Business ─────────────────────
 BUFFER_DANANGHOME_PINTEREST = "6a55ebc180cc80cdcaafd7e7"
-BUFFER_DANANGHOME_LINKEDIN  = "6a55ebee80cc80cdcaafd85a"
+BUFFER_DANANGHOME_LINKEDIN  = "6a637b7de2638b94d7c8d08c"
 BUFFER_DANANGHOME_GBP       = "6a54582b80cc80cdcaa92412"
 
 
