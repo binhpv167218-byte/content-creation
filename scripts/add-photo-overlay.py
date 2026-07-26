@@ -105,7 +105,9 @@ def draw_eyebrow(draw, text, cx, y, font):
 
 def add_overlay(photo_path, hook_text, output_path,
                 highlight_words=None, eyebrow=None,
-                position="bottom", no_person=False):
+                position="bottom", no_person=False,
+                overlay_rgb=(0, 0, 0), overlay_opacity=None,
+                no_brand=False):
 
     # Load & cover-crop to 1080×1350
     img = Image.open(photo_path).convert("RGBA")
@@ -120,36 +122,63 @@ def add_overlay(photo_path, hook_text, output_path,
     ov = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     dv = ImageDraw.Draw(ov)
 
-    if no_person:
-        # Smooth fade: 0% at H*0.45 → 70% at bottom
+    # overlay_opacity (0-100) overrides the template's default alpha ceilings
+    # below when provided — same gradient shape, custom color + strength.
+    op = overlay_opacity / 100 if overlay_opacity is not None else None
+    custom_wash = overlay_rgb != (0, 0, 0)
+
+    if custom_wash:
+        # Flat full-frame color wash (e.g. blue tint) instead of the
+        # black legibility gradient — user wants the color visible everywhere,
+        # not just faded in near the text block.
+        flat = int(255 * (op if op is not None else 0.40))
+        dv.rectangle([0, 0, W, H], fill=(*overlay_rgb, flat))
+    elif no_person:
+        # Smooth fade: 0% at H*0.45 → 70% (or custom) at bottom
         fade_s    = int(H * 0.45)
-        max_alpha = int(255 * 0.70)
+        max_alpha = int(255 * (op if op is not None else 0.70))
         for y in range(fade_s, H):
             t = (y - fade_s) / (H - fade_s)
-            dv.line([(0, y), (W, y)], fill=(0, 0, 0, int(max_alpha * t)))
+            dv.line([(0, y), (W, y)], fill=(*overlay_rgb, int(max_alpha * t)))
     else:
-        flat_alpha = int(255 * 0.60)
+        flat_alpha = int(255 * (op if op is not None else 0.60))
         if position == "bottom":
             fade_s    = H // 2
-            max_alpha = int(255 * 0.75)
+            max_alpha = int(255 * (op if op is not None else 0.75))
             for y in range(fade_s, H):
                 t = (y - fade_s) / (H - fade_s)
-                dv.line([(0, y), (W, y)], fill=(0, 0, 0, int(max_alpha * t)))
+                dv.line([(0, y), (W, y)], fill=(*overlay_rgb, int(max_alpha * t)))
         elif position == "top":
             fade_s, fade_e = int(H * 1 / 3), H // 2
             for y in range(0, fade_s):
-                dv.line([(0, y), (W, y)], fill=(0, 0, 0, flat_alpha))
+                dv.line([(0, y), (W, y)], fill=(*overlay_rgb, flat_alpha))
             for y in range(fade_s, fade_e):
                 t = 1 - (y - fade_s) / (fade_e - fade_s)
-                dv.line([(0, y), (W, y)], fill=(0, 0, 0, int(flat_alpha * t)))
+                dv.line([(0, y), (W, y)], fill=(*overlay_rgb, int(flat_alpha * t)))
         else:  # center
             y1, y2 = int(H * 0.35), int(H * 0.70)
             mid, half = (y1 + y2) / 2, (y2 - y1) / 2
             for y in range(y1, y2):
                 t = 1 - abs(y - mid) / half
-                dv.line([(0, y), (W, y)], fill=(0, 0, 0, int(flat_alpha * t)))
+                dv.line([(0, y), (W, y)], fill=(*overlay_rgb, int(flat_alpha * t)))
 
     img  = Image.alpha_composite(img, ov)
+
+    if custom_wash:
+        # Second pass: small extra darkening behind the text zone only,
+        # composited separately so it blends with the wash instead of
+        # overwriting it.
+        ov2 = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        dv2 = ImageDraw.Draw(ov2)
+        boost_s = int(H * 0.55) if position == "bottom" else 0
+        boost_e = H if position == "bottom" else int(H * 0.45)
+        boost_max = int(255 * 0.25)
+        span = boost_e - boost_s
+        for y in range(boost_s, boost_e):
+            t = (y - boost_s) / span if position == "bottom" else 1 - (y - boost_s) / span
+            dv2.line([(0, y), (W, y)], fill=(0, 0, 0, int(boost_max * t)))
+        img = Image.alpha_composite(img, ov2)
+
     draw = ImageDraw.Draw(img)
 
     # ── Fonts ────────────────────────────────────────────
@@ -197,17 +226,18 @@ def add_overlay(photo_path, hook_text, output_path,
     draw_lines(draw, lines, W // 2, block_top, font_med, font_bold, hi_set, lh)
 
     # ── Brand mark: top-right ────────────────────────────
-    bf    = load_font(FONT_BOLD, 23)
-    part1 = "BìnhPhan "
-    part2 = "IQI"
-    w1    = draw.textbbox((0, 0), part1, font=bf)[2]
-    w2    = draw.textbbox((0, 0), part2, font=bf)[2]
-    bx    = W - w1 - w2 - 40
-    by    = 36
-    draw.text((bx + 1, by + 1), part1, font=bf, fill=(0, 0, 0, 100))
-    draw.text((bx + w1 + 1, by + 1), part2, font=bf, fill=(0, 0, 0, 100))
-    draw.text((bx, by), part1, font=bf, fill=WHITE)
-    draw.text((bx + w1, by), part2, font=bf, fill=TEXT_COLOR)
+    if not no_brand:
+        bf    = load_font(FONT_BOLD, 23)
+        part1 = "BìnhPhan "
+        part2 = "IQI"
+        w1    = draw.textbbox((0, 0), part1, font=bf)[2]
+        w2    = draw.textbbox((0, 0), part2, font=bf)[2]
+        bx    = W - w1 - w2 - 40
+        by    = 36
+        draw.text((bx + 1, by + 1), part1, font=bf, fill=(0, 0, 0, 100))
+        draw.text((bx + w1 + 1, by + 1), part2, font=bf, fill=(0, 0, 0, 100))
+        draw.text((bx, by), part1, font=bf, fill=WHITE)
+        draw.text((bx + w1, by), part2, font=bf, fill=TEXT_COLOR)
 
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
     img.convert("RGB").save(output_path, "PNG", quality=95)
@@ -230,6 +260,12 @@ def main():
                    help="Non-person photo: flat 50%% at bottom 1/3")
     p.add_argument("--white", action="store_true",
                    help="All-white text (dùng cho ảnh storytelling/đen trắng)")
+    p.add_argument("--overlay-color", default=None,
+                   help="R,G,B thay cho gradient đen mặc định, VD 20,70,160")
+    p.add_argument("--overlay-opacity", type=float, default=None,
+                   help="0-100, thay cho mức alpha mặc định của template (60-75%%)")
+    p.add_argument("--no-brand", action="store_true",
+                   help="Bỏ brand mark 'BìnhPhan IQI' góc trên phải (dùng cho kênh khác, VD Bình Mê Nhà)")
     args = p.parse_args()
 
     if args.white:
@@ -240,6 +276,10 @@ def main():
         print(f"ERROR: photo not found: {args.photo}", file=sys.stderr)
         sys.exit(1)
 
+    overlay_rgb = (0, 0, 0)
+    if args.overlay_color:
+        overlay_rgb = tuple(int(c) for c in args.overlay_color.split(","))
+
     add_overlay(
         photo_path      = args.photo,
         hook_text       = args.text,
@@ -248,6 +288,9 @@ def main():
         eyebrow         = args.eyebrow,
         position        = args.position,
         no_person       = args.no_person,
+        overlay_rgb     = overlay_rgb,
+        overlay_opacity = args.overlay_opacity,
+        no_brand        = args.no_brand,
     )
 
 

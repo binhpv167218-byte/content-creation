@@ -159,7 +159,7 @@ def get_due_posts(env: dict, now_vn: datetime, window_max=10) -> list:
     records = []
     offset = None
     while True:
-        params = {"fields[]": ["Slug", "Nội dung", "Tiêu đề", "Format", "Platform",
+        params = {"fields[]": ["Slug", "Nội dung", "Nội dung BMN", "Slide URLs BMN", "Comment Text", "Tiêu đề", "Format", "Platform",
                                 "Đăng lúc", "Ngày đăng", "Status", "Slide URLs", "Ảnh URL", "Ảnh",
                                 "Link", "Board Id"]}
         if offset:
@@ -232,22 +232,16 @@ def fb_post_single(token: str, caption: str, img_url: str, dry_run=False) -> str
     return result.get("post_id", result["id"])
 
 
-def fb_post_carousel(token: str, caption: str, slide_urls: list, dry_run=False) -> str:
+def fb_post_comment(token: str, post_id: str, comment_text: str, dry_run=False) -> str:
     if dry_run:
-        return "dry-run-carousel"
-    photo_ids = []
-    for url in slide_urls:
-        pid = fb_upload_photo(token, url)
-        photo_ids.append(pid)
-        time.sleep(0.5)
-    attached = [{"media_fbid": pid} for pid in photo_ids]
+        return "dry-run-comment"
     r = requests.post(
-        "https://graph.facebook.com/v19.0/me/feed",
-        data={"message": caption, "attached_media": json.dumps(attached), "access_token": token},
+        f"https://graph.facebook.com/v19.0/{post_id}/comments",
+        data={"message": comment_text, "access_token": token},
     )
     data = r.json()
     if "id" not in data:
-        raise RuntimeError(f"Đăng carousel thất bại: {data}")
+        raise RuntimeError(f"Comment thất bại: {data}")
     return data["id"]
 
 
@@ -426,14 +420,23 @@ def notify_telegram(env: dict, slug: str, verified: dict, title: str = "", link:
 # ── Publish 1 post ────────────────────────────────────────────────────────────
 
 def publish_post(env: dict, rec: dict, dry_run=False) -> dict:
-    fields     = rec["fields"]
-    caption    = fields.get("Nội dung", "")
+    fields      = rec["fields"]
+    caption     = fields.get("Nội dung", "")
+    caption_bmn = fields.get("Nội dung BMN") or caption
+    comment_text = fields.get("Comment Text", "")
+    comment_bmn  = fields.get("Link", "")  # BMN: content đã đủ, comment chỉ cần link
     title      = fields.get("Tiêu đề", "")
     link       = fields.get("Link", "")
     board_id   = fields.get("Board Id", "")
     platforms  = fields.get("Platform", [])
     fmt        = fields.get("Format", "")
     slide_urls = json.loads(fields.get("Slide URLs", "[]"))
+    slides_bmn_raw = fields.get("Slide URLs BMN", "")
+    # Ảnh thật dự án, không lẫn slide 1 title card (chữ đè ảnh) của DANANGHOME
+    slides_bmn = json.loads(slides_bmn_raw) if slides_bmn_raw else []
+    if not slides_bmn:
+        slides_bmn = slide_urls[1:] or slide_urls
+    slides_bmn = slides_bmn[:1]  # BMN luôn 1 ảnh, không carousel
 
     # Ảnh attachment field — dùng cho Video Market khi Slide URLs rỗng
     anh_attachments = fields.get("Ảnh", []) or []
@@ -451,10 +454,16 @@ def publish_post(env: dict, rec: dict, dry_run=False) -> dict:
         video_url = slide_urls[0] if slide_urls else anh_url
         if fb_bmn and any(p in platforms for p in ["BMN", "Facebook BMN", "Facebook", "FB Bình Phan"]):
             try:
-                pid = fb_post_video(fb_bmn, caption, video_url, dry_run)
+                pid = fb_post_video(fb_bmn, caption_bmn, video_url, dry_run)
                 results["Facebook BMN"] = f"https://facebook.com/{pid}"
             except Exception as e:
                 results["Facebook BMN"] = f"LỖI: {e}"
+                pid = None
+            if pid and comment_bmn:
+                try:
+                    fb_post_comment(fb_bmn, pid, comment_bmn, dry_run)
+                except Exception as e:
+                    print(f"   ⚠️  Post BMN thành công nhưng comment lỗi: {e}")
         if "TikTok" in platforms and buf:
             try:
                 pid = buffer_post_video(BUFFER_TIKTOK, caption, video_url, buf, dry_run)
@@ -468,14 +477,17 @@ def publish_post(env: dict, rec: dict, dry_run=False) -> dict:
     # Nhận "Facebook BMN" / "FB Bình Phan" (mới) hoặc "Facebook" (backward compat)
     post_bmn = fb_bmn and any(p in platforms for p in ["BMN", "Facebook BMN", "Facebook", "FB Bình Phan"])
     if post_bmn:
+        pid = None
         try:
-            if is_carousel:
-                pid = fb_post_carousel(fb_bmn, caption, slide_urls, dry_run)
-            else:
-                pid = fb_post_single(fb_bmn, caption, slide_urls[0], dry_run)
+            pid = fb_post_single(fb_bmn, caption_bmn, slides_bmn[0], dry_run)
             results["Facebook BMN"] = f"https://facebook.com/{pid}"
         except Exception as e:
             results["Facebook BMN"] = f"LỖI: {e}"
+        if pid and comment_bmn:
+            try:
+                fb_post_comment(fb_bmn, pid, comment_bmn, dry_run)
+            except Exception as e:
+                print(f"   ⚠️  Post BMN thành công nhưng comment lỗi: {e}")
 
     # TikTok (carousel only)
     if "TikTok" in platforms and is_carousel and buf:
@@ -549,7 +561,7 @@ def get_posts_by_slug(env: dict, slugs: list) -> list:
         f"https://api.airtable.com/v0/{at_base}/tbll5ikhBQPeak8xR",
         headers={"Authorization": f"Bearer {at_key}"},
         params={"filterByFormula": formula,
-                "fields[]": ["Slug", "Nội dung", "Tiêu đề", "Format", "Platform",
+                "fields[]": ["Slug", "Nội dung", "Nội dung BMN", "Slide URLs BMN", "Comment Text", "Tiêu đề", "Format", "Platform",
                              "Đăng lúc", "Ngày đăng", "Status", "Slide URLs", "Ảnh URL", "Ảnh",
                              "Link", "Board Id"]},
     )
