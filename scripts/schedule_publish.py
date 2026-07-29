@@ -232,19 +232,6 @@ def fb_post_single(token: str, caption: str, img_url: str, dry_run=False) -> str
     return result.get("post_id", result["id"])
 
 
-def fb_post_comment(token: str, post_id: str, comment_text: str, dry_run=False) -> str:
-    if dry_run:
-        return "dry-run-comment"
-    r = requests.post(
-        f"https://graph.facebook.com/v19.0/{post_id}/comments",
-        data={"message": comment_text, "access_token": token},
-    )
-    data = r.json()
-    if "id" not in data:
-        raise RuntimeError(f"Comment thất bại: {data}")
-    return data["id"]
-
-
 # ── Buffer helper ─────────────────────────────────────────────────────────────
 
 def buffer_post(channel_id: str, caption: str, slide_urls: list, buffer_token: str, metadata: dict = None, dry_run=False) -> str:
@@ -424,7 +411,6 @@ def publish_post(env: dict, rec: dict, dry_run=False) -> dict:
     caption     = fields.get("Nội dung", "")
     caption_bmn = fields.get("Nội dung BMN") or caption
     comment_text = fields.get("Comment Text", "")
-    comment_bmn  = fields.get("Link", "")  # BMN: content đã đủ, comment chỉ cần link
     title      = fields.get("Tiêu đề", "")
     link       = fields.get("Link", "")
     board_id   = fields.get("Board Id", "")
@@ -459,11 +445,6 @@ def publish_post(env: dict, rec: dict, dry_run=False) -> dict:
             except Exception as e:
                 results["Facebook BMN"] = f"LỖI: {e}"
                 pid = None
-            if pid and comment_bmn:
-                try:
-                    fb_post_comment(fb_bmn, pid, comment_bmn, dry_run)
-                except Exception as e:
-                    print(f"   ⚠️  Post BMN thành công nhưng comment lỗi: {e}")
         if "TikTok" in platforms and buf:
             try:
                 pid = buffer_post_video(BUFFER_TIKTOK, caption, video_url, buf, dry_run)
@@ -483,11 +464,6 @@ def publish_post(env: dict, rec: dict, dry_run=False) -> dict:
             results["Facebook BMN"] = f"https://facebook.com/{pid}"
         except Exception as e:
             results["Facebook BMN"] = f"LỖI: {e}"
-        if pid and comment_bmn:
-            try:
-                fb_post_comment(fb_bmn, pid, comment_bmn, dry_run)
-            except Exception as e:
-                print(f"   ⚠️  Post BMN thành công nhưng comment lỗi: {e}")
 
     # TikTok (carousel only)
     if "TikTok" in platforms and is_carousel and buf:
@@ -613,6 +589,10 @@ def main():
         print(f"\n{icon} Đăng: {slug}")
 
         results = publish_post(env, rec, args.dry_run)
+
+        if not results:
+            print(f"  ⏭️  Platform không thuộc pipeline này ({rec['fields'].get('Platform')}) — bỏ qua, giữ Scheduled")
+            continue
 
         for k, v in results.items():
             icon_r = "✅" if "LỖI" not in v else "❌"
