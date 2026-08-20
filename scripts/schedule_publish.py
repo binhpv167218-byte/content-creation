@@ -31,6 +31,16 @@ BUFFER_DANANGHOME_PINTEREST = "6a55ebc180cc80cdcaafd7e7"
 BUFFER_DANANGHOME_LINKEDIN  = "6a637b7de2638b94d7c8d08c"
 BUFFER_DANANGHOME_GBP       = "6a54582b80cc80cdcaa92412"
 
+# dananghome.com — Facebook Page: account Buffer RIÊNG (không chung org với 3 kênh trên),
+# dùng token BUFFER_ACCESS_TOKEN_DANANGHOME_FB
+BUFFER_DANANGHOME_FACEBOOK  = "6a86753cccaf649a67dd9b93"
+
+# Facebook cá nhân Bình Mê Nhà — CÙNG account Buffer với Facebook DANANGHOME
+# (cùng token BUFFER_ACCESS_TOKEN_DANANGHOME_FB, channel riêng). Thay thế hoàn
+# toàn cách đăng cũ qua Graph API token FACEBOOK_TOKEN_BINH_ME_NHA (đã chết,
+# app Meta bị xoá, code 190 — 2026-08-20).
+BUFFER_BMN_FACEBOOK         = "6a86753cccaf649a67dd9b94"
+
 
 def summarize_for_threads(caption: str, perplexity_key: str, limit: int = 490) -> str:
     """Dùng Perplexity sonar-pro tóm tắt caption xuống dưới `limit` ký tự."""
@@ -66,19 +76,6 @@ def summarize_for_threads(caption: str, perplexity_key: str, limit: int = 490) -
 
 # ── Verification helpers ───────────────────────────────────────────────────────
 
-def verify_facebook(token: str, post_url: str) -> bool:
-    try:
-        pid = post_url.split("facebook.com/")[-1].strip("/")
-        r = requests.get(
-            f"https://graph.facebook.com/v19.0/{pid}",
-            params={"fields": "id", "access_token": token},
-            timeout=10,
-        )
-        return "id" in r.json()
-    except Exception:
-        return False
-
-
 def verify_buffer(buffer_token: str, post_value: str) -> tuple:
     """Returns (verified: bool, url: str)."""
     if not post_value or "LỖI" in post_value:
@@ -112,16 +109,16 @@ def verify_buffer(buffer_token: str, post_value: str) -> tuple:
 
 
 def verify_results(env: dict, results: dict) -> dict:
-    fb_bmn = env.get("FACEBOOK_TOKEN_BINH_ME_NHA", "")
-    buf    = env.get("BUFFER_ACCESS_TOKEN", "")
+    buf       = env.get("BUFFER_ACCESS_TOKEN", "")
+    buf_dh_fb = env.get("BUFFER_ACCESS_TOKEN_DANANGHOME_FB", "")
     verified = {}
     for platform, value in results.items():
         if "LỖI" in value:
             verified[platform] = value
             continue
-        if platform in ("BMN", "Facebook BMN", "Facebook", "FB Bình Phan"):
-            ok = verify_facebook(fb_bmn, value)
-            verified[platform] = value if ok else f"⚠️ CHƯA XÁC MINH: {value}"
+        if platform in ("Facebook BMN", "Facebook DANANGHOME"):
+            ok, url = verify_buffer(buf_dh_fb, value)
+            verified[platform] = url if ok else f"⚠️ CHƯA XÁC MINH: {url}"
         elif platform in ("Instagram", "TikTok", "Threads", "Pinterest", "LinkedIn", "GoogleBusiness"):
             ok, url = verify_buffer(buf, value)
             verified[platform] = url if ok else f"⚠️ CHƯA XÁC MINH: {url}"
@@ -206,32 +203,6 @@ def get_due_posts(env: dict, now_vn: datetime, window_max=10) -> list:
     return due
 
 
-# ── Facebook helpers ──────────────────────────────────────────────────────────
-
-def fb_upload_photo(token: str, img_url: str) -> str:
-    r = requests.post(
-        "https://graph.facebook.com/v19.0/me/photos",
-        data={"url": img_url, "published": "false", "access_token": token},
-    )
-    data = r.json()
-    if "id" not in data:
-        raise RuntimeError(f"Upload ảnh thất bại: {data}")
-    return data["id"]
-
-
-def fb_post_single(token: str, caption: str, img_url: str, dry_run=False) -> str:
-    if dry_run:
-        return "dry-run-single"
-    r = requests.post(
-        "https://graph.facebook.com/v19.0/me/photos",
-        data={"url": img_url, "message": caption, "published": "true", "access_token": token},
-    )
-    result = r.json()
-    if "id" not in result:
-        raise RuntimeError(f"Đăng ảnh thất bại: {result}")
-    return result.get("post_id", result["id"])
-
-
 # ── Buffer helper ─────────────────────────────────────────────────────────────
 
 def buffer_post(channel_id: str, caption: str, slide_urls: list, buffer_token: str, metadata: dict = None, dry_run=False) -> str:
@@ -274,23 +245,7 @@ def buffer_post(channel_id: str, caption: str, slide_urls: list, buffer_token: s
     return post.get("url") or post_id
 
 
-# ── Facebook video ────────────────────────────────────────────────────────────
-
-def fb_post_video(token: str, caption: str, video_url: str, dry_run=False) -> str:
-    if dry_run:
-        return "dry-run-video"
-    data = {
-        "file_url": video_url,
-        "description": caption,
-        "published": "true",
-        "access_token": token,
-    }
-    r = requests.post("https://graph.facebook.com/v19.0/me/videos", data=data, timeout=60)
-    result = r.json()
-    if "id" not in result:
-        raise RuntimeError(f"FB video lỗi: {result}")
-    return result.get("post_id", result["id"])
-
+# ── Facebook video (qua Buffer) ──────────────────────────────────────────────
 
 def buffer_post_video(channel_id: str, caption: str, video_url: str, buffer_token: str, dry_run=False) -> str:
     if dry_run:
@@ -344,7 +299,7 @@ def update_airtable(env: dict, rec_id: str, results: dict):
         "Ghi chú":  f"Tự đăng lúc {now.strftime('%d/%m/%Y %H:%M')}\n{notes}",
     }
     # Lưu platform IDs để evening summary có thể lấy link
-    fb_url = results.get("Facebook BMN", results.get("FB Bình Phan", results.get("Facebook", "")))
+    fb_url = results.get("Facebook BMN", "")
     if fb_url and "LỖI" not in fb_url and "facebook.com/" in fb_url:
         fields["Facebook ID"] = fb_url.split("facebook.com/")[-1].strip("/")
     if "Instagram" in results and "LỖI" not in results["Instagram"]:
@@ -432,19 +387,18 @@ def publish_post(env: dict, rec: dict, dry_run=False) -> dict:
     is_carousel = len(slide_urls) > 1
     results = {}
 
-    fb_bmn = env.get("FACEBOOK_TOKEN_BINH_ME_NHA", "")
-    buf    = env.get("BUFFER_ACCESS_TOKEN", "")
+    buf       = env.get("BUFFER_ACCESS_TOKEN", "")
+    buf_dh_fb = env.get("BUFFER_ACCESS_TOKEN_DANANGHOME_FB", "")
 
     # ── Video Market ──────────────────────────────────────────────────────────
     if is_video and (slide_urls or anh_url):
         video_url = slide_urls[0] if slide_urls else anh_url
-        if fb_bmn and any(p in platforms for p in ["BMN", "Facebook BMN", "Facebook", "FB Bình Phan"]):
+        if "Facebook BMN" in platforms and buf_dh_fb:
             try:
-                pid = fb_post_video(fb_bmn, caption_bmn, video_url, dry_run)
-                results["Facebook BMN"] = f"https://facebook.com/{pid}"
+                pid = buffer_post_video(BUFFER_BMN_FACEBOOK, caption_bmn, video_url, buf_dh_fb, dry_run)
+                results["Facebook BMN"] = pid
             except Exception as e:
                 results["Facebook BMN"] = f"LỖI: {e}"
-                pid = None
         if "TikTok" in platforms and buf:
             try:
                 pid = buffer_post_video(BUFFER_TIKTOK, caption, video_url, buf, dry_run)
@@ -454,14 +408,12 @@ def publish_post(env: dict, rec: dict, dry_run=False) -> dict:
         return results
 
     # ── Image / Carousel ─────────────────────────────────────────────────────
-    # Facebook Bình Mê Nhà — đăng tất cả loại nội dung
-    # Nhận "Facebook BMN" / "FB Bình Phan" (mới) hoặc "Facebook" (backward compat)
-    post_bmn = fb_bmn and any(p in platforms for p in ["BMN", "Facebook BMN", "Facebook", "FB Bình Phan"])
-    if post_bmn:
-        pid = None
+    # Facebook Bình Mê Nhà — qua Buffer, cùng account/token với Facebook DANANGHOME
+    if "Facebook BMN" in platforms and buf_dh_fb:
         try:
-            pid = fb_post_single(fb_bmn, caption_bmn, slides_bmn[0], dry_run)
-            results["Facebook BMN"] = f"https://facebook.com/{pid}"
+            pid = buffer_post(BUFFER_BMN_FACEBOOK, caption_bmn, slides_bmn, buf_dh_fb,
+                               metadata={"facebook": {"type": "post"}}, dry_run=dry_run)
+            results["Facebook BMN"] = pid
         except Exception as e:
             results["Facebook BMN"] = f"LỖI: {e}"
 
@@ -522,6 +474,19 @@ def publish_post(env: dict, rec: dict, dry_run=False) -> dict:
             results["GoogleBusiness"] = pid
         except Exception as e:
             results["GoogleBusiness"] = f"LỖI: {e}"
+
+    # dananghome.com — Facebook Page (account Buffer riêng, token buf_dh_fb)
+    if "Facebook DANANGHOME" in platforms and buf_dh_fb and (slide_urls or anh_url):
+        fb_assets = slide_urls if slide_urls else [anh_url]
+        fb_metadata = {"facebook": {"type": "post"}}
+        if comment_text:
+            fb_metadata["facebook"]["firstComment"] = comment_text
+        try:
+            pid = buffer_post(BUFFER_DANANGHOME_FACEBOOK, caption, fb_assets, buf_dh_fb,
+                               metadata=fb_metadata, dry_run=dry_run)
+            results["Facebook DANANGHOME"] = pid
+        except Exception as e:
+            results["Facebook DANANGHOME"] = f"LỖI: {e}"
 
     return results
 
