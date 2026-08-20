@@ -86,7 +86,7 @@ def verify_buffer(buffer_token: str, post_value: str) -> tuple:
     }
     """
     try:
-        for wait_s in (3, 5, 8):  # "sending" là trạng thái transient, retry trước khi kết luận lỗi
+        for wait_s in (5, 8, 13, 21, 30):  # "sending" là trạng thái transient, retry trước khi kết luận lỗi (tổng ~77s)
             time.sleep(wait_s)
             r = requests.post(
                 BUFFER_GQL,
@@ -292,7 +292,9 @@ def update_airtable(env: dict, rec_id: str, results: dict):
     now     = datetime.utcnow() + timedelta(hours=7)  # Vietnam time
 
     notes    = "\n".join([f"{k}: {v}" for k, v in results.items()])
-    has_loi  = any("LỖI" in v or "CHƯA XÁC MINH" in v for v in results.values())
+    # "CHƯA XÁC MINH" nghĩa là đã tạo bài thành công (có post ID), chỉ chưa kịp xác nhận Buffer
+    # chuyển "sending" → "sent" trong lúc retry — KHÔNG phải lỗi thật, không được coi ngang LỖI.
+    has_loi  = any("LỖI" in v for v in results.values())
     fields = {
         "Status":   "Lỗi" if has_loi else "Published",
         "Đăng lúc": now.strftime("%d/%m/%Y %H:%M"),
